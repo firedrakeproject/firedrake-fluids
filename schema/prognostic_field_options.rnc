@@ -1,0 +1,129 @@
+prognostic_scalar_field =
+   (
+      ## Spatial discretisation options.
+      element spatial_discretisation {
+         (
+            ## Continuous galerkin assembly.
+            element continuous_galerkin {
+               element streamline_upwind_stabilisation {
+                  comment
+               }?,
+               ## Discretisation options for the mass term.
+               element mass_term {
+                  ## Remove the mass term from the equation.
+                  element exclude_mass_term {
+                     empty
+                  }?
+               },
+               ## Discretisation options for the advection term.
+               element advection_term {
+                  ## Remove the mass terms from the equation.
+                  element exclude_advection_term {
+                     empty
+                  }?
+               }
+            }
+         )
+      },
+      element initial_condition {
+         attribute name { "WholeMesh" },
+         input_choice_real
+      },
+      ## Boundary conditions
+      element boundary_conditions {
+         attribute name { string },
+         scalar_boundary_condition
+      }*,
+      ## Source term.
+      element scalar_field {
+         attribute name { "Source" },
+         attribute rank { "0" },
+         (
+            element prescribed {
+               prescribed_scalar_field
+            }
+         )
+      }?
+   )
+
+prognostic_vector_field =
+   (
+      ## Spatial discretisation options.
+      element spatial_discretisation {
+         (
+            ## Continuous galerkin assembly.
+            element continuous_galerkin {
+               element streamline_upwind_stabilisation {
+                  comment
+               }?,
+               ## Discretisation options for the mass term.
+               element mass_term {
+                  ## Remove the mass term from the equation.
+                  element exclude_mass_term {
+                     empty
+                  }?
+               },
+               ## Discretisation options for the advection term.
+               element advection_term {
+                  ## Remove the mass terms from the equation.
+                  element exclude_advection_term {
+                     empty
+                  }?
+               }
+            }
+         )
+      },
+      element initial_condition {
+         attribute name { "WholeMesh" },
+         input_choice_real_dim_vector
+      },
+      ## Boundary conditions
+      element boundary_conditions {
+         attribute name { string },
+         vector_boundary_condition
+      }*,
+      ## Source term.
+      element vector_field {
+         attribute name { "Source" },
+         attribute rank { "1" },
+         (
+            element prescribed {
+               prescribed_vector_field
+            }
+         )
+      }?,
+      ## Viscosity.
+      element viscosity {
+         real
+      }?
+   )
+
+scalar_boundary_condition =
+   (
+      (
+         element type {
+            attribute name { "dirichlet" },
+            ## Apply the dirichlet bc weakly.
+            ## If not selected boundary conditions are applied strongly.
+            element apply_weakly {
+               comment
+            }?,
+            input_choice_real
+         }
+      )
+   )
+
+vector_boundary_condition =
+   (
+      (
+         element type {
+            attribute name { "dirichlet" },
+            ## Apply the dirichlet bc weakly.
+            ## If not selected boundary conditions are applied strongly.
+            element apply_weakly {
+               comment
+            }?,
+            input_choice_real_dim_vector
+         }
+      )
+   )

@@ -1,0 +1,220 @@
+include "spud_base.rnc"
+
+include "input_options.rnc"
+include "prognostic_field_options.rnc"
+include "prescribed_field_options.rnc"
+
+start =
+   (
+      ## The root node of the options dictionary.
+      element shallow_water_options {
+         comment,
+         ## Model output files are named according to the simulation
+         ## name, e.g. [simulation_name]_0.vtu. Non-standard
+         ## characters in the simulation name should be avoided.
+         element simulation_name {
+            anystring
+         },
+         ## Options dealing with the specification of geometry
+         element geometry {
+            ## Dimension of the problem.
+            ## <b>This can only be set once</b>
+            element dimension {
+               element integer_value {
+                  attribute rank {"0"},
+                  ("1"|"2"|"3")
+               }
+            },
+            ## The position mesh
+            element mesh {
+               (
+                  ## Unit (structured) mesh.
+                  element unit_mesh {
+                     ## Number of nodes along each axis
+                     element number_of_nodes {
+                        integer_dim_vector
+                     },
+                     ## Crossed cells?
+                     element crossed {
+                        comment
+                     }?
+                  }|
+                  ## Input mesh from a file.
+                  element from_file {
+                     element path {
+                        anystring
+                     }
+                  }
+               )
+            }
+         },
+         element function_spaces {
+            ## The function spaces used for various fields.
+            element function_space {
+               ## The position mesh
+               attribute name { "CoordinateFunctionSpace" },
+               function_space_info
+            },
+            element function_space {
+               attribute name { xsd:string },
+               function_space_info
+            }*
+         },
+         ## Input/output options
+         element io {
+            ## Format for dump files. Only vtk for now.
+            element dump_format {
+               element string_value {
+                  "vtk"
+               }
+            },
+            (
+               ## Period between dumps in time units.
+               ##
+               ## Specifies the period between each dump of the solution to disk.
+               ## A value of 0.0 indicates that there would be a dump at every timestep.
+               element dump_period {
+                  (
+                     element constant {
+                        real
+                     }
+                  )  
+               }|                 
+               ## Dump period, in timesteps.
+               ## 
+               ## Specifies the number of timesteps between each dump of the solution to disk.
+               ## A value of 0 indicates a dump at every timestep.
+               element dump_period_in_timesteps {
+                  (
+                     element constant {
+                        integer
+                     }
+                  )   
+               }
+            )
+         },
+         ## Options dealing with time discretisation
+         element timestepping {
+            ## Current simulation time. At the start of the simulation this
+            ## is the start time.
+            element current_time {
+               real
+            },
+            ## The time step size. If adaptive time stepping is used
+            ## then this is the initial time step size.
+            element timestep {
+               real
+            },
+            ## How many nonlinear iterations in the timestepping loop
+            element nonlinear_iterations {
+               integer,
+               element tolerance {
+                  real
+               }
+            },
+            ## Simulation time at which the simulation should end.
+            element finish_time {
+               real
+            },
+            ## Activate if you want to terminate the simulation once a steady state is reached.
+            element steady_state {
+               element tolerance {
+                  real
+               }
+            }?
+         },
+         ## The physical parameters
+         element physical_parameters {
+            element gravity {
+               ## Acceleration due to gravity. This is 9.8 m/s^2 on Earth.
+               element magnitude {
+                  real
+               },
+               ## The direction of the gravity vector.
+               element vector_field {
+                  attribute name { "GravityDirection" },
+                  attribute rank { "1" },
+                  element prescribed {
+                     element mesh {
+                        attribute name { "CoordinateFunctionSpace" }
+                     },
+                     real_dim_vector
+                  }
+               }
+            }
+         },
+         ## The material or phase options.
+         element material_phase {
+            attribute name { "Fluid" },
+            (
+               ## Velocity options (found by solving the momentum equation).
+               element vector_field {
+                  attribute rank { "1" },
+                  attribute name { "Velocity" },
+                  ## Field type
+                  (
+                     element prognostic {
+                        element function_space {
+                           attribute name { "VelocityFunctionSpace" }
+                        },
+                        prognostic_vector_field
+                     }|
+                     element prescribed {
+                        element function_space {
+                           attribute name { "VelocityFunctionSpace" }
+                        },
+                        prescribed_vector_field
+                     }
+                  )
+               },
+               ## The perturbation component of the free surface height.
+               element scalar_field {
+                  attribute rank { "0" },
+                  attribute name { "FreeSurfacePerturbationHeight" },
+                  element prognostic {
+                     element function_space {
+                        attribute name { "FreeSurfaceFunctionSpace" }
+                     },
+                     prognostic_scalar_field
+                  }
+               },
+               ## The mean free surface height.
+               element scalar_field {
+                  attribute rank { "0" },
+                  attribute name { "FreeSurfaceMeanHeight" },
+                  element prescribed {
+                     element function_space {
+                        attribute name { "FreeSurfaceFunctionSpace" }
+                     },
+                     prescribed_scalar_field
+                  }
+               }
+            )
+         }
+      }
+   )
+   
+   
+function_space_info =
+   (
+      element type {
+         element string_value{
+            "scalar" | "vector" | "tensor"
+         }
+      },
+      element polynomial_degree {
+         integer
+      },
+      element element_type {
+         ## Select the element type. "lagrangian" means the usual
+         ## Pn element type.
+         element string_value{
+            "lagrangian"
+         }
+      },
+      element continuity {
+         element string_value{
+            "continuous" | "discontinuous"
+         }
+      }
+   )

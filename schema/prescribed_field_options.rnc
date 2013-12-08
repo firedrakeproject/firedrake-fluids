@@ -1,0 +1,23 @@
+prescribed_scalar_field =
+   (
+      (
+         ## Value for WholeMesh.
+         element value {
+            attribute name { "WholeMesh" },
+            input_choice_real
+         }
+      )
+   )
+
+prescribed_vector_field =
+   (
+      (
+         ## Value for WholeMesh.
+         element value {
+            attribute name { "WholeMesh" },
+            input_choice_real_dim_vector
+         }
+      )
+   )
+
+

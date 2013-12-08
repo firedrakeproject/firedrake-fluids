@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="">
+  <define name="prognostic_scalar_field">
+    <element name="spatial_discretisation">
+      <a:documentation>Spatial discretisation options.</a:documentation>
+      <element name="continuous_galerkin">
+        <a:documentation>Continuous galerkin assembly.</a:documentation>
+        <optional>
+          <element name="streamline_upwind_stabilisation">
+            <ref name="comment"/>
+          </element>
+        </optional>
+        <element name="mass_term">
+          <a:documentation>Discretisation options for the mass term.</a:documentation>
+          <optional>
+            <element name="exclude_mass_term">
+              <a:documentation>Remove the mass term from the equation.</a:documentation>
+              <empty/>
+            </element>
+          </optional>
+        </element>
+        <element name="advection_term">
+          <a:documentation>Discretisation options for the advection term.</a:documentation>
+          <optional>
+            <element name="exclude_advection_term">
+              <a:documentation>Remove the mass terms from the equation.</a:documentation>
+              <empty/>
+            </element>
+          </optional>
+        </element>
+      </element>
+    </element>
+    <element name="initial_condition">
+      <attribute name="name">
+        <value>WholeMesh</value>
+      </attribute>
+      <ref name="input_choice_real"/>
+    </element>
+    <zeroOrMore>
+      <element name="boundary_conditions">
+        <a:documentation>Boundary conditions</a:documentation>
+        <attribute name="name">
+          <data type="string"/>
+        </attribute>
+        <ref name="scalar_boundary_condition"/>
+      </element>
+    </zeroOrMore>
+    <optional>
+      <element name="scalar_field">
+        <a:documentation>Source term.</a:documentation>
+        <attribute name="name">
+          <value>Source</value>
+        </attribute>
+        <attribute name="rank">
+          <value>0</value>
+        </attribute>
+        <element name="prescribed">
+          <ref name="prescribed_scalar_field"/>
+        </element>
+      </element>
+    </optional>
+  </define>
+  <define name="prognostic_vector_field">
+    <element name="spatial_discretisation">
+      <a:documentation>Spatial discretisation options.</a:documentation>
+      <element name="continuous_galerkin">
+        <a:documentation>Continuous galerkin assembly.</a:documentation>
+        <optional>
+          <element name="streamline_upwind_stabilisation">
+            <ref name="comment"/>
+          </element>
+        </optional>
+        <element name="mass_term">
+          <a:documentation>Discretisation options for the mass term.</a:documentation>
+          <optional>
+            <element name="exclude_mass_term">
+              <a:documentation>Remove the mass term from the equation.</a:documentation>
+              <empty/>
+            </element>
+          </optional>
+        </element>
+        <element name="advection_term">
+          <a:documentation>Discretisation options for the advection term.</a:documentation>
+          <optional>
+            <element name="exclude_advection_term">
+              <a:documentation>Remove the mass terms from the equation.</a:documentation>
+              <empty/>
+            </element>
+          </optional>
+        </element>
+      </element>
+    </element>
+    <element name="initial_condition">
+      <attribute name="name">
+        <value>WholeMesh</value>
+      </attribute>
+      <ref name="input_choice_real_dim_vector"/>
+    </element>
+    <zeroOrMore>
+      <element name="boundary_conditions">
+        <a:documentation>Boundary conditions</a:documentation>
+        <attribute name="name">
+          <data type="string"/>
+        </attribute>
+        <ref name="vector_boundary_condition"/>
+      </element>
+    </zeroOrMore>
+    <optional>
+      <element name="vector_field">
+        <a:documentation>Source term.</a:documentation>
+        <attribute name="name">
+          <value>Source</value>
+        </attribute>
+        <attribute name="rank">
+          <value>1</value>
+        </attribute>
+        <element name="prescribed">
+          <ref name="prescribed_vector_field"/>
+        </element>
+      </element>
+    </optional>
+    <optional>
+      <element name="viscosity">
+        <a:documentation>Viscosity.</a:documentation>
+        <ref name="real"/>
+      </element>
+    </optional>
+  </define>
+  <define name="scalar_boundary_condition">
+    <element name="type">
+      <attribute name="name">
+        <value>dirichlet</value>
+      </attribute>
+      <optional>
+        <element name="apply_weakly">
+          <a:documentation>Apply the dirichlet bc weakly.
+If not selected boundary conditions are applied strongly.</a:documentation>
+          <ref name="comment"/>
+        </element>
+      </optional>
+      <ref name="input_choice_real"/>
+    </element>
+  </define>
+  <define name="vector_boundary_condition">
+    <element name="type">
+      <attribute name="name">
+        <value>dirichlet</value>
+      </attribute>
+      <optional>
+        <element name="apply_weakly">
+          <a:documentation>Apply the dirichlet bc weakly.
+If not selected boundary conditions are applied strongly.</a:documentation>
+          <ref name="comment"/>
+        </element>
+      </optional>
+      <ref name="input_choice_real_dim_vector"/>
+    </element>
+  </define>
+</grammar>

@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
+  <include href="spud_base.rng"/>
+  <include href="input_options.rng"/>
+  <include href="prognostic_field_options.rng"/>
+  <include href="prescribed_field_options.rng"/>
+  <start>
+    <element name="shallow_water_options">
+      <a:documentation>The root node of the options dictionary.</a:documentation>
+      <ref name="comment"/>
+      <element name="simulation_name">
+        <a:documentation>Model output files are named according to the simulation
+name, e.g. [simulation_name]_0.vtu. Non-standard
+characters in the simulation name should be avoided.</a:documentation>
+        <ref name="anystring"/>
+      </element>
+      <element name="geometry">
+        <a:documentation>Options dealing with the specification of geometry</a:documentation>
+        <element name="dimension">
+          <a:documentation>Dimension of the problem.
+&lt;b&gt;This can only be set once&lt;/b&gt;</a:documentation>
+          <element name="integer_value">
+            <attribute name="rank">
+              <value>0</value>
+            </attribute>
+            <choice>
+              <value>1</value>
+              <value>2</value>
+              <value>3</value>
+            </choice>
+          </element>
+        </element>
+        <element name="mesh">
+          <a:documentation>The position mesh</a:documentation>
+          <choice>
+            <element name="unit_mesh">
+              <a:documentation>Unit (structured) mesh.</a:documentation>
+              <element name="number_of_nodes">
+                <a:documentation>Number of nodes along each axis</a:documentation>
+                <ref name="integer_dim_vector"/>
+              </element>
+              <optional>
+                <element name="crossed">
+                  <a:documentation>Crossed cells?</a:documentation>
+                  <ref name="comment"/>
+                </element>
+              </optional>
+            </element>
+            <element name="from_file">
+              <a:documentation>Input mesh from a file.</a:documentation>
+              <element name="path">
+                <ref name="anystring"/>
+              </element>
+            </element>
+          </choice>
+        </element>
+      </element>
+      <element name="function_spaces">
+        <element name="function_space">
+          <a:documentation>The function spaces used for various fields.</a:documentation>
+          <attribute name="name">
+            <a:documentation>The position mesh</a:documentation>
+            <value>CoordinateFunctionSpace</value>
+          </attribute>
+          <ref name="function_space_info"/>
+        </element>
+        <zeroOrMore>
+          <element name="function_space">
+            <attribute name="name">
+              <data type="string"/>
+            </attribute>
+            <ref name="function_space_info"/>
+          </element>
+        </zeroOrMore>
+      </element>
+      <element name="io">
+        <a:documentation>Input/output options</a:documentation>
+        <element name="dump_format">
+          <a:documentation>Format for dump files. Only vtk for now.</a:documentation>
+          <element name="string_value">
+            <value>vtk</value>
+          </element>
+        </element>
+        <choice>
+          <element name="dump_period">
+            <a:documentation>Period between dumps in time units.
+
+Specifies the period between each dump of the solution to disk.
+A value of 0.0 indicates that there would be a dump at every timestep.</a:documentation>
+            <element name="constant">
+              <ref name="real"/>
+            </element>
+          </element>
+          <element name="dump_period_in_timesteps">
+            <a:documentation>Dump period, in timesteps.
+
+Specifies the number of timesteps between each dump of the solution to disk.
+A value of 0 indicates a dump at every timestep.</a:documentation>
+            <element name="constant">
+              <ref name="integer"/>
+            </element>
+          </element>
+        </choice>
+      </element>
+      <element name="timestepping">
+        <a:documentation>Options dealing with time discretisation</a:documentation>
+        <element name="current_time">
+          <a:documentation>Current simulation time. At the start of the simulation this
+is the start time.</a:documentation>
+          <ref name="real"/>
+        </element>
+        <element name="timestep">
+          <a:documentation>The time step size. If adaptive time stepping is used
+then this is the initial time step size.</a:documentation>
+          <ref name="real"/>
+        </element>
+        <element name="nonlinear_iterations">
+          <a:documentation>How many nonlinear iterations in the timestepping loop</a:documentation>
+          <ref name="integer"/>
+          <element name="tolerance">
+            <ref name="real"/>
+          </element>
+        </element>
+        <element name="finish_time">
+          <a:documentation>Simulation time at which the simulation should end.</a:documentation>
+          <ref name="real"/>
+        </element>
+        <optional>
+          <element name="steady_state">
+            <a:documentation>Activate if you want to terminate the simulation once a steady state is reached.</a:documentation>
+            <element name="tolerance">
+              <ref name="real"/>
+            </element>
+          </element>
+        </optional>
+      </element>
+      <element name="physical_parameters">
+        <a:documentation>The physical parameters</a:documentation>
+        <element name="gravity">
+          <element name="magnitude">
+            <a:documentation>Acceleration due to gravity. This is 9.8 m/s^2 on Earth.</a:documentation>
+            <ref name="real"/>
+          </element>
+          <element name="vector_field">
+            <a:documentation>The direction of the gravity vector.</a:documentation>
+            <attribute name="name">
+              <value>GravityDirection</value>
+            </attribute>
+            <attribute name="rank">
+              <value>1</value>
+            </attribute>
+            <element name="prescribed">
+              <element name="mesh">
+                <attribute name="name">
+                  <value>CoordinateFunctionSpace</value>
+                </attribute>
+              </element>
+              <ref name="real_dim_vector"/>
+            </element>
+          </element>
+        </element>
+      </element>
+      <element name="material_phase">
+        <a:documentation>The material or phase options.</a:documentation>
+        <attribute name="name">
+          <value>Fluid</value>
+        </attribute>
+        <group>
+          <element name="vector_field">
+            <a:documentation>Velocity options (found by solving the momentum equation).</a:documentation>
+            <attribute name="rank">
+              <value>1</value>
+            </attribute>
+            <attribute name="name">
+              <value>Velocity</value>
+            </attribute>
+            <choice>
+              <a:documentation>Field type</a:documentation>
+              <element name="prognostic">
+                <element name="function_space">
+                  <attribute name="name">
+                    <value>VelocityFunctionSpace</value>
+                  </attribute>
+                </element>
+                <ref name="prognostic_vector_field"/>
+              </element>
+              <element name="prescribed">
+                <element name="function_space">
+                  <attribute name="name">
+                    <value>VelocityFunctionSpace</value>
+                  </attribute>
+                </element>
+                <ref name="prescribed_vector_field"/>
+              </element>
+            </choice>
+          </element>
+          <element name="scalar_field">
+            <a:documentation>The perturbation component of the free surface height.</a:documentation>
+            <attribute name="rank">
+              <value>0</value>
+            </attribute>
+            <attribute name="name">
+              <value>FreeSurfacePerturbationHeight</value>
+            </attribute>
+            <element name="prognostic">
+              <element name="function_space">
+                <attribute name="name">
+                  <value>FreeSurfaceFunctionSpace</value>
+                </attribute>
+              </element>
+              <ref name="prognostic_scalar_field"/>
+            </element>
+          </element>
+          <element name="scalar_field">
+            <a:documentation>The mean free surface height.</a:documentation>
+            <attribute name="rank">
+              <value>0</value>
+            </attribute>
+            <attribute name="name">
+              <value>FreeSurfaceMeanHeight</value>
+            </attribute>
+            <element name="prescribed">
+              <element name="function_space">
+                <attribute name="name">
+                  <value>FreeSurfaceFunctionSpace</value>
+                </attribute>
+              </element>
+              <ref name="prescribed_scalar_field"/>
+            </element>
+          </element>
+        </group>
+      </element>
+    </element>
+  </start>
+  <define name="function_space_info">
+    <element name="type">
+      <element name="string_value">
+        <choice>
+          <value>scalar</value>
+          <value>vector</value>
+          <value>tensor</value>
+        </choice>
+      </element>
+    </element>
+    <element name="polynomial_degree">
+      <ref name="integer"/>
+    </element>
+    <element name="element_type">
+      <element name="string_value">
+        <a:documentation>Select the element type. "lagrangian" means the usual
+Pn element type.</a:documentation>
+        <value>lagrangian</value>
+      </element>
+    </element>
+    <element name="continuity">
+      <element name="string_value">
+        <choice>
+          <value>continuous</value>
+          <value>discontinuous</value>
+        </choice>
+      </element>
+    </element>
+  </define>
+</grammar>
