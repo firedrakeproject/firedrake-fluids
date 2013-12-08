@@ -73,6 +73,10 @@ def solve_shallow_water(mesh, function_spaces):
    H = function_spaces["FreeSurfaceFunctionSpace"]
    W = MixedFunctionSpace([U for dim in range(dimension)] + [H])
    
+   # The solution field defined on the mixed function space
+   solution = Function(W)
+   output_function = Function(H)
+   
    # Define the compulsory shallow water fields
    u_old = [Function(U) for dim in range(dimension)]
    h_old = Function(H)
@@ -268,24 +272,26 @@ def solve_shallow_water(mesh, function_spaces):
             bcs.append(bc)
             
          # Solve the system of equations!
-         solution = Function(W)
          solve(a == L, solution, bcs)
          fields = solution.split()
          u_tent = fields[0:-1]; h_tent = fields[-1]
 
-         #diff = abs(u_tent[0].vector().array() - u_k[0].vector().array())
-         #eps = numpy.linalg.norm(diff, ord=numpy.Inf)
-         #print 'iter=%d: norm=%g\n\n' % (iter, eps)
+         diff = abs(u_tent[0].vector().array() - u_k[0].vector().array())
+         eps = numpy.linalg.norm(diff, ord=numpy.Inf)
+         print 'Iteration %d: Norm=%g\n\n' % (iter, eps)
 
          for dim in range(0, dimension):
             u_k[dim] = u_tent[dim]
          h_k = h_tent
          
+      # Write the solution to a file.
       print "Writing data to file..."
-
-      if(t > 1.0):
+      output_function.assign(project(h_k, H))
+      output_file << output_function
+      
+      # Check whether a steady-state has been reached.
+      if(max(abs(h_k.vector().array() - h_old.vector().array())) <= steady_state_tolerance):
          print "Steady-state attained. Exiting the time-stepping loop..."
-         output_file << h_k
          break
 
       # Move to next time step
