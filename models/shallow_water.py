@@ -91,7 +91,8 @@ def solve_shallow_water(mesh, function_spaces):
       u_old[dim].interpolate(Expression(u_initial[dim]))
    
    # Write initial condition to file
-   #output_file << h_old
+   output_function.assign(h_old)
+   output_file << output_function
 
    # Get time-stepping parameters
    T = libspud.get_option("/timestepping/finish_time")
@@ -170,7 +171,7 @@ def solve_shallow_water(mesh, function_spaces):
       while eps > nlit_tolerance and iter < max_nlit:
          iter += 1
          
-         # The collection of all the individual terms in their weak form
+         # The collection of all the individual terms in their weak form.
          F = 0
 
          # Mass term
@@ -185,6 +186,7 @@ def solve_shallow_water(mesh, function_spaces):
             integrate_advection_by_parts = False
             A_momentum = 0
             if(integrate_advection_by_parts):
+               raise NotImplementedError("Integration of the advection term by parts is not yet supported.")
                for dim in range(0, dimension):
                   outflow = (dot(u_k[dim], n[dim]) + abs(dot(u_k[dim], n[dim])))/2.0
                   #expression = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[0]/type::dirichlet")
@@ -304,15 +306,17 @@ def solve_shallow_water(mesh, function_spaces):
    print "Out of the time-stepping loop."
    
    # Compute the error for MMS tests
-   ue = Expression("sin(x[0])*sin(x[1])", element = H.ufl_element())   
-   t = TestFunction(H)
-   b = TrialFunction(H)
-   err = Function(H)
-   test = Function(H)
-   a = inner(t, b)*dx
-   L = inner(t, test.interpolate(ue) - project(h_old, H))*dx
-   solve(a == L, err)
-   print max(abs(err.vector().array()))
+   mms = False
+   if(mms):
+      ue = Expression("sin(x[0])*sin(x[1])", element = H.ufl_element())   
+      t = TestFunction(H)
+      b = TrialFunction(H)
+      err = Function(H)
+      test = Function(H)
+      a = inner(t, b)*dx
+      L = inner(t, test.interpolate(ue) - project(h_old, H))*dx
+      solve(a == L, err)
+      print max(abs(err.vector().array()))
    
 
 if(__name__ == "__main__"):
