@@ -188,7 +188,22 @@ start =
                      },
                      prescribed_scalar_field
                   }
-               }
+               },
+               ## The drag coefficient in the quadratic free surface drag term.
+               ## Enabling this field enables the drag term.
+               element scalar_field {
+                  attribute rank { "0" },
+                  attribute name { "DragCoefficient" },
+                  element prescribed {
+                     element function_space {
+                        attribute name { "FreeSurfaceFunctionSpace" }
+                     },
+                     prescribed_scalar_field
+                  }
+               }?,
+               element integrate_continuity_equation_by_parts {
+                  empty
+               }?
             )
          }
       }

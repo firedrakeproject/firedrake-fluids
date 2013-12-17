@@ -22,6 +22,12 @@
         <element name="advection_term">
           <a:documentation>Discretisation options for the advection term.</a:documentation>
           <optional>
+            <element name="integrate_advection_term_by_parts">
+              <a:documentation>Integrate the advection term by parts.</a:documentation>
+              <empty/>
+            </element>
+          </optional>
+          <optional>
             <element name="exclude_advection_term">
               <a:documentation>Remove the mass terms from the equation.</a:documentation>
               <empty/>
@@ -82,6 +88,12 @@
         <element name="advection_term">
           <a:documentation>Discretisation options for the advection term.</a:documentation>
           <optional>
+            <element name="integrate_advection_term_by_parts">
+              <a:documentation>Integrate the advection term by parts.</a:documentation>
+              <empty/>
+            </element>
+          </optional>
+          <optional>
             <element name="exclude_advection_term">
               <a:documentation>Remove the mass terms from the equation.</a:documentation>
               <empty/>
@@ -127,6 +139,10 @@
     </optional>
   </define>
   <define name="scalar_boundary_condition">
+    <element name="surface_ids">
+      <a:documentation>Surface IDs:</a:documentation>
+      <ref name="integer_vector"/>
+    </element>
     <element name="type">
       <attribute name="name">
         <value>dirichlet</value>
@@ -142,6 +158,10 @@ If not selected boundary conditions are applied strongly.</a:documentation>
     </element>
   </define>
   <define name="vector_boundary_condition">
+    <element name="surface_ids">
+      <a:documentation>Surface IDs:</a:documentation>
+      <ref name="integer_vector"/>
+    </element>
     <element name="type">
       <attribute name="name">
         <value>dirichlet</value>

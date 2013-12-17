@@ -17,6 +17,10 @@ prognostic_scalar_field =
                },
                ## Discretisation options for the advection term.
                element advection_term {
+                  ## Integrate the advection term by parts.
+                  element integrate_advection_term_by_parts {
+                     empty
+                  }?,
                   ## Remove the mass terms from the equation.
                   element exclude_advection_term {
                      empty
@@ -65,6 +69,10 @@ prognostic_vector_field =
                },
                ## Discretisation options for the advection term.
                element advection_term {
+                  ## Integrate the advection term by parts.
+                  element integrate_advection_term_by_parts {
+                     empty
+                  }?,
                   ## Remove the mass terms from the equation.
                   element exclude_advection_term {
                      empty
@@ -101,6 +109,10 @@ prognostic_vector_field =
 scalar_boundary_condition =
    (
       (
+         ## Surface IDs:
+         element surface_ids {
+            integer_vector
+         },
          element type {
             attribute name { "dirichlet" },
             ## Apply the dirichlet bc weakly.
@@ -116,6 +128,10 @@ scalar_boundary_condition =
 vector_boundary_condition =
    (
       (
+         ## Surface IDs:
+         element surface_ids {
+            integer_vector
+         },
          element type {
             attribute name { "dirichlet" },
             ## Apply the dirichlet bc weakly.
@@ -127,3 +143,4 @@ vector_boundary_condition =
          }
       )
    )
+   

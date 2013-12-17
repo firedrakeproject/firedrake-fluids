@@ -228,6 +228,31 @@ then this is the initial time step size.</a:documentation>
               <ref name="prescribed_scalar_field"/>
             </element>
           </element>
+          <optional>
+            <element name="scalar_field">
+              <a:documentation>The drag coefficient in the quadratic free surface drag term.
+Enabling this field enables the drag term.</a:documentation>
+              <attribute name="rank">
+                <value>0</value>
+              </attribute>
+              <attribute name="name">
+                <value>DragCoefficient</value>
+              </attribute>
+              <element name="prescribed">
+                <element name="function_space">
+                  <attribute name="name">
+                    <value>FreeSurfaceFunctionSpace</value>
+                  </attribute>
+                </element>
+                <ref name="prescribed_scalar_field"/>
+              </element>
+            </element>
+          </optional>
+          <optional>
+            <element name="integrate_continuity_equation_by_parts">
+              <empty/>
+            </element>
+          </optional>
         </group>
       </element>
     </element>

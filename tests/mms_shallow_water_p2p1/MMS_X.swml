@@ -121,9 +121,12 @@
           </constant>
         </initial_condition>
         <boundary_conditions name="All">
+          <surface_ids>
+            <integer_value shape="4" rank="1">1 2 3 4</integer_value>
+          </surface_ids>
           <type name="dirichlet">
             <cpp>
-              <string_value lines="20" type="code" language="python">def val():
+              <string_value lines="20" type="code" language="python">def val(t):
   return ("cos(x[0])", "0.0")</string_value>
             </cpp>
           </type>
@@ -132,7 +135,7 @@
           <prescribed>
             <value name="WholeMesh">
               <cpp>
-                <string_value lines="20" type="code" language="python">def val():
+                <string_value lines="20" type="code" language="python">def val(t):
   return ("-cos(x[0])*sin(x[0]) + 9.80*cos(x[0])*sin(x[1]) + 0.700*cos(x[0])", "9.80*cos(x[1])*sin(x[0])")</string_value>
               </cpp>
             </value>
@@ -158,9 +161,12 @@
           </constant>
         </initial_condition>
         <boundary_conditions name="All">
+          <surface_ids>
+            <integer_value shape="4" rank="1">1 2 3 4</integer_value>
+          </surface_ids>
           <type name="dirichlet">
             <cpp>
-              <string_value lines="20" type="code" language="python">def val():
+              <string_value lines="20" type="code" language="python">def val(t):
   return "sin(x[0])*sin(x[1])"</string_value>
             </cpp>
           </type>
@@ -169,7 +175,7 @@
           <prescribed>
             <value name="WholeMesh">
               <cpp>
-                <string_value type="code" lines="20" language="python">def val():
+                <string_value lines="20" type="code" language="python">def val(t):
   return "-50.0*sin(x[0])"</string_value>
               </cpp>
             </value>

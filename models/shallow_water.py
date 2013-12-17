@@ -75,7 +75,7 @@ def solve_shallow_water(mesh, function_spaces):
   
    # The solution field defined on the mixed function space
    solution = Function(W)
-   output_function = Function(H)
+   output_function = Function(W.sub(dimension))
   
    # Get time-stepping parameters
    T = libspud.get_option("/timestepping/finish_time")
@@ -87,8 +87,8 @@ def solve_shallow_water(mesh, function_spaces):
       steady_state_tolerance = -1000.0
        
    # Define the compulsory shallow water fields
-   u_old = [Function(U) for dim in range(dimension)]
-   h_old = Function(H)
+   u_old = [Function(W.sub(dim)) for dim in range(dimension)]
+   h_old = Function(W.sub(dimension))
 
    # Set up initial conditions
    h_initial = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/initial_condition", t=t)
@@ -133,21 +133,21 @@ def solve_shallow_water(mesh, function_spaces):
    n = FacetNormal(mesh.ufl_cell())
 
    # Mean free surface height
-   h_mean = Function(H)
+   h_mean = Function(W.sub(dimension))
    h_mean.interpolate(ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfaceMeanHeight/prescribed/value", t=t))
 
    # Get any source terms for the momentum and continuity equations
    if(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/vector_field::Source")):
       have_momentum_source = True
       expr = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/vector_field::Source/prescribed/value", t=t)
-      momentum_source = [Function(U).interpolate(Expression(expr.code[dim])) for dim in range(dimension)]
+      momentum_source = [Function(W.sub(dim)).interpolate(Expression(expr.code[dim])) for dim in range(dimension)]
    else:
       have_momentum_source = False
 
    if(libspud.have_option("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/scalar_field::Source")):
       have_continuity_source = True
       expr = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/scalar_field::Source/prescribed/value", t=t)
-      continuity_source = Function(H).interpolate(Expression(expr.code[0]))
+      continuity_source = Function(W.sub(dimension)).interpolate(Expression(expr.code[0]))
    else:
       have_continuity_source = False
 
@@ -163,11 +163,12 @@ def solve_shallow_water(mesh, function_spaces):
          
    # The time-stepping loop
    while t < T:
+      t += dt
       print "\nt = %g" % t
 
       for dim in range(0, dimension):
-         u_k[dim] = project(u_old[dim], U)
-         h_k = project(h_old, H)
+         u_k[dim].assign(u_old[dim])
+      h_k.assign(h_old)
          
       # Picard non-linear iteration loop
       eps = 1.0           # error measure ||u_tent - u_k||
@@ -187,17 +188,17 @@ def solve_shallow_water(mesh, function_spaces):
          
          # Advection term
          if(have_momentum_advection):
-            integrate_advection_by_parts = False
+            integrate_advection_by_parts = libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/advection_term/integrate_advection_term_by_parts")
             A_momentum = 0
             if(integrate_advection_by_parts):
                raise NotImplementedError("Integration of the advection term by parts is not yet supported.")
                for dim in range(0, dimension):
-                  outflow = (dot(u_k[dim], n[dim]) + abs(dot(u_k[dim], n[dim])))/2.0
+                  #outflow = (dot(u_k[dim], n[dim]) + abs(dot(u_k[dim], n[dim])))/2.0
                   #expression = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[0]/type::dirichlet")
-                  A_momentum_int = -inner(dot(u[dim], grad(w[dim])), u_k[dim])*dx - inner(w[dim]*div(u[dim]), u_k[dim])*dx
-                  A_momentum_bdy = inner(w[dim], dot(u_k[dim], n)*u)*ds
-                  A_momentum_facet = dot( outflow('+')*u[dim]('+') - outflow('-')*u[dim]('-'), jump(w[dim]))*dS
-                  A_momentum += A_momentum_int + A_momentum_bdy + A_momentum_facet
+                  A_momentum_int = -inner(dot(u[dim], grad(w[dim])[dim]), u_k[dim])*dx - inner(w[dim]*div(u[dim]), u_k[dim])*dx
+                  A_momentum_bdy = inner(w[dim], dot(u_k[dim], n[dim])*u[dim])*ds(2)
+                  #A_momentum_facet = dot( outflow('+')*u[dim]('+') - outflow('-')*u[dim]('-'), jump(w[dim]))*dS
+                  A_momentum += A_momentum_int + A_momentum_bdy #+ A_momentum_facet
 
             else:
                for dim_i in range(dimension):
@@ -218,12 +219,10 @@ def solve_shallow_water(mesh, function_spaces):
             C_momentum += -g*inner(w[dim], grad(h)[dim])*dx
          F -= C_momentum
 
-         have_bottom_drag = True
+         # Quadratic drag term in the momentum equation
+         have_bottom_drag = libspud.have_option("/material_phase[0]/scalar_field::DragCoefficient")
          if(have_bottom_drag):
-            #u_magnitude = fields_calculations.magnitude_vector(mesh, u_k, U)
-            #output_function.assign(project(u_magnitude, H))
-            #output_file << output_function
-            C_D = 0.0025
+            C_D = libspud.get_option("/material_phase[0]/scalar_field::DragCoefficient/prescribed/value/constant")
             D_momentum = 0
             magnitude = 0
             for dim in range(dimension):
@@ -239,16 +238,15 @@ def solve_shallow_water(mesh, function_spaces):
          F += M_continuity
 
          # Divergence term in the shallow water continuity equation
-         integrate_continuity_by_parts = False
+         integrate_continuity_by_parts = libspud.have_option("/material_phase[0]/integrate_continuity_equation_by_parts")
          if(integrate_continuity_by_parts):
-            raise NotImplementedError("Integrating the continuity equation by parts is not yet supported.")
             Ct_continuity = 0
             # Add in any weak boundary conditions
             #expression = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[0]/type::dirichlet")
             for dim in range(dimension):
-               Ct_continuity += - h_mean*inner(u[dim], grad(v)[dim])*dx \
-                                + h_mean('+')*inner(jump(v, n), avg(u[dim]))*dS \
-                                + h_mean * inner(u[dim], n[dim]) * v * ds
+               Ct_continuity += - h_mean*inner(u[dim], grad(v)[dim])*dx
+                                #+ h_mean * inner(u[dim], n[dim]) * v * ds
+                                #+ h_mean('+')*inner(jump(v, n), avg(u[dim]))*dS
          else:
             divergence = 0
             for dim in range(dimension):
@@ -277,20 +275,27 @@ def solve_shallow_water(mesh, function_spaces):
 
          # Get all the Dirichlet boundary conditions for the Velocity field
          bcs = []
-         surfaces = (1,2,3,4) # All surfaces of the domain boundary
          for i in range(0, libspud.option_count("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions/type::dirichlet")):
-            print "Applying Velocity BC #%d" % i
-            expr = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions/type::dirichlet", t=t)
-            for dim in range(dimension):
-               bc = DirichletBC(W.sub(dim), Expression(expr.code[dim]), (1))
-               bcs.append(bc)
+            if(not(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/type::dirichlet/apply_weakly" % i))):
+               # If it's not a weak BC, then it must be a strong one.
+               print "Applying Velocity BC #%d" % i
+               expr = VectorExpressionFromOptions(path = ("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/type::dirichlet" % i), t=t)
+               # Surface IDs on the domain boundary
+               surface_ids = libspud.get_option("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/surface_ids" % i)
+               for dim in range(dimension):
+                  bc = DirichletBC(W.sub(dim), Expression(expr.code[dim]), surface_ids)
+                  bcs.append(bc)
 
          # Get all the Dirichlet boundary conditions for the FreeSurfacePerturbation field
          for i in range(0, libspud.option_count("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/boundary_conditions/type::dirichlet")):
-            print "Applying FreeSurfacePerturbationHeight BC #%d" % i
-            expr = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/boundary_conditions/type::dirichlet", t=t)
-            bc = DirichletBC(W.sub(dimension), Expression(expr.code[0]), (2))
-            bcs.append(bc)
+            if(not(libspud.have_option("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/boundary_conditions[%d]/type::dirichlet/apply_weakly" % i))):
+               # If it's not a weak BC, then it must be a strong one.
+               print "Applying FreeSurfacePerturbationHeight BC #%d" % i
+               expr = ScalarExpressionFromOptions(path = ("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/boundary_conditions[%d]/type::dirichlet" % i), t=t)
+               # Surface IDs on the domain boundary
+               surface_ids = libspud.get_option("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/boundary_conditions[%d]/surface_ids" % i)
+               bc = DirichletBC(W.sub(dimension), Expression(expr.code[0]), surface_ids)
+               bcs.append(bc)
             
          # Solve the system of equations!
          solve(a == L, solution, bcs)
@@ -302,12 +307,12 @@ def solve_shallow_water(mesh, function_spaces):
          print 'Iteration %d: Norm=%g\n\n' % (iter, eps)
 
          for dim in range(0, dimension):
-            u_k[dim] = project(u_tent[dim], U)
-         h_k = project(h_tent, H)
+            u_k[dim].assign(u_tent[dim])
+         h_k.assign(h_tent)
          
       # Write the solution to a file.
       print "Writing data to file..."
-      output_function.assign(project(h_k, H))
+      output_function.assign(h_k)
       output_file << output_function
       
       # Check whether a steady-state has been reached.
@@ -317,25 +322,23 @@ def solve_shallow_water(mesh, function_spaces):
 
       # Move to next time step
       for dim in range(dimension):
-         u_old[dim] = project(u_k[dim], U)
-      h_old = project(h_k, H)
+         u_old[dim] = project(u_k[dim], W.sub(dim))
+      h_old = project(h_k, W.sub(dimension))
       print "Moving to next time level..."      
-      t += dt
 
    print "Out of the time-stepping loop."
    
    # Compute the error for MMS tests
    mms = False
    if(mms):
-      ue = Expression("sin(x[0])*sin(x[1])", element = H.ufl_element())   
-      t = TestFunction(H)
-      b = TrialFunction(H)
-      err = Function(H)
-      test = Function(H)
-      a = inner(t, b)*dx
-      L = inner(t, test.interpolate(ue) - project(h_old, H))*dx
-      solve(a == L, err)
-      print max(abs(err.vector().array()))
+      exact = Function(H).interpolate(Expression("sin(x[0])*sin(x[1])"))   
+      test = TestFunction(H)
+      trial = TrialFunction(H)
+      error = Function(H)
+      a = inner(test, trial)*dx
+      L = inner(test, exact - project(h_old, H))*dx
+      solve(a == L, error)
+      print max(abs(error.vector().array()))
    
 
 if(__name__ == "__main__"):
