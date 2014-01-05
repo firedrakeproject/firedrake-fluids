@@ -193,7 +193,7 @@ def solve_shallow_water(mesh, function_spaces):
             if(integrate_advection_by_parts):
                raise NotImplementedError("Integration of the advection term by parts is not yet supported.")
                for dim in range(0, dimension):
-                  #outflow = (dot(u_k[dim], n[dim]) + abs(dot(u_k[dim], n[dim])))/2.0
+                  outflow = (dot(u_k[dim], n[dim]) + abs(dot(u_k[dim], n[dim])))/2.0
                   #expression = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[0]/type::dirichlet")
                   A_momentum_int = -inner(dot(u[dim], grad(w[dim])[dim]), u_k[dim])*dx - inner(w[dim]*div(u[dim]), u_k[dim])*dx
                   A_momentum_bdy = inner(w[dim], dot(u_k[dim], n[dim])*u[dim])*ds(2)
@@ -222,6 +222,7 @@ def solve_shallow_water(mesh, function_spaces):
          # Quadratic drag term in the momentum equation
          have_bottom_drag = libspud.have_option("/material_phase[0]/scalar_field::DragCoefficient")
          if(have_bottom_drag):
+            print "Adding bottom drag..."
             C_D = libspud.get_option("/material_phase[0]/scalar_field::DragCoefficient/prescribed/value/constant")
             D_momentum = 0
             magnitude = 0
@@ -242,11 +243,11 @@ def solve_shallow_water(mesh, function_spaces):
          if(integrate_continuity_by_parts):
             Ct_continuity = 0
             # Add in any weak boundary conditions
-            #expression = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[0]/type::dirichlet")
+            #expression = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[0]/type::dirichlet", t=t)
             for dim in range(dimension):
-               Ct_continuity += - h_mean*inner(u[dim], grad(v)[dim])*dx
-                                #+ h_mean * inner(u[dim], n[dim]) * v * ds
-                                #+ h_mean('+')*inner(jump(v, n), avg(u[dim]))*dS
+               Ct_continuity += - h_mean*inner(u[dim], grad(v)[dim])*dx \
+                                + h_mean*inner(u[dim], n[dim]) * v * ds(2)
+                                #+ inner(jump(v, n)[dim], avg(u[dim]))*dS
          else:
             divergence = 0
             for dim in range(dimension):
@@ -298,7 +299,7 @@ def solve_shallow_water(mesh, function_spaces):
                bcs.append(bc)
             
          # Solve the system of equations!
-         solve(a == L, solution, bcs)
+         solve(a == L, solution, bcs, solver_parameters={'ksp_monitor': True})
          fields = solution.split()
          u_tent = fields[0:-1]; h_tent = fields[-1]
 
