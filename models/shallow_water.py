@@ -358,11 +358,11 @@ if(__name__ == "__main__"):
    if(libspud.have_option("/geometry/mesh/unit_mesh")):
       number_of_nodes = libspud.get_option("/geometry/mesh/unit_mesh/number_of_nodes")
       if(dimension == 1):
-         mesh = UnitInterval(number_of_nodes[0])
+         mesh = UnitIntervalMesh(number_of_nodes[0])
       elif(dimension == 2):
          mesh = UnitSquareMesh(number_of_nodes[0], number_of_nodes[1])
       elif(dimension == 3):
-         mesh = UnitCube(number_of_nodes[0], number_of_nodes[1], number_of_nodes[2])
+         mesh = UnitCubeMesh(number_of_nodes[0], number_of_nodes[1], number_of_nodes[2])
       else:
          print "Unsupported dimension."
          sys.exit(1)
