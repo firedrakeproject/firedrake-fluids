@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <shallow_water_options>
   <simulation_name>
-    <string_value lines="1">sw_wave_speed_1d</string_value>
+    <string_value lines="1">swe_wave_speed_1d</string_value>
   </simulation_name>
   <geometry>
     <dimension>
@@ -115,6 +115,9 @@
           </constant>
         </initial_condition>
         <boundary_conditions name="Ends">
+          <surface_ids>
+            <integer_value shape="2" rank="1">1 2</integer_value>
+          </surface_ids>
           <type name="dirichlet">
             <constant>
               <real_value shape="1" dim1="dim" rank="1">0</real_value>
