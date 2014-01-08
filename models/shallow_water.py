@@ -77,9 +77,10 @@ class ShallowWater:
       """ Initialise a new shallow water simulation. """
    
       self.mesh = mesh
+      # The individual function spaces, stored in a list.
       self.function_spaces = function_spaces
       
-      # Define function spaces
+      # Define the mixed function space
       U = function_spaces["VelocityFunctionSpace"]
       H = function_spaces["FreeSurfaceFunctionSpace"]
       self.W = MixedFunctionSpace([U for dim in range(dimension)] + [H])
@@ -91,7 +92,10 @@ class ShallowWater:
       self.v = functions[-1]; self.w = functions[:-1]
 
       # Normal vector to each element facet
-      self.n = FacetNormal(self.mesh.ufl_cell())
+      if(backend == "firedrake"):
+         self.n = FacetNormal(self.mesh.ufl_cell())
+      else:
+         self.n = FacetNormal(self.mesh)
       
       # The solution field defined on the mixed function space
       self.solution = Function(self.W)
