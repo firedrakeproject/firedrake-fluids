@@ -74,6 +74,7 @@ class ScalarExpressionFromOptions(Expression):
 class ShallowWater:
    
    def __init__(self, mesh, function_spaces):
+      """ Initialise a new shallow water simulation. """
    
       self.mesh = mesh
       self.function_spaces = function_spaces
@@ -127,6 +128,7 @@ class ShallowWater:
       return
       
    def populate_options(self):
+      """ Add simulation options related to the shallow water model to a dictionary object. """
       # A dictionary storing all the options
       self.options = {}
    
@@ -184,6 +186,7 @@ class ShallowWater:
       return
       
    def run(self):
+      """ Execute the time-stepping loop. """
    
       T = self.options["T"]
       t = self.options["t"]
