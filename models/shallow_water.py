@@ -73,16 +73,55 @@ class ScalarExpressionFromOptions(Expression):
 
 class ShallowWater:
    
-   def __init__(self, mesh, function_spaces):
-      """ Initialise a new shallow water simulation. """
+   def __init__(self, path):
+      """ Initialise a new shallow water simulation using an options file stored at the location given by 'path'. """
    
-      self.mesh = mesh
-      # The individual function spaces, stored in a list.
-      self.function_spaces = function_spaces
+      print "Initialising simulation..."
       
+      # Load the options from the options tree.
+      libspud.load_options(path)
+     
+      # Populate the options dictionary
+      self.populate_options()
+        
+      # Read in the input mesh (or construct a unit mesh)
+      dimension = self.options["dimension"]
+      if(libspud.have_option("/geometry/mesh/unit_mesh")):
+         number_of_nodes = libspud.get_option("/geometry/mesh/unit_mesh/number_of_nodes")
+         if(dimension == 1):
+            self.mesh = UnitIntervalMesh(number_of_nodes[0])
+         elif(dimension == 2):
+            self.mesh = UnitSquareMesh(number_of_nodes[0], number_of_nodes[1])
+         elif(dimension == 3):
+            self.mesh = UnitCubeMesh(number_of_nodes[0], number_of_nodes[1], number_of_nodes[2])
+         else:
+            print "Unsupported dimension."
+            sys.exit(1)
+      elif(libspud.have_option("/geometry/mesh/from_file")):
+         mesh_path = libspud.get_option("/geometry/mesh/from_file/path")
+         self.mesh = Mesh(mesh_path)
+      else:
+         print "Unsupported input mesh type."
+         sys.exit(1)
+
+      # Create a dictionary containing all the function spaces
+      self.function_spaces = {}
+      for i in range(0, libspud.option_count("/function_spaces/function_space")):
+         function_space_name = libspud.get_option("/function_spaces/function_space["+str(i)+"]/name")
+         function_space_type = libspud.get_option("/function_spaces/function_space["+str(i)+"]/type")
+         function_space_polynomial_degree = libspud.get_option("/function_spaces/function_space["+str(i)+"]/polynomial_degree")
+         function_space_element_type = libspud.get_option("/function_spaces/function_space["+str(i)+"]/element_type")
+         function_space_continuity = libspud.get_option("/function_spaces/function_space["+str(i)+"]/continuity")
+         print "Setting up a new %s function space called %s" % (function_space_type, function_space_name)
+         if(function_space_element_type == "lagrangian" and function_space_continuity == "continuous"):
+            self.function_spaces[function_space_name] = FunctionSpace(self.mesh, "CG", function_space_polynomial_degree)
+         else:
+            print "Unknown element type and/or continuity."
+            sys.exit(1)
+                
       # Define the mixed function space
-      U = function_spaces["VelocityFunctionSpace"]
-      H = function_spaces["FreeSurfaceFunctionSpace"]
+      U = self.function_spaces["VelocityFunctionSpace"]
+      H = self.function_spaces["FreeSurfaceFunctionSpace"]
       self.W = MixedFunctionSpace([U for dim in range(dimension)] + [H])
      
       # Define trial and test functions
@@ -101,9 +140,6 @@ class ShallowWater:
       self.solution = Function(self.W)
       self.output_function = Function(self.W.sub(dimension))
      
-      # Populate the options dictionary
-      self.populate_options()
-       
       # Define the compulsory shallow water fields
       self.u_old = [Function(self.W.sub(dim)) for dim in range(dimension)]
       self.h_old = Function(self.W.sub(dimension))
@@ -125,9 +161,12 @@ class ShallowWater:
       self.h_mean = Function(self.W.sub(dimension))
       self.h_mean.interpolate(ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfaceMeanHeight/prescribed/value", t=self.options["t"]))
 
+      # Set up the output stream
+      self.output_file = File("%s.pvd" % self.options["simulation_name"])
+      
       # Write initial condition to file
       self.output_function.assign(self.h_old)
-      output_file << self.output_function
+      self.output_file << self.output_function
             
       return
       
@@ -135,6 +174,9 @@ class ShallowWater:
       """ Add simulation options related to the shallow water model to a dictionary object. """
       # A dictionary storing all the options
       self.options = {}
+      
+      self.options["simulation_name"] = libspud.get_option("/simulation_name")
+      self.options["dimension"] = libspud.get_option("/geometry/dimension")
    
       # Time-stepping parameters
       self.options["T"] = libspud.get_option("/timestepping/finish_time")
@@ -172,15 +214,11 @@ class ShallowWater:
       # Source terms for the momentum and continuity equations
       if(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/vector_field::Source")):
          self.options["have_momentum_source"] = True
-         expr = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/vector_field::Source/prescribed/value", t=self.options["t"])
-         self.momentum_source = [Function(self.W.sub(dim)).interpolate(Expression(expr.code[dim])) for dim in range(dimension)]
       else:
          self.options["have_momentum_source"] = False
 
       if(libspud.have_option("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/scalar_field::Source")):
          self.options["have_continuity_source"] = True
-         expr = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/scalar_field::Source/prescribed/value", t=self.options["t"])
-         self.continuity_source = Function(self.W.sub(dimension)).interpolate(Expression(expr.code[0]))
       else:
          self.options["have_continuity_source"] = False
 
@@ -195,6 +233,7 @@ class ShallowWater:
       T = self.options["T"]
       t = self.options["t"]
       dt = self.options["dt"]
+      dimension = self.options["dimension"]
       nlit_tolerance = self.options["nlit_tolerance"]
       max_nlit = self.options["max_nlit"]
       g_magnitude = self.options["g_magnitude"]
@@ -283,13 +322,17 @@ class ShallowWater:
                
             # Add in any source terms
             if(self.options["have_momentum_source"]):
+               expr = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/vector_field::Source/prescribed/value", t=t)
+               momentum_source = [Function(self.W.sub(dim)).interpolate(Expression(expr.code[dim])) for dim in range(dimension)]
                print "Adding momentum source..."
                for dim in range(dimension):
-                  F -= inner(self.w[dim], self.momentum_source[dim])*dx
+                  F -= inner(self.w[dim], momentum_source[dim])*dx
 
             if(self.options["have_continuity_source"]):
+               expr = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/scalar_field::Source/prescribed/value", t=t)
+               continuity_source = Function(self.W.sub(dimension)).interpolate(Expression(expr.code[0]))
                print "Adding continuity source..."
-               F -= inner(self.v, self.continuity_source)*dx
+               F -= inner(self.v, continuity_source)*dx
                
             # Add in any SU stabilisation
             if(self.options["have_su_stabilisation"]):
@@ -327,16 +370,18 @@ class ShallowWater:
             start = time.time()
             A = assemble(a)
             b = assemble(L)
+            for bc in bcs:
+               bc.apply(A)
+               bc.apply(b)
             end = time.time()
             difference = end - start
             print "Tictoc 1 = %f" % difference
-            
-            print b.vector().array()
-            
+                      
             # Solve the system of equations!
             solution = Function(self.W)
             start = time.time()
-            solve(A, solution, b, solver_parameters={'ksp_type':'gmres', 'ksp_rtol':1.0e-7, 'ksp_monitor':True})
+            #solve(A, solution, b, solver_parameters={'ksp_monitor':True})
+            solve(a == L, solution, bcs=bcs, solver_parameters={'ksp_monitor':True})
             end = time.time()
             difference = end - start
             print "Tictoc 2 = %f" % difference
@@ -354,7 +399,7 @@ class ShallowWater:
          # Write the solution to a file.
          print "Writing data to file..."
          self.output_function.assign(self.h_k)
-         output_file << self.output_function
+         self.output_file << self.output_function
          
          # Check whether a steady-state has been reached.
          if(max(abs(self.h_k.vector().array() - self.h_old.vector().array())) <= self.options["steady_state_tolerance"]):
@@ -370,70 +415,30 @@ class ShallowWater:
       print "Out of the time-stepping loop."
       
       # Compute the error for MMS tests
-      #mms = False
-      #if(mms):
-      #   exact = Function(H).interpolate(Expression("sin(x[0])*sin(x[1])"))   
-      #   test = TestFunction(H)
-      #   trial = TrialFunction(H)
-      #   error = Function(H)
-      #   a = inner(test, trial)*dx
-      #   L = inner(test, exact - project(h_old, H))*dx
-      #   solve(a == L, error)
-      #   print max(abs(error.vector().array()))
+      mms = True
+      if(mms):
+         H = self.function_spaces["FreeSurfaceFunctionSpace"]
+         exact = Function(H).interpolate(Expression("sin(x[0])*sin(x[1])"))   
+         test = TestFunction(H)
+         trial = TrialFunction(H)
+         error = Function(H)
+         a = inner(test, trial)*dx
+         L = inner(test, exact - project(self.h_old, H))*dx
+         solve(a == L, error)
+         print max(abs(error.vector().array()))
       
       return
 
 if(__name__ == "__main__"):
-   # Construct the full options tree
+
    try:
-      libspud.load_options(str(sys.argv[1]))
+      # Set up a shallow water simulation.
+      sw = ShallowWater(path = sys.argv[1])
    except IndexError:
       print "Please provide the path to the simulation configuration file."
       sys.exit(1)
 
-   simulation_name = libspud.get_option("/simulation_name")
-   print "Initialising simulation '%s'" % simulation_name
-   
-   # Read in the input mesh (or construct a unit mesh)
-   dimension = libspud.get_option("/geometry/dimension")
-   if(libspud.have_option("/geometry/mesh/unit_mesh")):
-      number_of_nodes = libspud.get_option("/geometry/mesh/unit_mesh/number_of_nodes")
-      if(dimension == 1):
-         mesh = UnitIntervalMesh(number_of_nodes[0])
-      elif(dimension == 2):
-         mesh = UnitSquareMesh(number_of_nodes[0], number_of_nodes[1])
-      elif(dimension == 3):
-         mesh = UnitCubeMesh(number_of_nodes[0], number_of_nodes[1], number_of_nodes[2])
-      else:
-         print "Unsupported dimension."
-         sys.exit(1)
-   elif(libspud.have_option("/geometry/mesh/from_file")):
-      mesh_path = libspud.get_option("/geometry/mesh/from_file/path")
-      mesh = Mesh(mesh_path)
-   else:
-      print "Unsupported input mesh type."
-      sys.exit(1)
-
-   # Create a dictionary containing all the function spaces
-   function_spaces = {}
-   for i in range(0, libspud.option_count("/function_spaces/function_space")):
-      function_space_name = libspud.get_option("/function_spaces/function_space["+str(i)+"]/name")
-      function_space_type = libspud.get_option("/function_spaces/function_space["+str(i)+"]/type")
-      function_space_polynomial_degree = libspud.get_option("/function_spaces/function_space["+str(i)+"]/polynomial_degree")
-      function_space_element_type = libspud.get_option("/function_spaces/function_space["+str(i)+"]/element_type")
-      function_space_continuity = libspud.get_option("/function_spaces/function_space["+str(i)+"]/continuity")
-      print "Setting up a new %s function space called %s" % (function_space_type, function_space_name)
-      if(function_space_element_type == "lagrangian" and function_space_continuity == "continuous"):
-         function_spaces[function_space_name] = FunctionSpace(mesh, "CG", function_space_polynomial_degree)
-      else:
-         print "Unknown element type and/or continuity."
-         sys.exit(1)
-             
-   # Set up the output stream
-   output_file = File("%s.pvd" % simulation_name)
-
    # Solve the shallow water equations!
-   sw = ShallowWater(mesh, function_spaces)
    sw.run()
    
 
