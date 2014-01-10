@@ -311,7 +311,7 @@ class ShallowWater:
                #expression = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[0]/type::dirichlet", t=t)
                for dim in range(dimension):
                   Ct_continuity += - self.h_mean*inner(self.u[dim], grad(self.v)[dim])*dx \
-                                   + self.h_mean*inner(self.u[dim], self.n[dim]) * self.v * ds(2)
+                                   #+ self.h_mean*inner(self.u[dim], self.n[dim]) * self.v * ds(2)
                                    #+ inner(jump(v, n)[dim], avg(u[dim]))*dS
             else:
                divergence = 0
