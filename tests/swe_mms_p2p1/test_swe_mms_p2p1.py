@@ -29,4 +29,5 @@ def test_swe_mms_p2p1():
       
 if __name__ == '__main__':
    import os
+   os.system("make")
    pytest.main(os.path.abspath(__file__))
