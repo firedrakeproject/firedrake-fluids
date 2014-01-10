@@ -4,7 +4,7 @@ import fields_calculations
 
 def streamline_upwind(mesh, dimension, w, u, u_k):
 
-   h = 250.0
+   h = 1e5
    scaling_factor = 0.5
    
    magnitude = fields_calculations.magnitude_vector(mesh, u_k)
@@ -14,8 +14,8 @@ def streamline_upwind(mesh, dimension, w, u, u_k):
       if(u_nodes[i] < 1.0e-9):
          u_nodes[i] = 1.0e-9
 
-   #grid_pe = (u_magnitude*h)/(2.0*k)
-
+   #k = 10.0 # Viscosity
+   #grid_pe = (magnitude*h)/(2.0*k)
    #k_bar = ( (1.0/tanh(grid_pe)) - (1.0/grid_pe) ) * k * grid_pe
 
    k_bar = scaling_factor*h*magnitude
