@@ -78,6 +78,9 @@ class ShallowWater:
    
       print "Initialising simulation..."
       
+      # Remove any stored options.
+      libspud.clear_options()
+      
       # Load the options from the options tree.
       libspud.load_options(path)
      
