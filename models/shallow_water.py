@@ -330,6 +330,7 @@ class ShallowWater:
 
             if(self.options["have_continuity_source"]):
                expr = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/scalar_field::Source/prescribed/value", t=t)
+               print "Expression code: ", expr.code[0]
                continuity_source = Function(self.W.sub(dimension)).interpolate(Expression(expr.code[0]))
                print "Adding continuity source..."
                F -= inner(self.v, continuity_source)*dx
