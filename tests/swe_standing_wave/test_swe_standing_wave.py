@@ -12,7 +12,6 @@ def input():
    os.system("make -C " + cwd)
 
 def swe_standing_wave():
-   os.system("cp " + os.path.join(cwd, "swe_standing_wave.msh") + " .")
    sw = shallow_water.ShallowWater(path=os.path.join(cwd, "swe_standing_wave.swml"))
    sw.run()
    h_old = sw.h_old

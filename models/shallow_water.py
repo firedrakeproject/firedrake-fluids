@@ -101,8 +101,9 @@ class ShallowWater:
             print "Unsupported dimension."
             sys.exit(1)
       elif(libspud.have_option("/geometry/mesh/from_file")):
-         mesh_path = libspud.get_option("/geometry/mesh/from_file/path")
-         self.mesh = Mesh(mesh_path)
+         path_to_config = os.path.dirname(os.path.abspath(path))
+         path_to_mesh = libspud.get_option("/geometry/mesh/from_file/path") # This is the path relative to the directory where the configuration file is stored.
+         self.mesh = Mesh(os.path.join(path_to_config, path_to_mesh))
       else:
          print "Unsupported input mesh type."
          sys.exit(1)
