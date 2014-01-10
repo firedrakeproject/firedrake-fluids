@@ -1,5 +1,4 @@
 import pytest
-import vtktools
 import numpy
 from firedrake import *
 
