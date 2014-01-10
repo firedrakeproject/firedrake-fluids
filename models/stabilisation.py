@@ -4,7 +4,7 @@ import fields_calculations
 
 def streamline_upwind(mesh, dimension, w, u, u_k):
 
-   h = 1e5
+   h = 250.0
    scaling_factor = 0.5
    
    magnitude = fields_calculations.magnitude_vector(mesh, u_k)
