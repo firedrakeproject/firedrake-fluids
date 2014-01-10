@@ -138,7 +138,7 @@ class ShallowWater:
       
       # The solution field defined on the mixed function space
       self.solution = Function(self.W)
-      self.output_function = Function(self.W.sub(dimension))
+      self.output_function = Function(self.W.sub(dimension), name="FreeSurfacePerturbationHeight")
      
       # Define the compulsory shallow water fields
       self.u_old = [Function(self.W.sub(dim)) for dim in range(dimension)]
@@ -425,7 +425,9 @@ class ShallowWater:
          a = inner(test, trial)*dx
          L = inner(test, exact - project(self.h_old, H))*dx
          solve(a == L, error)
-         print max(abs(error.vector().array()))
+         f = Function(H)
+         f.interpolate(Expression("sin(x[0])*sin(x[1])"))
+         print sqrt(assemble(dot(self.h_old - f, self.h_old - f) * dx))
       
       return
 
