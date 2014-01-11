@@ -216,18 +216,15 @@ class ShallowWater:
          self.options["have_momentum_stress"] = False
          
       # Source terms for the momentum and continuity equations
-      if(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/vector_field::Source")):
-         self.options["have_momentum_source"] = True
-      else:
-         self.options["have_momentum_source"] = False
-
-      if(libspud.have_option("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/scalar_field::Source")):
-         self.options["have_continuity_source"] = True
-      else:
-         self.options["have_continuity_source"] = False
+      self.options["have_momentum_source"] = libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/vector_field::Source")
+      self.options["have_continuity_source"] = libspud.have_option("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/scalar_field::Source")
 
       # Check for any SU stabilisation
       self.options["have_su_stabilisation"] = libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/spatial_discretisation/continuous_galerkin/streamline_upwind_stabilisation")
+
+      self.options["have_bottom_drag"] = libspud.have_option("/material_phase[0]/scalar_field::DragCoefficient")
+
+      self.options["integrate_continuity_by_parts"] = libspud.have_option("/material_phase[0]/integrate_continuity_equation_by_parts")
 
       return
       
@@ -289,8 +286,8 @@ class ShallowWater:
             F -= C_momentum
 
             # Quadratic drag term in the momentum equation
-            have_bottom_drag = libspud.have_option("/material_phase[0]/scalar_field::DragCoefficient")
-            if(have_bottom_drag):
+            
+            if(self.options["have_bottom_drag"]):
                print "Adding bottom drag..."
                C_D = libspud.get_option("/material_phase[0]/scalar_field::DragCoefficient/prescribed/value/constant")
                D_momentum = 0
@@ -308,15 +305,26 @@ class ShallowWater:
             F += M_continuity
 
             # Divergence term in the shallow water continuity equation
-            integrate_continuity_by_parts = libspud.have_option("/material_phase[0]/integrate_continuity_equation_by_parts")
-            if(integrate_continuity_by_parts):
+            if(self.options["integrate_continuity_by_parts"]):
                Ct_continuity = 0
-               # Add in any weak boundary conditions
-               #expression = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[0]/type::dirichlet", t=t)
+
                for dim in range(dimension):
-                  Ct_continuity += - self.h_mean*inner(self.u[dim], grad(self.v)[dim])*dx \
-                                   #+ self.h_mean*inner(self.u[dim], self.n[dim]) * self.v * ds(2)
+                  Ct_continuity += - self.h_mean*inner(self.u[dim], grad(self.v)[dim])*dx
                                    #+ inner(jump(v, n)[dim], avg(u[dim]))*dS
+                                 
+               # Add in the surface integrals, but check to see if a no normal flow boundary condition needs to be applied weakly here.
+               boundary_markers = set(self.mesh.exterior_facets.markers)
+               for marker in boundary_markers:
+                  marker = int(marker) # ds() will not accept markers of type 'numpy.int32', so convert it to type 'int' here.
+                  no_normal_flow = False
+                  for i in range(0, libspud.option_count("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions")):
+                     if(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/type::no_normal_flow" % i)):
+                        if(marker in libspud.get_option("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/surface_ids" % i)):
+                           no_normal_flow = True
+                  if(not no_normal_flow):
+                     for dim in range(dimension):
+                        Ct_continuity += self.h_mean*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
+
             else:
                divergence = 0
                for dim in range(dimension):

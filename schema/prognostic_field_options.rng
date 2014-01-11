@@ -162,18 +162,25 @@ If not selected boundary conditions are applied strongly.</a:documentation>
       <a:documentation>Surface IDs:</a:documentation>
       <ref name="integer_vector"/>
     </element>
-    <element name="type">
-      <attribute name="name">
-        <value>dirichlet</value>
-      </attribute>
-      <optional>
-        <element name="apply_weakly">
-          <a:documentation>Apply the dirichlet bc weakly.
+    <choice>
+      <element name="type">
+        <attribute name="name">
+          <value>dirichlet</value>
+        </attribute>
+        <optional>
+          <element name="apply_weakly">
+            <a:documentation>Apply the dirichlet bc weakly.
 If not selected boundary conditions are applied strongly.</a:documentation>
-          <ref name="comment"/>
-        </element>
-      </optional>
-      <ref name="input_choice_real_dim_vector"/>
-    </element>
+            <ref name="comment"/>
+          </element>
+        </optional>
+        <ref name="input_choice_real_dim_vector"/>
+      </element>
+      <element name="type">
+        <attribute name="name">
+          <value>no_normal_flow</value>
+        </attribute>
+      </element>
+    </choice>
   </define>
 </grammar>

@@ -132,15 +132,20 @@ vector_boundary_condition =
          element surface_ids {
             integer_vector
          },
-         element type {
-            attribute name { "dirichlet" },
-            ## Apply the dirichlet bc weakly.
-            ## If not selected boundary conditions are applied strongly.
-            element apply_weakly {
-               comment
-            }?,
-            input_choice_real_dim_vector
-         }
+         (
+            element type {
+               attribute name { "dirichlet" },
+               ## Apply the dirichlet bc weakly.
+               ## If not selected boundary conditions are applied strongly.
+               element apply_weakly {
+                  comment
+               }?,
+               input_choice_real_dim_vector
+            }|
+            element type {
+               attribute name { "no_normal_flow" }
+            }
+         )
       )
    )
    
