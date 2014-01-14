@@ -2,7 +2,7 @@
 
 from firedrake import *
 
-def magnitude_vector(mesh, u):
+def magnitude_vector(u):
 
    function_space = u[0].function_space() # Assumes all components of velocity live in the same function space
    w = TestFunction(function_space)

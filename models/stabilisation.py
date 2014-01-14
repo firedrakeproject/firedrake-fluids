@@ -9,8 +9,8 @@ def streamline_upwind(mesh, dimension, w, u, u_k):
    h = CellSize(mesh)
    scaling_factor = 0.5
    
-   magnitude = fields_calculations.magnitude_vector(mesh, u_k)
-   
+   magnitude = fields_calculations.magnitude_vector(u_k)
+
    u_nodes = magnitude.vector()
    for i in range(0, len(u_nodes)):
       if(u_nodes[i] < 1.0e-9):

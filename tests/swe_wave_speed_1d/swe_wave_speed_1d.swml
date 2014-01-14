@@ -126,7 +126,7 @@
         </boundary_conditions>
       </prognostic>
     </vector_field>
-    <scalar_field name="FreeSurfacePerturbationHeight" rank="0">
+    <scalar_field name="FreeSurfacePerturbation" rank="0">
       <prognostic>
         <function_space name="FreeSurfaceFunctionSpace"/>
         <spatial_discretisation>
@@ -146,7 +146,7 @@
         </initial_condition>
       </prognostic>
     </scalar_field>
-    <scalar_field name="FreeSurfaceMeanHeight" rank="0">
+    <scalar_field name="FreeSurfaceMean" rank="0">
       <prescribed>
         <function_space name="FreeSurfaceFunctionSpace"/>
         <value name="WholeMesh">

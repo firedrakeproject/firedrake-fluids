@@ -200,7 +200,7 @@ then this is the initial time step size.</a:documentation>
               <value>0</value>
             </attribute>
             <attribute name="name">
-              <value>FreeSurfacePerturbationHeight</value>
+              <value>FreeSurfacePerturbation</value>
             </attribute>
             <element name="prognostic">
               <element name="function_space">
@@ -217,7 +217,7 @@ then this is the initial time step size.</a:documentation>
               <value>0</value>
             </attribute>
             <attribute name="name">
-              <value>FreeSurfaceMeanHeight</value>
+              <value>FreeSurfaceMean</value>
             </attribute>
             <element name="prescribed">
               <element name="function_space">

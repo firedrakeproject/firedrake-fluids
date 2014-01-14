@@ -146,7 +146,7 @@ class ShallowWater:
       
       # The solution field defined on the mixed function space
       self.solution = Function(self.W)
-      self.output_function = Function(self.W.sub(dimension), name="FreeSurfacePerturbationHeight")
+      self.output_function = Function(self.W.sub(dimension), name="FreeSurfacePerturbation")
      
       # Define the compulsory shallow water fields
       self.u_old = [Function(self.W.sub(dim)) for dim in range(dimension)]
@@ -157,7 +157,7 @@ class ShallowWater:
       self.h_k = Function(self.W.sub(dimension))
       
       # Set up initial conditions
-      h_initial = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/initial_condition", t=self.options["t"])
+      h_initial = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/initial_condition", t=self.options["t"])
       self.h_old.interpolate(h_initial)
 
       expr = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/initial_condition", t=self.options["t"])
@@ -167,7 +167,7 @@ class ShallowWater:
    
       # Mean free surface height
       self.h_mean = Function(self.W.sub(dimension))
-      self.h_mean.interpolate(ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfaceMeanHeight/prescribed/value", t=self.options["t"]))
+      self.h_mean.interpolate(ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfaceMean/prescribed/value", t=self.options["t"]))
 
       # Set up the output stream
       self.output_file = File("%s.pvd" % self.options["simulation_name"])
@@ -221,7 +221,7 @@ class ShallowWater:
          
       # Source terms for the momentum and continuity equations
       self.options["have_momentum_source"] = libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/vector_field::Source")
-      self.options["have_continuity_source"] = libspud.have_option("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/scalar_field::Source")
+      self.options["have_continuity_source"] = libspud.have_option("/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/scalar_field::Source")
 
       # Check for any SU stabilisation
       self.options["have_su_stabilisation"] = libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/spatial_discretisation/continuous_galerkin/streamline_upwind_stabilisation")
@@ -345,7 +345,7 @@ class ShallowWater:
                   F -= inner(self.w[dim], momentum_source[dim])*dx
 
             if(self.options["have_continuity_source"]):
-               expr = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/scalar_field::Source/prescribed/value", t=t)
+               expr = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/scalar_field::Source/prescribed/value", t=t)
                continuity_source = Function(self.W.sub(dimension)).interpolate(Expression(expr.code[0]))
                print "Adding continuity source..."
                F -= inner(self.v, continuity_source)*dx
@@ -369,13 +369,13 @@ class ShallowWater:
                      bcs.append(bc)
 
             # Get all the Dirichlet boundary conditions for the FreeSurfacePerturbation field
-            for i in range(0, libspud.option_count("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/boundary_conditions/type::dirichlet")):
-               if(not(libspud.have_option("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/boundary_conditions[%d]/type::dirichlet/apply_weakly" % i))):
+            for i in range(0, libspud.option_count("/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/boundary_conditions/type::dirichlet")):
+               if(not(libspud.have_option("/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/boundary_conditions[%d]/type::dirichlet/apply_weakly" % i))):
                   # If it's not a weak BC, then it must be a strong one.
-                  print "Applying FreeSurfacePerturbationHeight BC #%d" % i
-                  expr = ScalarExpressionFromOptions(path = ("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/boundary_conditions[%d]/type::dirichlet" % i), t=t)
+                  print "Applying FreeSurfacePerturbation BC #%d" % i
+                  expr = ScalarExpressionFromOptions(path = ("/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/boundary_conditions[%d]/type::dirichlet" % i), t=t)
                   # Surface IDs on the domain boundary
-                  surface_ids = libspud.get_option("/material_phase[0]/scalar_field::FreeSurfacePerturbationHeight/prognostic/boundary_conditions[%d]/surface_ids" % i)
+                  surface_ids = libspud.get_option("/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/boundary_conditions[%d]/surface_ids" % i)
                   bc = DirichletBC(self.W.sub(dimension), Expression(expr.code[0]), surface_ids)
                   bcs.append(bc)
                
@@ -397,7 +397,7 @@ class ShallowWater:
             solution = Function(self.W)
             start = time.time()
             #solve(A, solution, b, solver_parameters={'ksp_monitor':True})
-            solve(a == L, solution, bcs=bcs, solver_parameters={'ksp_type': 'preonly', 'ksp_rtol': 1.0e-6, 'ksp_monitor': True})
+            solve(a == L, solution, bcs=bcs, solver_parameters={'ksp_monitor': True})
             end = time.time()
             difference = end - start
             print "Tictoc 2 = %f" % difference

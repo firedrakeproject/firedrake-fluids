@@ -170,7 +170,7 @@ start =
                ## The perturbation component of the free surface height.
                element scalar_field {
                   attribute rank { "0" },
-                  attribute name { "FreeSurfacePerturbationHeight" },
+                  attribute name { "FreeSurfacePerturbation" },
                   element prognostic {
                      element function_space {
                         attribute name { "FreeSurfaceFunctionSpace" }
@@ -181,7 +181,7 @@ start =
                ## The mean free surface height.
                element scalar_field {
                   attribute rank { "0" },
-                  attribute name { "FreeSurfaceMeanHeight" },
+                  attribute name { "FreeSurfaceMean" },
                   element prescribed {
                      element function_space {
                         attribute name { "FreeSurfaceFunctionSpace" }
