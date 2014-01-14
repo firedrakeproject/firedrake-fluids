@@ -1,0 +1,51 @@
+\documentclass[a4paper,11pt]{report}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+
+\title{Firedrake-Fluids User Manual}
+\author{Imperial College London}
+
+\begin{document}
+
+\maketitle
+\tableofcontents
+
+\chapter{Introduction}
+Firedrake-Fluids is a collection of numerical models for the study of fluid dynamics. It uses the Firedrake framework 
+
+\chapter{Shallow water}
+The shallow water model 
+
+\section{Model equations}
+It solves the non-linear shallow water equations, with the momentum equation in non-conservative form. The free surface is split up into a mean component $H$, and a perturbation component $h$.
+
+\subsection{Momentum equation}
+\begin{equation}
+   \frac{\partial h}{\partial t} + h\mathbf{u}\cdot\nabla\mathbf{u} = -g\nabla h + \nabla\cdot\tau
+\end{equation}
+where $g$ is the acceleration due to gravity and $\mathbf{u}$ is the velocity. The stress tensor $\tau$ is given by 
+\begin{equation}
+   \nu\nabla\mathbf{u},
+\end{equation}
+where $\nu$ is the kinematic viscosity.
+
+\subsection{Continuity equation}
+\begin{equation}
+   \frac{\partial h}{\partial t} + H\nabla\cdot\mathbf{u} = 0
+\end{equation}
+
+\section{Configuration}
+The model requires three fields to be set up:
+\begin{itemize}
+   \item Velocity
+   \item FreeSurfacePerturbation
+   \item FreeSurfaceMean
+\end{itemize}
+
+\chapter{Diagnostic fields}
+
+\section{Courant number}
+
+
+\end{document}
