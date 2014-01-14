@@ -1,10 +1,12 @@
+# Copyright 2013 Imperial College London. All rights reserved.
+
 from firedrake import *
 
 import fields_calculations
 
 def streamline_upwind(mesh, dimension, w, u, u_k):
 
-   h = 250.0
+   h = CellSize(mesh)
    scaling_factor = 0.5
    
    magnitude = fields_calculations.magnitude_vector(mesh, u_k)
@@ -20,9 +22,9 @@ def streamline_upwind(mesh, dimension, w, u, u_k):
 
    k_bar = scaling_factor*h*magnitude
 
-   form = 0
+   F = 0
    for dim in range(dimension):
-      form += (k_bar/(magnitude**2))*inner(u_k[dim], u_k[dim])*inner(grad(u[dim]), grad(w[dim]))*dx
+      F += (k_bar/(magnitude**2))*inner(u_k[dim], u_k[dim])*inner(grad(u[dim]), grad(w[dim]))*dx
 
-   return form
+   return F
 

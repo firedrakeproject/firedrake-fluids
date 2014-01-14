@@ -1,4 +1,4 @@
 firedrake-fluids
 ================
 
-CFD models for Firedrake
+CFD models for Firedrake.

@@ -1,3 +1,5 @@
+# Copyright 2013 Imperial College London. All rights reserved.
+
 import sys
 import libspud
 import numpy
@@ -8,6 +10,8 @@ if(backend == "firedrake"):
    from firedrake import *
 else:
    from dolfin import *
+   
+#from firedrake_adjoint import *
 
 import stabilisation
 import fields_calculations
@@ -393,7 +397,7 @@ class ShallowWater:
             solution = Function(self.W)
             start = time.time()
             #solve(A, solution, b, solver_parameters={'ksp_monitor':True})
-            solve(a == L, solution, bcs=bcs, solver_parameters={'ksp_monitor':True})
+            solve(a == L, solution, bcs=bcs, solver_parameters={'ksp_type': 'preonly', 'ksp_rtol': 1.0e-6, 'ksp_monitor': True})
             end = time.time()
             difference = end - start
             print "Tictoc 2 = %f" % difference

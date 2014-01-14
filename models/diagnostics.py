@@ -1,3 +1,5 @@
+# Copyright 2013 Imperial College London. All rights reserved.
+
 from firedrake import *
 
 def courant_number(mesh, u, dt):
