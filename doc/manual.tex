@@ -1,4 +1,7 @@
+% Copyright 2014 Imperial College London. All rights reserved.
+
 \documentclass[a4paper,11pt]{report}
+\usepackage[top=3cm, bottom=3cm, left=3cm, right=3cm]{geometry}
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
@@ -11,41 +14,70 @@
 \maketitle
 \tableofcontents
 
+\setlength{\parskip}{0.3cm}
+\setlength{\parindent}{0cm}
+
 \chapter{Introduction}
-Firedrake-Fluids is a collection of numerical models for the study of fluid dynamics. It uses the Firedrake framework 
+Firedrake-Fluids is a collection of numerical models for the study of fluid dynamics. It uses the Firedrake framework (\texttt{http://firedrakeproject.org/}) to automate the solution of the governing equations written in their weak form using the Unified Form Language.
 
 \chapter{Shallow water}
-The shallow water model 
+The shallow water model solves the non-linear version of the shallow water equations. The free surface is split up into a mean component $H$, and a perturbation component $h$.
 
 \section{Model equations}
-It solves the non-linear shallow water equations, with the momentum equation in non-conservative form. The free surface is split up into a mean component $H$, and a perturbation component $h$.
+The shallow water equation set comprises a momentum equation and a continuity equation, each of which are defined below.
 
 \subsection{Momentum equation}
+The momentum equation is solved in non-conservative form such that
 \begin{equation}
-   \frac{\partial h}{\partial t} + h\mathbf{u}\cdot\nabla\mathbf{u} = -g\nabla h + \nabla\cdot\tau
+   \frac{\partial h}{\partial t} + h\mathbf{u}\cdot\nabla\mathbf{u} = -g\nabla h + \nabla\cdot\tau - \frac{C_D||\mathbf{u}||\mathbf{u}}{H},
 \end{equation}
-where $g$ is the acceleration due to gravity and $\mathbf{u}$ is the velocity. The stress tensor $\tau$ is given by 
+where $g$ is the acceleration due to gravity, $\mathbf{u}$ is the velocity, and $C_D$ is the non-dimensional drag coefficient. The stress tensor $\tau$ is given by 
 \begin{equation}
    \nu\nabla\mathbf{u},
 \end{equation}
 where $\nu$ is the kinematic viscosity.
 
 \subsection{Continuity equation}
+The continuity equation is given by
 \begin{equation}
-   \frac{\partial h}{\partial t} + H\nabla\cdot\mathbf{u} = 0
+   \frac{\partial h}{\partial t} + H\nabla\cdot\mathbf{u} = 0,
 \end{equation}
+which assumes that $h \ll H$.
 
 \section{Configuration}
 The model requires three fields to be set up:
 \begin{itemize}
-   \item Velocity
-   \item FreeSurfacePerturbation
-   \item FreeSurfaceMean
+   \item Velocity (a prognostic field)
+   \item FreeSurfacePerturbation (a prognostic field)
+   \item FreeSurfaceMean (a prescribed field)
+\end{itemize}
+
+\subsection{Drag}
+To include the quadratic drag term in the momentum equation, the drag coefficient field must be enabled and the drag coefficient $C_D$ must be specified.
+
+\subsection{Boundary conditions}
+Strong Dirichlet boundary conditions can be enforced for both the FreeSurfacePerturbation and Velocity fields by selecting the \texttt{dirichlet} type. Imposing a no-normal flow condition for velocity can currently only be done weakly by integrating the continuity equation by parts and selecting the \texttt{no\_normal\_flow} boundary condition type in the configuration options.
+
+\section{Current limitations}
+\begin{itemize}
+   \item Only a continuous Galerkin discretisation may be used (for all fields).
 \end{itemize}
 
 \chapter{Diagnostic fields}
 
 \section{Courant number}
+The Courant number diagnostic computes the field defined by
+\begin{equation}
+   \frac{||\mathbf{u}||\Delta t}{\Delta x},
+\end{equation}
+where $\Delta t$ is the time-step size and $\Delta x$ is the element size (more specifically, it is twice the element's circumradius).
+
+\section{Divergence}
+This diagnostic field computes the divergence
+\begin{equation}
+   \nabla\cdot\mathbf{u},
+\end{equation}
+of a vector field $\mathbf{u}$.
 
 
 \end{document}
