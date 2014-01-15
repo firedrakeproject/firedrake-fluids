@@ -29,7 +29,7 @@ The shallow water equation set comprises a momentum equation and a continuity eq
 \subsection{Momentum equation}
 The momentum equation is solved in non-conservative form such that
 \begin{equation}
-   \frac{\partial h}{\partial t} + h\mathbf{u}\cdot\nabla\mathbf{u} = -g\nabla h + \nabla\cdot\tau - \frac{C_D||\mathbf{u}||\mathbf{u}}{H},
+   \frac{\partial \mathbf{u}}{\partial t} + \mathbf{u}\cdot\nabla\mathbf{u} = -g\nabla h + \nabla\cdot\tau - C_D\frac{||\mathbf{u}||\mathbf{u}}{(H + h)},
 \end{equation}
 where $g$ is the acceleration due to gravity, $\mathbf{u}$ is the velocity, and $C_D$ is the non-dimensional drag coefficient. The stress tensor $\tau$ is given by 
 \begin{equation}
@@ -40,9 +40,8 @@ where $\nu$ is the kinematic viscosity.
 \subsection{Continuity equation}
 The continuity equation is given by
 \begin{equation}
-   \frac{\partial h}{\partial t} + H\nabla\cdot\mathbf{u} = 0,
+   \frac{\partial h}{\partial t} + \nabla\cdot\left(\left(H + h\right)\mathbf{u}\right) = 0.
 \end{equation}
-which assumes that $h \ll H$.
 
 \section{Configuration}
 The model requires three fields to be set up:
