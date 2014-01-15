@@ -397,7 +397,7 @@ class ShallowWater:
             solution = Function(self.W)
             start = time.time()
             #solve(A, solution, b, solver_parameters={'ksp_monitor':True})
-            solve(a == L, solution, bcs=bcs, solver_parameters={'ksp_monitor': True})
+            solve(a == L, solution, bcs=bcs, solver_parameters={'ksp_monitor': True, 'ksp_view': False, 'pc_view': False})
             end = time.time()
             difference = end - start
             print "Tictoc 2 = %f" % difference
