@@ -300,7 +300,7 @@ class ShallowWater:
                   magnitude += dot(self.u_k[dim], self.u_k[dim])
                magnitude = sqrt(magnitude)
                for dim in range(dimension):
-                  D_momentum += -inner(self.w[dim], (C_D*magnitude/self.h_mean)*self.u[dim])*dx
+                  D_momentum += -inner(self.w[dim], (C_D*magnitude/(self.h_mean + self.h_k))*self.u[dim])*dx
                F -= D_momentum
 
             # The mass term in the shallow water continuity equation 
@@ -313,7 +313,7 @@ class ShallowWater:
                Ct_continuity = 0
 
                for dim in range(dimension):
-                  Ct_continuity += - self.h_mean*inner(self.u[dim], grad(self.v)[dim])*dx
+                  Ct_continuity += - (self.h_mean + self.h_k)*inner(self.u[dim], grad(self.v)[dim])*dx
                                    #+ inner(jump(v, n)[dim], avg(u[dim]))*dS
                                  
                # Add in the surface integrals, but check to see if a no normal flow boundary condition needs to be applied weakly here.
@@ -327,13 +327,13 @@ class ShallowWater:
                            no_normal_flow = True
                   if(not no_normal_flow):
                      for dim in range(dimension):
-                        Ct_continuity += self.h_mean*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
+                        Ct_continuity += (self.h_mean + self.h_k)*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
 
             else:
                divergence = 0
                for dim in range(dimension):
-                  divergence += grad(self.u[dim])[dim]
-               Ct_continuity = self.h_mean*(inner(self.v, divergence))*dx
+                  divergence += grad((self.h_mean + self.h_k)*self.u[dim])[dim]
+               Ct_continuity = inner(self.v, divergence)*dx
             F += Ct_continuity
                
             # Add in any source terms

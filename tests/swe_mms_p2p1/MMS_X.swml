@@ -176,7 +176,7 @@
             <value name="WholeMesh">
               <cpp>
                 <string_value lines="20" type="code" language="python">def val(t):
-  return "-50.0*sin(x[0])"</string_value>
+  return "pow(cos(x[0]), 2)*sin(x[1]) - (sin(x[0])*sin(x[1]) + 50.0)*sin(x[0])"</string_value>
               </cpp>
             </value>
           </prescribed>

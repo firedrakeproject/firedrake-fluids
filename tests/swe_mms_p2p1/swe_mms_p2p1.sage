@@ -29,7 +29,7 @@ Su = u*diff(u,x) + v*diff(u,y) + g*diff(h,x) - diff(tau_xx, x) - diff(tau_xy, y)
 Sv = u*diff(v,x) + v*diff(v,y) + g*diff(h,y) - diff(tau_yy, y) - diff(tau_yx, x) 
 
 h_mean = 50.0
-Sh = h_mean*(diff(u, x) + diff(v, y))
+Sh = diff((h_mean + h)*u, x) + diff((h_mean + h)*v, y)
 
 print 'from math import sin, cos, tanh, pi, sqrt'
 print ''

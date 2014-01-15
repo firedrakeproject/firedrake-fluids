@@ -105,7 +105,6 @@
         <function_space name="VelocityFunctionSpace"/>
         <spatial_discretisation>
           <continuous_galerkin>
-            <streamline_upwind_stabilisation/>
             <mass_term/>
             <advection_term/>
           </continuous_galerkin>
