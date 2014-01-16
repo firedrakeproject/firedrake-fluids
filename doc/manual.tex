@@ -5,6 +5,7 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage{lmodern}
+\usepackage{tikz}
 
 \title{Firedrake-Fluids User Manual}
 \author{Imperial College London}
@@ -21,7 +22,31 @@
 Firedrake-Fluids is a collection of numerical models for the study of fluid dynamics. It uses the Firedrake framework (\texttt{http://firedrakeproject.org/}) to automate the solution of the governing equations written in their weak form using the Unified Form Language.
 
 \chapter{Shallow water}
-The shallow water model solves the non-linear version of the shallow water equations. The free surface is split up into a mean component $H$, and a perturbation component $h$.
+The shallow water model solves the non-linear version of the shallow water equations. The free surface is split up into a mean component $H$, and a perturbation component $h$ (see Figure \ref{fig:shallow_water_setup}).
+
+\begin{figure}
+   \centering
+   \begin{tikzpicture}
+      % Draw the main box     
+      \draw[style={thick}] (0, 0) -- (0, 5) -- (10, 5) -- (10, 0) -- cycle;
+         
+      % Draw the sine curves
+      \draw[x=0.5cm,y=1cm, thick, blue] 
+        (0,4) sin (1,4.5) cos (2,4) sin (3,3.5) cos (4,4) sin (5,4.5) cos (6,4) sin (7,3.5) cos (8,4)
+              sin (9,4.5) cos (10,4) sin (11,3.5) cos (12,4) sin (13,4.5) cos (14,4) sin (15,3.5) cos (16,4) sin (17,4.5) cos (18,4) sin (19,3.5) cos (20,4);
+
+      \draw[style={dashed}] (0, 4) -- (10, 4);
+
+      \draw[arrows=<->, style={thick}] (2.5, 0) -- (2.5, 4);
+      \draw (2.7, 2) node{\footnotesize $H$};
+      \draw[arrows=<->, style={thick}] (2.5, 4) -- (2.5, 4.5);
+      \draw (2.7, 4.25) node{\footnotesize $h$};
+      
+      \end{tikzpicture}
+      \caption{Single-layer shallow water set-up.}
+      \label{fig:shallow_water_setup}
+   \end{figure}
+
 
 \section{Model equations}
 The shallow water equation set comprises a momentum equation and a continuity equation, each of which are defined below.
@@ -61,6 +86,11 @@ Strong Dirichlet boundary conditions can be enforced for both the FreeSurfacePer
 \begin{itemize}
    \item Only a continuous Galerkin discretisation may be used (for all fields).
 \end{itemize}
+
+\chapter{Stabilisation methods}
+
+\section{Streamline upwind}
+
 
 \chapter{Diagnostic fields}
 
