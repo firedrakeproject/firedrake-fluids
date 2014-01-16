@@ -146,8 +146,7 @@ class ShallowWater:
       
       # The solution field defined on the mixed function space
       self.solution = Function(self.W)
-      self.output_function = Function(self.W.sub(dimension), name="FreeSurfacePerturbation")
-     
+
       # Define the compulsory shallow water fields
       self.u_old = [Function(self.W.sub(dim)) for dim in range(dimension)]
       self.h_old = Function(self.W.sub(dimension))
@@ -169,12 +168,19 @@ class ShallowWater:
       self.h_mean = Function(self.W.sub(dimension))
       self.h_mean.interpolate(ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfaceMean/prescribed/value", t=self.options["t"]))
 
-      # Set up the output stream
-      self.output_file = File("%s.pvd" % self.options["simulation_name"])
+      # Set up the functions used to write fields to file.
+      self.output_function = [Function(self.W.sub(dimension), name="Velocity_%d" % dim) for dim in range(dimension)] + [Function(self.W.sub(dimension), name="FreeSurfacePerturbation")]
       
-      # Write initial condition to file
-      self.output_function.assign(self.h_old)
-      self.output_file << self.output_function
+      # Set up the output stream
+      self.output_file = [File("%s_Velocity_%d.pvd" % (self.options["simulation_name"], dim)) for dim in range(dimension)] + [File("%s_FreeSurfacePerturbation.pvd" % self.options["simulation_name"])]
+      
+      # Write initial conditions to file
+      for dim in range(dimension):
+         temp = project(self.u_old[dim], self.W.sub(dimension))
+         self.output_function[dim].assign(temp)
+         self.output_file[dim] << self.output_function[dim]
+      self.output_function[dimension].assign(self.h_old)
+      self.output_file[dimension] << self.output_function[dimension]
             
       return
       
@@ -397,7 +403,7 @@ class ShallowWater:
             solution = Function(self.W)
             start = time.time()
             #solve(A, solution, b, solver_parameters={'ksp_monitor':True})
-            solve(a == L, solution, bcs=bcs, solver_parameters={'ksp_monitor': True, 'ksp_view': False, 'pc_view': False})
+            solve(a == L, solution, bcs=bcs, solver_parameters={'ksp_monitor': True, 'ksp_view': True, 'pc_view': True})
             end = time.time()
             difference = end - start
             print "Tictoc 2 = %f" % difference
@@ -414,8 +420,12 @@ class ShallowWater:
             
          # Write the solution to a file.
          print "Writing data to file..."
-         self.output_function.assign(self.h_k)
-         self.output_file << self.output_function
+         for dim in range(dimension):
+            temp = project(self.u_k[dim], self.W.sub(dimension))
+            self.output_function[dim].assign(temp)
+            self.output_file[dim] << self.output_function[dim]
+         self.output_function[dimension].assign(self.h_k)
+         self.output_file[dimension] << self.output_function[dimension]
          
          # Check whether a steady-state has been reached.
          if(max(abs(self.h_k.vector().array() - self.h_old.vector().array())) <= self.options["steady_state_tolerance"]):
