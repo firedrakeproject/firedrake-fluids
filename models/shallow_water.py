@@ -250,7 +250,7 @@ class ShallowWater:
       g_magnitude = self.options["g_magnitude"]
             
       # The time-stepping loop
-      while t < T:
+      while t + dt < T:
          t += dt
          print "\nt = %g" % t
 
@@ -392,9 +392,9 @@ class ShallowWater:
             start = time.time()
             A = assemble(a)
             b = assemble(L)
-            for bc in bcs:
-               bc.apply(A)
-               bc.apply(b)
+            #for bc in bcs:
+            #   bc.apply(A)
+            #   bc.apply(b)
             end = time.time()
             difference = end - start
             print "Tictoc 1 = %f" % difference
@@ -402,8 +402,8 @@ class ShallowWater:
             # Solve the system of equations!
             solution = Function(self.W)
             start = time.time()
-            #solve(A, solution, b, solver_parameters={'ksp_monitor':True})
-            solve(a == L, solution, bcs=bcs, solver_parameters={'ksp_monitor': True, 'ksp_view': True, 'pc_view': True})
+            #solve(A, solution, b, bcs=bcs, solver_parameters={'ksp_monitor':True, 'ksp_view':True, 'pc_view':True})
+            solve(a == L, solution, bcs=bcs, solver_parameters={'ksp_monitor': True, 'ksp_view': False, 'pc_view': False, 'ksp_type':'gmres', 'pc_type':'jacobi'})
             end = time.time()
             difference = end - start
             print "Tictoc 2 = %f" % difference
