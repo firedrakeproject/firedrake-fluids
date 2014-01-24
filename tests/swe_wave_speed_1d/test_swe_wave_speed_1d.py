@@ -14,7 +14,7 @@ def input():
 def swe_wave_speed_1d():
    sw = shallow_water.ShallowWater(path=os.path.join(cwd, "swe_wave_speed_1d.swml"))
    sw.run()
-   h_old = sw.h_old
+   h_old = sw.solution_old.split()[-1]
    return h_old.vector().array()
 
 def test_swe_wave_speed_1d(input):

@@ -18,7 +18,7 @@ def swe_mms_p2p1():
    for c in configs:
       sw = shallow_water.ShallowWater(path=os.path.join(cwd, c + ".swml"))
       sw.run()
-      h_old = sw.h_old
+      h_old = sw.solution_old.split()[-1]
 
       f = Function(sw.function_spaces["FreeSurfaceFunctionSpace"])
       f.interpolate(Expression("sin(x[0])*sin(x[1])"))
