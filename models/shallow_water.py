@@ -171,7 +171,7 @@ class ShallowWater:
       
       # Write initial conditions to file
       for dim in range(dimension):
-         projected = project(self.solution_old.split()[dim], self.W.sub(dimension))
+         projected = project(self.solution_old.split()[dim], self.W.sub(dimension)) # Projects the Velocity to the FreeSurfaceFunctionSpace
          self.output_function[dim].assign(projected)
          self.output_file[dim] << self.output_function[dim]
       self.output_function[dimension].assign(self.solution_old.split()[dimension])
@@ -371,8 +371,15 @@ class ShallowWater:
          #L = rhs(F)
                    
          # Solve the system of equations!
-         #solve(A, solution, b, bcs=bcs, solver_parameters={'ksp_monitor':True, 'ksp_view':True, 'pc_view':True})
-         solve(F == 0, self.solution, bcs=bcs, solver_parameters={'ksp_monitor': True, 'ksp_view': False, 'pc_view': False, 'ksp_type':'gmres', 'pc_type':'jacobi'})
+         #solve(A, self.solution, b, bcs=bcs, solver_parameters={'ksp_monitor':True, 'ksp_view':True, 'pc_view':True})
+         solve(F == 0, self.solution, bcs=bcs, solver_parameters={'ksp_monitor': True, 
+                                                                  'ksp_view': False, 
+                                                                  'pc_view': False, 
+                                                                  'ksp_type': 'gmres', 
+                                                                  'pc_type': 'jacobi',
+                                                                  'ksp_rtol': 1.0e-7,
+                                                                  'snes_rtol': 1.0e-3,
+                                                                  'snes_max_it': 1})
             
          # Write the solution to file.
          print "Writing data to file..."
@@ -400,12 +407,14 @@ class ShallowWater:
 if(__name__ == "__main__"):
 
    try:
-      # Set up a shallow water simulation.
-      sw = ShallowWater(path = sys.argv[1])
+      path = sys.argv[1]
    except IndexError:
       print "Please provide the path to the simulation configuration file."
       sys.exit(1)
-
+      
+   # Set up a shallow water simulation.
+   sw = ShallowWater(path)
+      
    # Solve the shallow water equations!
    sw.run()
    
