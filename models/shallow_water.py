@@ -224,7 +224,9 @@ class ShallowWater:
       self.options["have_su_stabilisation"] = libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/spatial_discretisation/continuous_galerkin/streamline_upwind_stabilisation")
 
       self.options["have_bottom_drag"] = libspud.have_option("/material_phase[0]/scalar_field::DragCoefficient")
-
+      if(self.options["have_bottom_drag"]):
+         self.options["drag_coefficient"] = libspud.get_option("/material_phase[0]/scalar_field::DragCoefficient/prescribed/value/constant")
+         
       self.options["integrate_continuity_by_parts"] = libspud.have_option("/material_phase[0]/integrate_continuity_equation_by_parts")
 
       return
@@ -278,7 +280,7 @@ class ShallowWater:
          # Quadratic drag term in the momentum equation
          if(self.options["have_bottom_drag"]):
             print "Adding bottom drag..."
-            C_D = libspud.get_option("/material_phase[0]/scalar_field::DragCoefficient/prescribed/value/constant")
+            C_D = self.options["drag_coefficient"]
             D_momentum = 0
             magnitude = 0
             for dim in range(dimension):
