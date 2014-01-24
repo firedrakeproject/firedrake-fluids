@@ -340,7 +340,10 @@ class ShallowWater:
          # Add in any SU stabilisation
          if(self.options["have_su_stabilisation"]):
             print "Adding momentum SU stabilisation..."
-            F += stabilisation.streamline_upwind(self.mesh, dimension, self.w, self.u, self.u)
+            u_k = []
+            for dim in range(dimension):
+               u_k.append(self.solution_old.split()[dim])
+            F += stabilisation.streamline_upwind(self.mesh, dimension, self.w, self.u, u_k)
 
          # Get all the Dirichlet boundary conditions for the Velocity field
          bcs = []
@@ -379,7 +382,7 @@ class ShallowWater:
                                                                   'pc_type': 'jacobi',
                                                                   'ksp_rtol': 1.0e-7,
                                                                   'snes_rtol': 1.0e-3,
-                                                                  'snes_max_it': 1})
+                                                                  'snes_max_it': 2})
             
          # Write the solution to file.
          print "Writing data to file..."

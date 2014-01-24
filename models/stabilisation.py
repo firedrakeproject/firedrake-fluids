@@ -13,8 +13,8 @@ def streamline_upwind(mesh, dimension, w, u, u_k):
 
    u_nodes = magnitude.vector()
    for i in range(0, len(u_nodes)):
-      if(u_nodes[i] < 1.0e-9):
-         u_nodes[i] = 1.0e-9
+      if(u_nodes[i] < 1.0e-16):
+         u_nodes[i] = 1.0e-16
 
    #k = 10.0 # Viscosity
    #grid_pe = (magnitude*h)/(2.0*k)
