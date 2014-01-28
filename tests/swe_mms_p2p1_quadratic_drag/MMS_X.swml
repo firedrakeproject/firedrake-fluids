@@ -1,0 +1,209 @@
+<?xml version='1.0' encoding='utf-8'?>
+<shallow_water_options>
+  <simulation_name>
+    <string_value lines="1">MMS_X</string_value>
+  </simulation_name>
+  <geometry>
+    <dimension>
+      <integer_value rank="0">2</integer_value>
+    </dimension>
+    <mesh>
+      <unit_mesh>
+        <number_of_nodes>
+          <integer_value shape="2" dim1="dim" rank="1">777 888</integer_value>
+        </number_of_nodes>
+        <crossed/>
+      </unit_mesh>
+    </mesh>
+  </geometry>
+  <function_spaces>
+    <function_space name="CoordinateFunctionSpace">
+      <type>
+        <string_value>vector</string_value>
+      </type>
+      <polynomial_degree>
+        <integer_value rank="0">1</integer_value>
+      </polynomial_degree>
+      <element_type>
+        <string_value>lagrangian</string_value>
+      </element_type>
+      <continuity>
+        <string_value>continuous</string_value>
+      </continuity>
+    </function_space>
+    <function_space name="VelocityFunctionSpace">
+      <type>
+        <string_value>vector</string_value>
+      </type>
+      <polynomial_degree>
+        <integer_value rank="0">2</integer_value>
+      </polynomial_degree>
+      <element_type>
+        <string_value>lagrangian</string_value>
+      </element_type>
+      <continuity>
+        <string_value>continuous</string_value>
+      </continuity>
+    </function_space>
+    <function_space name="FreeSurfaceFunctionSpace">
+      <type>
+        <string_value>scalar</string_value>
+      </type>
+      <polynomial_degree>
+        <integer_value rank="0">1</integer_value>
+      </polynomial_degree>
+      <element_type>
+        <string_value>lagrangian</string_value>
+      </element_type>
+      <continuity>
+        <string_value>continuous</string_value>
+      </continuity>
+    </function_space>
+  </function_spaces>
+  <io>
+    <dump_format>
+      <string_value>vtk</string_value>
+    </dump_format>
+    <dump_period_in_timesteps>
+      <constant>
+        <integer_value rank="0">0</integer_value>
+      </constant>
+    </dump_period_in_timesteps>
+  </io>
+  <timestepping>
+    <current_time>
+      <real_value rank="0">0</real_value>
+    </current_time>
+    <timestep>
+      <real_value rank="0">999</real_value>
+    </timestep>
+    <nonlinear_iterations>
+      <integer_value rank="0">2</integer_value>
+      <tolerance>
+        <real_value rank="0">1.0e-7</real_value>
+      </tolerance>
+    </nonlinear_iterations>
+    <finish_time>
+      <real_value rank="0">40</real_value>
+    </finish_time>
+    <steady_state>
+      <tolerance>
+        <real_value rank="0">1.0e-6</real_value>
+      </tolerance>
+    </steady_state>
+  </timestepping>
+  <physical_parameters>
+    <gravity>
+      <magnitude>
+        <real_value rank="0">9.8</real_value>
+      </magnitude>
+      <vector_field name="GravityDirection" rank="1">
+        <prescribed>
+          <mesh name="CoordinateFunctionSpace"/>
+          <real_value shape="2" dim1="dim" rank="1">0 -1</real_value>
+        </prescribed>
+      </vector_field>
+    </gravity>
+  </physical_parameters>
+  <material_phase name="Fluid">
+    <vector_field name="Velocity" rank="1">
+      <prognostic>
+        <function_space name="VelocityFunctionSpace"/>
+        <spatial_discretisation>
+          <continuous_galerkin>
+            <mass_term/>
+            <advection_term/>
+          </continuous_galerkin>
+        </spatial_discretisation>
+        <initial_condition name="WholeMesh">
+          <constant>
+            <real_value shape="2" dim1="dim" rank="1">0 0</real_value>
+          </constant>
+        </initial_condition>
+        <boundary_conditions name="All">
+          <surface_ids>
+            <integer_value shape="4" rank="1">1 2 3 4</integer_value>
+          </surface_ids>
+          <type name="dirichlet">
+            <cpp>
+              <string_value lines="20" type="code" language="python">def val(t):
+  return ("pow(cos(x[1]), 3)*sin(x[0])", "pow(sin(x[0]), 2)*sin(x[1])")</string_value>
+            </cpp>
+          </type>
+        </boundary_conditions>
+        <vector_field name="Source" rank="1">
+          <prescribed>
+            <value name="WholeMesh">
+              <cpp>
+                <string_value lines="20" type="code" language="python">def val(t):
+  u = "cos(x[0])*pow(cos(x[1]), 6)*sin(x[0]) - 3*pow(cos(x[1]), 2)*pow(sin(x[0]), 3)*pow(sin(x[1]), 2) + 2.40*pow(cos(x[1]), 3)*sin(x[0]) - 3.60*cos(x[1])*sin(x[0])*pow(sin(x[1]), 2) + 0.00250*sqrt(pow(cos(x[1]), 6)*pow(sin(x[0]), 2) + pow(sin(x[0]), 4)*pow(sin(x[1]), 2))*pow(cos(x[1]), 3)*sin(x[0])/(sin(x[0])*sin(x[1]) + 20.0) + 9.80*cos(x[0])*sin(x[1])"
+  v = "2*cos(x[0])*pow(cos(x[1]), 3)*pow(sin(x[0]), 2)*sin(x[1]) + cos(x[1])*pow(sin(x[0]), 4)*sin(x[1]) - 1.20*pow(cos(x[0]), 2)*sin(x[1]) + 1.80*pow(sin(x[0]), 2)*sin(x[1]) + 0.00250*sqrt(pow(cos(x[1]), 6)*pow(sin(x[0]), 2) + pow(sin(x[0]), 4)*pow(sin(x[1]), 2))*pow(sin(x[0]), 2)*sin(x[1])/(sin(x[0])*sin(x[1]) + 20.0) + 9.80*cos(x[1])*sin(x[0])"
+  return (u, v)</string_value>
+              </cpp>
+            </value>
+          </prescribed>
+        </vector_field>
+        <viscosity>
+          <real_value rank="0">0.6</real_value>
+        </viscosity>
+      </prognostic>
+    </vector_field>
+    <scalar_field name="FreeSurfacePerturbation" rank="0">
+      <prognostic>
+        <function_space name="FreeSurfaceFunctionSpace"/>
+        <spatial_discretisation>
+          <continuous_galerkin>
+            <mass_term/>
+            <advection_term/>
+          </continuous_galerkin>
+        </spatial_discretisation>
+        <initial_condition name="WholeMesh">
+          <constant>
+            <real_value rank="0">0.0</real_value>
+          </constant>
+        </initial_condition>
+        <boundary_conditions name="All">
+          <surface_ids>
+            <integer_value shape="4" rank="1">1 2 3 4</integer_value>
+          </surface_ids>
+          <type name="dirichlet">
+            <cpp>
+              <string_value lines="20" type="code" language="python">def val(t):
+  return "sin(x[0])*sin(x[1])"</string_value>
+            </cpp>
+          </type>
+        </boundary_conditions>
+        <scalar_field name="Source" rank="0">
+          <prescribed>
+            <value name="WholeMesh">
+              <cpp>
+                <string_value lines="20" type="code" language="python">def val(t):
+  return "cos(x[0])*pow(cos(x[1]), 3)*sin(x[0])*sin(x[1]) + (sin(x[0])*sin(x[1]) + 20.0)*cos(x[0])*pow(cos(x[1]), 3) + cos(x[1])*pow(sin(x[0]), 3)*sin(x[1]) + (sin(x[0])*sin(x[1]) + 20.0)*cos(x[1])*pow(sin(x[0]), 2)"</string_value>
+              </cpp>
+            </value>
+          </prescribed>
+        </scalar_field>
+      </prognostic>
+    </scalar_field>
+    <scalar_field name="FreeSurfaceMean" rank="0">
+      <prescribed>
+        <function_space name="FreeSurfaceFunctionSpace"/>
+        <value name="WholeMesh">
+          <constant>
+            <real_value rank="0">20</real_value>
+          </constant>
+        </value>
+      </prescribed>
+    </scalar_field>
+    <scalar_field name="DragCoefficient" rank="0">
+      <prescribed>
+        <function_space name="FreeSurfaceFunctionSpace"/>
+        <value name="WholeMesh">
+          <constant>
+            <real_value rank="0">0.0025</real_value>
+          </constant>
+        </value>
+      </prescribed>
+    </scalar_field>
+  </material_phase>
+</shallow_water_options>
