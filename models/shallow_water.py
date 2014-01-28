@@ -10,13 +10,11 @@ if(backend == "firedrake"):
    from firedrake import *
 else:
    from dolfin import *
-   
-#from firedrake_adjoint import *
 
 import stabilisation
 import fields_calculations
 import diagnostics
-import detectors
+#import detectors
 
 class VectorExpressionFromOptions(Expression):
    def __init__(self, path, t):
@@ -179,11 +177,11 @@ class ShallowWater:
       self.output_file[dimension] << self.output_function[dimension]
     
       # Initialise detectors
-      if(self.options["have_detectors"]):
-         self.detectors = detectors.Detectors(locations_file_name = "detectors.xy", 
-                                              values_file_name = "detectors.dat", 
-                                              fields = ["FreeSurfacePerturbation", "Velocity_0", "Velocity_1"])
-         self.detectors.write(self.options["simulation_name"], 0.0, self.options["dt"])
+      #if(self.options["have_detectors"]):
+      #   self.detectors = detectors.Detectors(locations_file_name = "detectors.xy", 
+      #                                        values_file_name = "detectors.dat", 
+      #                                        fields = ["FreeSurfacePerturbation", "Velocity_0", "Velocity_1"])
+      #   self.detectors.write(self.options["simulation_name"], 0.0, self.options["dt"])
          
       return
       
@@ -408,8 +406,8 @@ class ShallowWater:
             break
 
          # Write detector values to file
-         if(self.options["have_detectors"]):
-            self.detectors.write(self.options["simulation_name"], t, dt)
+         #if(self.options["have_detectors"]):
+         #   self.detectors.write(self.options["simulation_name"], t, dt)
             
          # Move to next time step    
          self.solution_old.assign(self.solution)    
@@ -419,8 +417,8 @@ class ShallowWater:
       print "Out of the time-stepping loop."
    
       # Any final steps (e.g. closing files)
-      if(self.options["have_detectors"]):
-         self.detectors.finalise()
+      #if(self.options["have_detectors"]):
+      #   self.detectors.finalise()
   
       return
 
