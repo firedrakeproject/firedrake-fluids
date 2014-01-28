@@ -91,7 +91,15 @@ start =
                      }
                   )   
                }
-            )
+            ),
+            element detectors {
+               element locations_file {
+                  anystring
+               },
+               element values_file {
+                  anystring
+               }
+            }?
          },
          ## Options dealing with time discretisation
          element timestepping {

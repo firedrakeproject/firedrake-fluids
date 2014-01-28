@@ -16,6 +16,7 @@ else:
 import stabilisation
 import fields_calculations
 import diagnostics
+import detectors
 
 class VectorExpressionFromOptions(Expression):
    def __init__(self, path, t):
@@ -176,7 +177,14 @@ class ShallowWater:
          self.output_file[dim] << self.output_function[dim]
       self.output_function[dimension].assign(self.solution_old.split()[dimension])
       self.output_file[dimension] << self.output_function[dimension]
-            
+    
+      # Initialise detectors
+      if(self.options["have_detectors"]):
+         self.detectors = detectors.Detectors(locations_file_name = "detectors.xy", 
+                                              values_file_name = "detectors.dat", 
+                                              fields = ["FreeSurfacePerturbation", "Velocity_0", "Velocity_1"])
+         self.detectors.write(self.options["simulation_name"], 0.0, self.options["dt"])
+         
       return
       
    def populate_options(self):
@@ -229,6 +237,8 @@ class ShallowWater:
          
       self.options["integrate_continuity_by_parts"] = libspud.have_option("/material_phase[0]/integrate_continuity_equation_by_parts")
 
+      self.options["have_detectors"] = libspud.have_option("/io/detectors/")
+      
       return
       
    def run(self):
@@ -381,8 +391,7 @@ class ShallowWater:
                                                                   'ksp_type': 'gmres', 
                                                                   'pc_type': 'jacobi',
                                                                   'ksp_rtol': 1.0e-7,
-                                                                  'snes_rtol': 1.0e-3,
-                                                                  'snes_max_it': 2})
+                                                                  'snes_type': 'ksponly'})
             
          # Write the solution to file.
          print "Writing data to file..."
@@ -398,13 +407,21 @@ class ShallowWater:
             print "Steady-state attained. Exiting the time-stepping loop..."
             break
 
+         # Write detector values to file
+         if(self.options["have_detectors"]):
+            self.detectors.write(self.options["simulation_name"], t, dt)
+            
          # Move to next time step    
          self.solution_old.assign(self.solution)    
          t += dt
          print "Moving to next time level..."      
-
-      print "Out of the time-stepping loop."
       
+      print "Out of the time-stepping loop."
+   
+      # Any final steps (e.g. closing files)
+      if(self.options["have_detectors"]):
+         self.detectors.finalise()
+  
       return
 
 if(__name__ == "__main__"):

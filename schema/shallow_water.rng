@@ -101,6 +101,16 @@ A value of 0 indicates a dump at every timestep.</a:documentation>
             </element>
           </element>
         </choice>
+        <optional>
+          <element name="detectors">
+            <element name="locations_file">
+              <ref name="anystring"/>
+            </element>
+            <element name="values_file">
+              <ref name="anystring"/>
+            </element>
+          </element>
+        </optional>
       </element>
       <element name="timestepping">
         <a:documentation>Options dealing with time discretisation</a:documentation>
