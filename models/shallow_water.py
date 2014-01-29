@@ -141,10 +141,7 @@ class ShallowWater:
       self.w = test_functions[:-1]; self.v = test_functions[-1]
 
       # Normal vector to each element facet
-      if(backend == "firedrake"):
-         self.n = FacetNormal(self.mesh.ufl_cell())
-      else:
-         self.n = FacetNormal(self.mesh)
+      self.n = FacetNormal(self.mesh)
       
       # Set up initial conditions
       # FIXME: Subclassing of the Expression class needs to be DOLFIN compatible. The current method used here is a hack.
