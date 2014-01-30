@@ -43,7 +43,6 @@ class Detectors:
       vtu_files = []
       for field in self.fields:
          vtu_files.append(vtktools.vtu("%s_%s_%d.vtu" % (simulation_name, field, int(t/dt))))
-         #vt_fs.GetFieldNames()
          
       self.values_file.write(str(t) + " ") # The current time is the first entry in each row.
       for xyz in self.coordinates:
