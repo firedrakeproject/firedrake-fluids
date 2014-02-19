@@ -2,9 +2,10 @@
 
 from firedrake import *
 
-def magnitude_vector(u):
+def magnitude_vector(mesh, u):
 
-   function_space = u[0].function_space() # Assumes all components of velocity live in the same function space
+#   function_space = u[0].function_space() # Assumes all components of velocity live in the same function space
+   function_space = FunctionSpace(mesh, "CG", 1)
    w = TestFunction(function_space)
    magnitude = TrialFunction(function_space)
    solution = Function(function_space)
@@ -15,4 +16,17 @@ def magnitude_vector(u):
    
    return solution
 
+def grid_peclet_number(mesh, u, k, magnitude):
 
+   function_space = FunctionSpace(mesh, "CG", 1)
+   w = TestFunction(function_space)
+   grid_pe = TrialFunction(function_space)
+   solution = Function(function_space)
+
+   h = CellSize(mesh)
+
+   a = w*grid_pe*dx
+   L = w*(magnitude*h)/(2.0*k)*dx
+   solve(a == L, solution, bcs=[])
+
+   return solution
