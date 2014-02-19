@@ -142,7 +142,7 @@ class ShallowWater:
       # These are like the TrialFunctions, but are just regular Functions here because we want to solve a non-linear problem
       functions = split(self.solution)
       self.u = list(functions[:-1]); self.h = functions[-1]
-      #self.solution.assign(project(Expression([1.0e-16, 1.0e-16, 0]), self.W))
+      self.solution.assign(project(Expression([1.0e-16 for i in range(dimension)] + [0]), self.W))
       # Get the test functions
       test_functions = TestFunctions(self.W)
       self.w = test_functions[:-1]; self.v = test_functions[-1]
