@@ -20,7 +20,7 @@ import diagnostics
 try:
    import detectors
 except:
-   continue
+   print "Could not import the detectors module"
 
 class VectorExpressionFromOptions(Expression):
    def __init__(self, path, t):
