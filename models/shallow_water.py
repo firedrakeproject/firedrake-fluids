@@ -14,7 +14,13 @@ else:
 import stabilisation
 import fields_calculations
 import diagnostics
-import detectors
+
+# FIXME: the detectors module currently relies on vtktools.
+# Temporarily wrap this in a try-except block in case vtktools doesn't exist.
+try:
+   import detectors
+except:
+   continue
 
 class VectorExpressionFromOptions(Expression):
    def __init__(self, path, t):
@@ -275,10 +281,6 @@ class ShallowWater:
             K_momentum = 0
             for dim in range(dimension):
                K_momentum += -self.options["nu"]*inner(grad(self.u[dim]), grad(self.w[dim]))*dx
-            #for dim_i in range(dimension):
-            #   for dim_j in range(dimension):
-            #      for dim_k in range(dimension):
-            #         K_momentum += -self.options["nu"]*inner(grad(self.u[dim_j])[dim_i], grad(self.w[dim_k])[dim_j])*dx 
             #for dim_i in range(dimension):
             #   for dim_j in range(dimension):
             #      K_momentum += -self.options["nu"]*inner(grad(self.u[dim_i])[dim_j] + grad(self.u[dim_j])[dim_i], grad(self.w[dim_i])[dim_j])*dx 
