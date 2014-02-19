@@ -14,7 +14,7 @@ else:
 import stabilisation
 import fields_calculations
 import diagnostics
-#import detectors
+import detectors
 
 class VectorExpressionFromOptions(Expression):
    def __init__(self, path, t):
@@ -136,6 +136,7 @@ class ShallowWater:
       # These are like the TrialFunctions, but are just regular Functions here because we want to solve a non-linear problem
       functions = split(self.solution)
       self.u = list(functions[:-1]); self.h = functions[-1]
+      self.solution.assign(project(Expression([1.0e-16, 1.0e-16, 0]), self.W))
       # Get the test functions
       test_functions = TestFunctions(self.W)
       self.w = test_functions[:-1]; self.v = test_functions[-1]
@@ -174,11 +175,11 @@ class ShallowWater:
       self.output_file[dimension] << self.output_function[dimension]
     
       # Initialise detectors
-      #if(self.options["have_detectors"]):
-      #   self.detectors = detectors.Detectors(locations_file_name = "detectors.xy", 
-      #                                        values_file_name = "detectors.dat", 
-      #                                        fields = ["FreeSurfacePerturbation", "Velocity_0", "Velocity_1"])
-      #   self.detectors.write(self.options["simulation_name"], 0.0, self.options["dt"])
+      if(self.options["have_detectors"]):
+         self.detectors = detectors.Detectors(locations_file_name = "detectors.xy", 
+                                              values_file_name = "detectors.dat", 
+                                              fields = ["FreeSurfacePerturbation", "Velocity_0", "Velocity_1"])
+         self.detectors.write(self.options["simulation_name"], 0.0, self.options["dt"])
          
       return
       
@@ -273,7 +274,14 @@ class ShallowWater:
          if(self.options["have_momentum_stress"]):
             K_momentum = 0
             for dim in range(dimension):
-                  K_momentum += -self.options["nu"]*inner(grad(self.w[dim]), grad(self.u[dim]))*dx
+               K_momentum += -self.options["nu"]*inner(grad(self.u[dim]), grad(self.w[dim]))*dx
+            #for dim_i in range(dimension):
+            #   for dim_j in range(dimension):
+            #      for dim_k in range(dimension):
+            #         K_momentum += -self.options["nu"]*inner(grad(self.u[dim_j])[dim_i], grad(self.w[dim_k])[dim_j])*dx 
+            #for dim_i in range(dimension):
+            #   for dim_j in range(dimension):
+            #      K_momentum += -self.options["nu"]*inner(grad(self.u[dim_i])[dim_j] + grad(self.u[dim_j])[dim_i], grad(self.w[dim_i])[dim_j])*dx 
             F -= K_momentum # Negative sign here because we are bringing the stress term over from the RHS.
 
          # The gradient of the height of the free surface, h
@@ -289,7 +297,7 @@ class ShallowWater:
             D_momentum = 0
             magnitude = 0
             for dim in range(dimension):
-               magnitude += dot(self.u_old[dim], self.u_old[dim])
+               magnitude += dot(self.u[dim], self.u[dim])
             magnitude = sqrt(magnitude)
             for dim in range(dimension):
                D_momentum += -inner(self.w[dim], (C_D*magnitude/(self.h_mean + self.h))*self.u[dim])*dx
@@ -403,8 +411,8 @@ class ShallowWater:
             break
 
          # Write detector values to file
-         #if(self.options["have_detectors"]):
-         #   self.detectors.write(self.options["simulation_name"], t, dt)
+         if(self.options["have_detectors"]):
+            self.detectors.write(self.options["simulation_name"], t, dt)
             
          # Move to next time step    
          self.solution_old.assign(self.solution)    
@@ -414,8 +422,8 @@ class ShallowWater:
       print "Out of the time-stepping loop."
    
       # Any final steps (e.g. closing files)
-      #if(self.options["have_detectors"]):
-      #   self.detectors.finalise()
+      if(self.options["have_detectors"]):
+         self.detectors.finalise()
   
       return
 
