@@ -12,7 +12,7 @@ def courant_number(mesh, u, dt):
    solution = Function(fs)
    
    h = CellSize(mesh)
-   magnitude = fields_calculations.magnitude_vector(u)
+   magnitude = fields_calculations.magnitude_vector(mesh, u)
    
    a = inner(w, courant_number)*dx
    L = w*(magnitude*dt)/h*dx
