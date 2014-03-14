@@ -318,18 +318,57 @@ class ShallowWater:
                Ct_continuity += - (self.h_mean + self.h)*inner(self.u[dim], grad(self.v)[dim])*dx
                                 #+ inner(jump(v, n)[dim], avg(u[dim]))*dS
                               
-            # Add in the surface integrals, but check to see if a no normal flow boundary condition needs to be applied weakly here.
+            # Add in the surface integrals, but check to see if any boundary conditions need to be applied weakly here.
             boundary_markers = set(self.mesh.exterior_facets.markers)
             for marker in boundary_markers:
                marker = int(marker) # ds() will not accept markers of type 'numpy.int32', so convert it to type 'int' here.
-               no_normal_flow = False
+               
+               bc_type = None
                for i in range(0, libspud.option_count("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions")):
-                  if(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/type::no_normal_flow" % i)):
-                     if(marker in libspud.get_option("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/surface_ids" % i)):
-                        no_normal_flow = True
-               if(not no_normal_flow):
-                  for dim in range(dimension):
+                  bc_path = "/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]" % i
+                  if(not (marker in libspud.get_option(bc_path + "/surface_ids"))):
+                     # This BC is not associated with this marker, so skip it.
+                     continue
+                     
+                  # Determine the BC type.
+                  if(libspud.have_option(bc_path + "/type::no_normal_flow")):
+                     bc_type = "no_normal_flow"
+                  elif(libspud.have_option(bc_path + "/type::dirichlet")):
+                     if(libspud.have_option(bc_path + "/type::dirichlet/apply_weakly")):
+                        bc_type = "weak_dirichlet"
+                     else:
+                        bc_type = "dirichlet"
+                  elif(libspud.have_option(bc_path + "/type::flather")):
+                     bc_type = "flather"
+                     
+                  # Apply the boundary condition...
+                  if(bc_type == "flather"):
+                     print "Applying flather BC to surface ID %d..." % marker
+                     
+                     for dim in range(dimension):
+                        if(dim == 0 and marker == 3):
+                           Ct_continuity += (self.h_mean + self.h)*inner(Function(self.function_spaces["VelocityFunctionSpace"]).interpolate(Expression("2.0")), self.n[dim]) * self.v * ds(int(marker))
+                      
+                      #Ct_continuity += (self.h_mean + self.h)*inner(Function(self.function_spaces["VelocityFunctionSpace"]).interpolate(Expression("2.0*sqrt(9.8/50.0)*cos((2*pi/(4464*9.8*50)*x[0])-sqrt(9.8*50)*(2*pi/(4464*9.8*50))*%f)" % t)), self.n[dim]) * self.v * ds(int(marker))
+                     if(marker == 3):
+                        Ct_continuity += sqrt(g_magnitude*(self.h_mean + self.h))*inner(self.h, self.v) * ds(int(marker))
+                     elif(marker == 4):
+                        Ct_continuity += sqrt(g_magnitude*(self.h_mean + self.h))*inner(self.h, self.v) * ds(int(marker))
+                  elif(bc_type == "weak_dirichlet"):
+                     print "Applying weak Dirichlet BC to surface ID %d..." % marker
+                  elif(bc_type == "dirichlet"):
+                     # Add in the surface integral as it is here. The BC will be applied strongly later using a DirichletBC object.
                      Ct_continuity += (self.h_mean + self.h)*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
+                  elif(bc_type == "no_normal_flow"):
+                     print "Applying no normal flow BC to surface ID %d..." % marker
+                     # Do nothing here since dot(u, n) is zero.
+                  else:
+                     print "Unknown boundary condition type!"
+                     sys.exit(0)
+                     
+               # If no boundary condition has been applied, include the surface integral as it is.
+               if(bc_type is None):
+                  Ct_continuity += (self.h_mean + self.h)*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
 
          else:
             divergence = 0
