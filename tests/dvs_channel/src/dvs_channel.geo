@@ -1,9 +1,10 @@
-Point(1) = {0,0,0,50.0};
+dx = 20.0;
+Point(1) = {0,0,0,dx};
 Extrude {3e3,0,0} {
-  Point{1};
+  Point{1}; Layers{3e3/dx};
 }
 Extrude {0,1e3,0} {
-  Line{1};
+  Line{1}; Layers{1e3/dx};
 }
 // Reserve 1 and 2 for top and bottom of extruded mesh
 // Outer ends of the channel (x=0 and x=3e3)
