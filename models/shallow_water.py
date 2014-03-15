@@ -251,6 +251,7 @@ class ShallowWater:
       dt = self.options["dt"]
       dimension = self.options["dimension"]
       g_magnitude = self.options["g_magnitude"]
+      H = self.h_mean + self.h
             
       t = dt
             
@@ -302,7 +303,7 @@ class ShallowWater:
                magnitude += dot(self.u[dim], self.u[dim])
             magnitude = sqrt(magnitude)
             for dim in range(dimension):
-               D_momentum += -inner(self.w[dim], (C_D*magnitude/(self.h_mean + self.h))*self.u[dim])*dx
+               D_momentum += -inner(self.w[dim], (C_D*magnitude/H)*self.u[dim])*dx
             F -= D_momentum
 
          # The mass term in the shallow water continuity equation 
@@ -315,7 +316,7 @@ class ShallowWater:
             Ct_continuity = 0
 
             for dim in range(dimension):
-               Ct_continuity += - (self.h_mean + self.h)*inner(self.u[dim], grad(self.v)[dim])*dx
+               Ct_continuity += - H*inner(self.u[dim], grad(self.v)[dim])*dx
                                 #+ inner(jump(v, n)[dim], avg(u[dim]))*dS
                               
             # Add in the surface integrals, but check to see if any boundary conditions need to be applied weakly here.
@@ -346,19 +347,16 @@ class ShallowWater:
                      print "Applying flather BC to surface ID %d..." % marker
                      
                      for dim in range(dimension):
-                        if(dim == 0 and marker == 3):
-                           Ct_continuity += (self.h_mean + self.h)*inner(Function(self.function_spaces["VelocityFunctionSpace"]).interpolate(Expression("2.0")), self.n[dim]) * self.v * ds(int(marker))
-                      
-                      #Ct_continuity += (self.h_mean + self.h)*inner(Function(self.function_spaces["VelocityFunctionSpace"]).interpolate(Expression("2.0*sqrt(9.8/50.0)*cos((2*pi/(4464*9.8*50)*x[0])-sqrt(9.8*50)*(2*pi/(4464*9.8*50))*%f)" % t)), self.n[dim]) * self.v * ds(int(marker))
-                     if(marker == 3):
-                        Ct_continuity += sqrt(g_magnitude*(self.h_mean + self.h))*inner(self.h, self.v) * ds(int(marker))
-                     elif(marker == 4):
-                        Ct_continuity += sqrt(g_magnitude*(self.h_mean + self.h))*inner(self.h, self.v) * ds(int(marker))
+                        Ct_continuity += H*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
+                     if(marker == 3): # Left
+                        Ct_continuity += sqrt(g_magnitude/H)*H*inner(self.h - Function(self.function_spaces["FreeSurfaceFunctionSpace"]).interpolate(Expression("cos(pi*%f/2232.0)" % t)), self.v) * ds(int(marker))
+                     elif(marker == 4): # Right
+                        Ct_continuity += sqrt(g_magnitude/H)*H*inner(self.h - Function(self.function_spaces["FreeSurfaceFunctionSpace"]).interpolate(Expression("-cos(pi*%f/2232.0)" % t)), self.v) * ds(int(marker))
                   elif(bc_type == "weak_dirichlet"):
                      print "Applying weak Dirichlet BC to surface ID %d..." % marker
                   elif(bc_type == "dirichlet"):
                      # Add in the surface integral as it is here. The BC will be applied strongly later using a DirichletBC object.
-                     Ct_continuity += (self.h_mean + self.h)*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
+                     Ct_continuity += H*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
                   elif(bc_type == "no_normal_flow"):
                      print "Applying no normal flow BC to surface ID %d..." % marker
                      # Do nothing here since dot(u, n) is zero.
@@ -368,12 +366,12 @@ class ShallowWater:
                      
                # If no boundary condition has been applied, include the surface integral as it is.
                if(bc_type is None):
-                  Ct_continuity += (self.h_mean + self.h)*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
+                  Ct_continuity += H*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
 
          else:
             divergence = 0
             for dim in range(dimension):
-               divergence += grad((self.h_mean + self.h)*self.u[dim])[dim]
+               divergence += grad(H*self.u[dim])[dim]
             Ct_continuity = inner(self.v, divergence)*dx
          F += Ct_continuity
             
