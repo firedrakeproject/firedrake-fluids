@@ -346,12 +346,20 @@ class ShallowWater:
                   if(bc_type == "flather"):
                      print "Applying flather BC to surface ID %d..." % marker
                      
-                     for dim in range(dimension):
-                        Ct_continuity += H*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
-                     if(marker == 3): # Left
-                        Ct_continuity += sqrt(g_magnitude/H)*H*inner(self.h - Function(self.function_spaces["FreeSurfaceFunctionSpace"]).interpolate(Expression("cos(pi*%f/2232.0)" % t)), self.v) * ds(int(marker))
-                     elif(marker == 4): # Right
-                        Ct_continuity += sqrt(g_magnitude/H)*H*inner(self.h - Function(self.function_spaces["FreeSurfaceFunctionSpace"]).interpolate(Expression("-cos(pi*%f/2232.0)" % t)), self.v) * ds(int(marker))
+                     if(libspud.have_option(bc_path + "/type::flather/exterior_velocity")):
+                        expr = VectorExpressionFromOptions(path = (bc_path + "/type::flather/exterior_velocity"), t=t)
+                        u_ext = [Function(self.W.sub(dim)).interpolate(Expression(expr.code[dim])) for dim in range(dimension)]
+                        for dim in range(dimension):
+                           Ct_continuity += H*inner(u_ext[dim], self.n[dim]) * self.v * ds(int(marker))
+                     else:
+                        for dim in range(dimension):
+                           Ct_continuity += H*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
+                     
+                     # The known exterior value for the FreeSurfacePerturbation.
+                     expr = ScalarExpressionFromOptions(path = (bc_path + "/type::flather/exterior_free_surface_perturbation"), t=t)
+                     h_ext = Function(self.W.sub(dimension)).interpolate(Expression(expr.code[0]))
+                     Ct_continuity += H*sqrt(g_magnitude/H)*inner(self.h - h_ext, self.v) * ds(int(marker))
+                     
                   elif(bc_type == "weak_dirichlet"):
                      print "Applying weak Dirichlet BC to surface ID %d..." % marker
                   elif(bc_type == "dirichlet"):

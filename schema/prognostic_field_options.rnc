@@ -144,15 +144,23 @@ vector_boundary_condition =
             }|
             element type {
                attribute name { "no_normal_flow" }
-            }|
+            }|            
+            ## Applies a Flather boundary condition:
+            ##
+            ## u = u_ext + sqrt(g/H)*(h - h_ext)
+            ##
+            ## where H = h + h_mean, 
+            ## and u_ext and h_ext are the exterior values of the Velocity and FreeSurfacePerturbation fields, respectively.
+            ## Note: This is a weak boundary condition. It is only applied if the continuity equation is integrated by parts.
             element type {
                attribute name { "flather" },
-               input_choice_real_dim_vector,
-               element open {
-                  real
-               },
-               element closed {
-                  real
+               ## The exterior value of the Velocity field
+               element exterior_velocity {
+                  input_choice_real_dim_vector
+               }?,
+               ## The exterior value of the FreeSurfacePerturbation field
+               element exterior_free_surface_perturbation {
+                  input_choice_real
                }
             }
          )

@@ -116,40 +116,44 @@
             <real_value shape="2" dim1="dim" rank="1">1.0e-16 1.0e-16</real_value>
           </constant>
         </initial_condition>
-        <boundary_conditions name="Right">
+        <boundary_conditions name="Sides">
           <surface_ids>
             <integer_value shape="2" rank="1">5 6</integer_value>
           </surface_ids>
           <type name="no_normal_flow"/>
         </boundary_conditions>
-        <boundary_conditions name="Flather_Left">
+        <boundary_conditions name="Left_End">
           <surface_ids>
-            <integer_value shape="2" rank="1">3 4</integer_value>
+            <integer_value shape="1" rank="1">3</integer_value>
           </surface_ids>
           <type name="flather">
-            <cpp>
-              <string_value lines="20" type="code" language="python">def val(t):
-  eta0 = 200.0
-  g = 9.8
-  depth = 50.0
-  from math import pi
-  Lx = 3.0e3
-  k = pi/Lx
-  ux = 2*eta0*sqrt(g/depth)*cos(-sqrt(g*depth)*k*t)
-  uy = 0.0
-  expr = (str(ux), str(uy))
+            <exterior_free_surface_perturbation>
+              <cpp>
+                <string_value type="code" lines="20" language="python">def val(t):
+  period = 1.24 * 60 * 60 # 1.24 hours in seconds
+  expr = "cos(pi*%f/%f)" % (t, period/2.0)
   return expr</string_value>
-            </cpp>
-            <open>
-              <real_value rank="0">4</real_value>
-            </open>
-            <closed>
-              <real_value rank="0">3</real_value>
-            </closed>
+              </cpp>
+            </exterior_free_surface_perturbation>
+          </type>
+        </boundary_conditions>
+        <boundary_conditions name="Right_End">
+          <surface_ids>
+            <integer_value shape="1" rank="1">4</integer_value>
+          </surface_ids>
+          <type name="flather">
+            <exterior_free_surface_perturbation>
+              <cpp>
+                <string_value lines="20" type="code" language="python">def val(t):
+  period = 1.24 * 60 * 60 # 1.24 hours in seconds
+  expr = "-cos(pi*%f/%f)" % (t, period/2.0)
+  return expr</string_value>
+              </cpp>
+            </exterior_free_surface_perturbation>
           </type>
         </boundary_conditions>
         <viscosity>
-          <real_value rank="0">10.0</real_value>
+          <real_value rank="0">1.0</real_value>
         </viscosity>
       </prognostic>
     </vector_field>
@@ -166,7 +170,6 @@
           <cpp>
             <string_value lines="20" type="code" language="python">def val(t):
   expr = "cos(pi/3e3*x[0])"
-  #expr = "0.0"
   return expr</string_value>
           </cpp>
         </initial_condition>

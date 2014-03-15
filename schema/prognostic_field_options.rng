@@ -182,15 +182,25 @@ If not selected boundary conditions are applied strongly.</a:documentation>
         </attribute>
       </element>
       <element name="type">
+        <a:documentation>Applies a Flather boundary condition:
+
+u = u_ext + sqrt(g/H)*(h - h_ext)
+
+where H = h + h_mean, 
+and u_ext and h_ext are the exterior values of the Velocity and FreeSurfacePerturbation fields, respectively.
+Note: This is a weak boundary condition. It is only applied if the continuity equation is integrated by parts.</a:documentation>
         <attribute name="name">
           <value>flather</value>
         </attribute>
-        <ref name="input_choice_real_dim_vector"/>
-        <element name="open">
-          <ref name="real"/>
-        </element>
-        <element name="closed">
-          <ref name="real"/>
+        <optional>
+          <element name="exterior_velocity">
+            <a:documentation>The exterior value of the Velocity field</a:documentation>
+            <ref name="input_choice_real_dim_vector"/>
+          </element>
+        </optional>
+        <element name="exterior_free_surface_perturbation">
+          <a:documentation>The exterior value of the FreeSurfacePerturbation field</a:documentation>
+          <ref name="input_choice_real"/>
         </element>
       </element>
     </choice>
