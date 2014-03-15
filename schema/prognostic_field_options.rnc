@@ -144,6 +144,16 @@ vector_boundary_condition =
             }|
             element type {
                attribute name { "no_normal_flow" }
+            }|
+            element type {
+               attribute name { "flather" },
+               input_choice_real_dim_vector,
+               element open {
+                  real
+               },
+               element closed {
+                  real
+               }
             }
          )
       )

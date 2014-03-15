@@ -181,6 +181,18 @@ If not selected boundary conditions are applied strongly.</a:documentation>
           <value>no_normal_flow</value>
         </attribute>
       </element>
+      <element name="type">
+        <attribute name="name">
+          <value>flather</value>
+        </attribute>
+        <ref name="input_choice_real_dim_vector"/>
+        <element name="open">
+          <ref name="real"/>
+        </element>
+        <element name="closed">
+          <ref name="real"/>
+        </element>
+      </element>
     </choice>
   </define>
 </grammar>
