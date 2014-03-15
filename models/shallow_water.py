@@ -249,7 +249,7 @@ class ShallowWater:
       dt = self.options["dt"]
       dimension = self.options["dimension"]
       g_magnitude = self.options["g_magnitude"]
-      H = self.h_mean + self.h
+      H = self.h_mean + self.h # The total height of the free surface.
             
       t = dt
             
