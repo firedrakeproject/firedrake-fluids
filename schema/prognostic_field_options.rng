@@ -177,6 +177,11 @@ If not selected boundary conditions are applied strongly.</a:documentation>
         <ref name="input_choice_real_dim_vector"/>
       </element>
       <element name="type">
+        <a:documentation>The no_normal_flow boundary condition weakly applies the condition
+
+dot(u, n) = 0
+
+if the continuity equation is integrated by parts.</a:documentation>
         <attribute name="name">
           <value>no_normal_flow</value>
         </attribute>

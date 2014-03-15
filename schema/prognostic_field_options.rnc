@@ -142,6 +142,11 @@ vector_boundary_condition =
                }?,
                input_choice_real_dim_vector
             }|
+            ## The no_normal_flow boundary condition weakly applies the condition
+            ##
+            ## dot(u, n) = 0
+            ##
+            ## if the continuity equation is integrated by parts.
             element type {
                attribute name { "no_normal_flow" }
             }|            
