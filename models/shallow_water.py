@@ -280,7 +280,7 @@ class ShallowWater:
             
          # Viscous stress term. Note that 'nu' is the kinematic (not dynamic) viscosity.
          if(self.options["have_momentum_stress"]):
-            viscosity = Function(self.W.sub(dimension)).interpolate(self.options["nu"]) # Background viscosity
+            viscosity = Function(self.W.sub(dimension)).interpolate(Expression(self.options["nu"])) # Background viscosity
             if(self.options["have_les"]):
                # Add on eddy viscosity, if necessary
                viscosity += les.eddy_viscosity()
