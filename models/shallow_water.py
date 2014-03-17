@@ -232,6 +232,9 @@ class ShallowWater:
 
       # Check for any SU stabilisation
       self.options["have_su_stabilisation"] = libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/spatial_discretisation/continuous_galerkin/streamline_upwind_stabilisation")
+      
+      # Turbulence parameterisation
+      self.options["have_les"] = libspud.have_option("/material_phase[0]/turbulence_parameterisation/les")
 
       self.options["have_bottom_drag"] = libspud.have_option("/material_phase[0]/scalar_field::DragCoefficient")
          
@@ -277,9 +280,13 @@ class ShallowWater:
             
          # Viscous stress term. Note that 'nu' is the kinematic (not dynamic) viscosity.
          if(self.options["have_momentum_stress"]):
+            viscosity = self.W.sub(dimension).interpolate(self.options["nu"]) # Background viscosity
+            if(self.options["have_les"]):
+               # Add on eddy viscosity, if necessary
+               viscosity += les.eddy_viscosity()
             K_momentum = 0
             for dim in range(dimension):
-               K_momentum += -self.options["nu"]*inner(grad(self.u[dim]), grad(self.w[dim]))*dx
+               K_momentum += -viscosity*inner(grad(self.u[dim]), grad(self.w[dim]))*dx
             #for dim_i in range(dimension):
             #   for dim_j in range(dimension):
             #      K_momentum += -self.options["nu"]*inner(grad(self.u[dim_i])[dim_j] + grad(self.u[dim_j])[dim_i], grad(self.w[dim_i])[dim_j])*dx 
