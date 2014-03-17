@@ -263,6 +263,20 @@ Enabling this field enables the drag term.</a:documentation>
               <empty/>
             </element>
           </optional>
+          <optional>
+            <element name="turbulence_parameterisation">
+              <optional>
+                <element name="les">
+                  <element name="smagorinsky_coefficient">
+                    <ref name="real"/>
+                  </element>
+                  <element name="filter_width">
+                    <ref name="real"/>
+                  </element>
+                </element>
+              </optional>
+            </element>
+          </optional>
         </group>
       </element>
     </element>

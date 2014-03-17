@@ -211,6 +211,16 @@ start =
                }?,
                element integrate_continuity_equation_by_parts {
                   empty
+               }?,
+               element turbulence_parameterisation {
+                  element les {
+                     element smagorinsky_coefficient {
+                        real
+                     },
+                     element filter_width {
+                        real
+                     }
+                  }?
                }?
             )
          }

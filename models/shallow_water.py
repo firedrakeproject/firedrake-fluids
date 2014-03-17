@@ -14,6 +14,7 @@ else:
 import stabilisation
 import fields_calculations
 import diagnostics
+import les
 
 # FIXME: the detectors module currently relies on vtktools.
 # Temporarily wrap this in a try-except block in case vtktools doesn't exist.
@@ -234,7 +235,7 @@ class ShallowWater:
       self.options["have_su_stabilisation"] = libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/spatial_discretisation/continuous_galerkin/streamline_upwind_stabilisation")
       
       # Turbulence parameterisation
-      self.options["have_les"] = libspud.have_option("/material_phase[0]/turbulence_parameterisation/les")
+      self.options["have_turbulence_parameterisation"] = libspud.have_option("/material_phase[0]/turbulence_parameterisation")
 
       self.options["have_bottom_drag"] = libspud.have_option("/material_phase[0]/scalar_field::DragCoefficient")
          
@@ -280,10 +281,15 @@ class ShallowWater:
             
          # Viscous stress term. Note that 'nu' is the kinematic (not dynamic) viscosity.
          if(self.options["have_momentum_stress"]):
-            viscosity = Function(self.W.sub(dimension)).interpolate(Expression(self.options["nu"])) # Background viscosity
-            if(self.options["have_les"]):
+            viscosity = Function(self.W.sub(0)).interpolate(Expression(self.options["nu"])) # Background viscosity
+            if(self.options["have_turbulence_parameterisation"]):
                # Add on eddy viscosity, if necessary
-               viscosity += les.eddy_viscosity()
+               if(libspud.have_option("/material_phase[0]/turbulence_parameterisation/les")):
+                  density = Function(self.W.sub(0)).interpolate(Expression("1.0")) # We divide through by density in the momentum equation, so just set this to 1.0 for now.
+                  smagorinsky_coefficient = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option("/material_phase[0]/turbulence_parameterisation/les/smagorinsky_coefficient")))
+                  filter_width = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option("/material_phase[0]/turbulence_parameterisation/les/filter_width"))) # FIXME: Remove this when CellSize is supported in Firedrake.
+                  eddy_viscosity = les.eddy_viscosity(self.mesh, self.W.sub(0), self.u, density, smagorinsky_coefficient, filter_width)
+               viscosity += eddy_viscosity
             K_momentum = 0
             for dim in range(dimension):
                K_momentum += -viscosity*inner(grad(self.u[dim]), grad(self.w[dim]))*dx
