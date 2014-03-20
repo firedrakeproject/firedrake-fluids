@@ -19,6 +19,21 @@ def courant_number(mesh, u, dt):
    solve(a == L, solution, bcs=[])
    return solution
    
+def grid_reynolds_number(mesh, density, u, mu):
+   
+   fs = u[0].function_space()
+   w = TestFunction(fs)
+   re = TrialFunction(fs)
+   solution = Function(fs)
+   
+   h = CellSize(mesh)
+   magnitude = fields_calculations.magnitude_vector(mesh, u)
+   
+   a = inner(w, re)*dx
+   L = (w*(density*magnitude*h)/mu)*dx
+   solve(a == L, solution, bcs=[])
+   return solution
+
 def divergence(vector):
 
    w = TestFunction(vector.function_space())
