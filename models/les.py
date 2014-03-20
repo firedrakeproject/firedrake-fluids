@@ -41,6 +41,11 @@ def eddy_viscosity(mesh, function_space, u, density, smagorinsky_coefficient, fi
 
    solution = Function(function_space)
    solve(a == L, solution, bcs=[])
+   
+   nodes = solution.vector()
+   for i in range(0, len(nodes)):
+      if(nodes[i] < 1.0e-16):
+         nodes[i] = 1.0e-16
 
    return solution
 
