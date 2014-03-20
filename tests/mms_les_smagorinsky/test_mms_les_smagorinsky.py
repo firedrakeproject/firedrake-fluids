@@ -3,7 +3,7 @@ import pytest
 import numpy
 from firedrake import *
 
-import les
+from les import *
 
 def mms_les_smagorinsky():
    errors = []
@@ -15,7 +15,9 @@ def mms_les_smagorinsky():
       smagorinsky_constant = Function(function_space).interpolate(Expression("1.0"))
       density = Function(function_space).interpolate(Expression("1.0"))
       exact_solution = Function(function_space).interpolate(Expression('%f * sqrt(2.0*cos(x[0])*cos(x[0]) + 0.5*sin(x[0])*sin(x[0]) + 0.5*sin(x[0])*sin(x[0]))' % smagorinsky_coefficient))
-      visc = les.eddy_viscosity(mesh, function_space, u, density, smagorinsky_coefficient, 1.0/n)
+
+      les = LES(mesh, function_space)
+      visc = les.eddy_viscosity(u, density, smagorinsky_coefficient, 1.0/n)
       print visc
       errors.append(sqrt(assemble(dot(visc - exact_solution, visc - exact_solution) * dx)))
 
