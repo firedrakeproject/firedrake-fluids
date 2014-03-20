@@ -281,23 +281,23 @@ class ShallowWater:
             
          # Viscous stress term. Note that 'nu' is the kinematic (not dynamic) viscosity.
          if(self.options["have_momentum_stress"]):
-            viscosity = Function(self.W.sub(dimension)).interpolate(Expression(self.options["nu"])) # Background viscosity
+            viscosity = Function(self.W.sub(0)).interpolate(Expression(self.options["nu"])) # Background viscosity
             if(self.options["have_turbulence_parameterisation"]):
                # Add on eddy viscosity, if necessary
                if(libspud.have_option("/material_phase[0]/turbulence_parameterisation/les")):
-                  les = LES(self.mesh, self.W.sub(dimension))
-                  density = Function(self.W.sub(dimension)).interpolate(Expression("1.0")) # We divide through by density in the momentum equation, so just set this to 1.0 for now.
-                  smagorinsky_coefficient = Function(self.W.sub(dimension)).interpolate(Expression(libspud.get_option("/material_phase[0]/turbulence_parameterisation/les/smagorinsky_coefficient")))
-                  filter_width = Function(self.W.sub(dimension)).interpolate(Expression(libspud.get_option("/material_phase[0]/turbulence_parameterisation/les/filter_width"))) # FIXME: Remove this when CellSize is supported in Firedrake.
+                  les = LES(self.mesh, self.W.sub(0))
+                  density = Function(self.W.sub(0)).interpolate(Expression("1.0")) # We divide through by density in the momentum equation, so just set this to 1.0 for now.
+                  smagorinsky_coefficient = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option("/material_phase[0]/turbulence_parameterisation/les/smagorinsky_coefficient")))
+                  filter_width = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option("/material_phase[0]/turbulence_parameterisation/les/filter_width"))) # FIXME: Remove this when CellSize is supported in Firedrake.
                   eddy_viscosity = les.eddy_viscosity(self.u, density, smagorinsky_coefficient, filter_width)
                   
                viscosity += eddy_viscosity
             K_momentum = 0
-            #for dim in range(dimension):
-            #   K_momentum += -viscosity*inner(grad(self.u[dim]), grad(self.w[dim]))*dx
-            for dim_i in range(dimension):
-               for dim_j in range(dimension):
-                  K_momentum += -viscosity*inner(grad(self.u[dim_i])[dim_j] + grad(self.u[dim_j])[dim_i] - (2.0/3.0)*grad(self.u[dim_j])[dim_j], grad(self.w[dim_i])[dim_j])*dx 
+            for dim in range(dimension):
+               K_momentum += -viscosity*inner(grad(self.u[dim]), grad(self.w[dim]))*dx
+            #for dim_i in range(dimension):
+            #   for dim_j in range(dimension):
+            #      K_momentum += -viscosity*inner(grad(self.u[dim_i])[dim_j] + grad(self.u[dim_j])[dim_i] - (2.0/3.0)*grad(self.u[dim_j])[dim_j], grad(self.w[dim_i])[dim_j])*dx 
             F -= K_momentum # Negative sign here because we are bringing the stress term over from the RHS.
 
          # The gradient of the height of the free surface, h
