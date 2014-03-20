@@ -115,8 +115,8 @@ scalar_boundary_condition =
          },
          element type {
             attribute name { "dirichlet" },
-            ## Apply the dirichlet BC weakly.
-            ## If not selected boundary conditions are applied strongly.
+            ## Apply the Dirichlet BC weakly.
+            ## If not selected, the boundary condition is applied strongly.
             element apply_weakly {
                comment
             }?,

@@ -149,8 +149,8 @@
       </attribute>
       <optional>
         <element name="apply_weakly">
-          <a:documentation>Apply the dirichlet BC weakly.
-If not selected boundary conditions are applied strongly.</a:documentation>
+          <a:documentation>Apply the Dirichlet BC weakly.
+If not selected, the boundary condition is applied strongly.</a:documentation>
           <ref name="comment"/>
         </element>
       </optional>
