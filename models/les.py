@@ -20,7 +20,7 @@ class LES:
       S = [[0 for j in range(dimension)] for i in range(dimension)]
       for dim_i in range(dimension):
          for dim_j in range(dimension):
-            S[dim_i][dim_j] = -0.5*(grad(u[dim_i])[dim_j] + grad(u[dim_j])[dim_i])
+            S[dim_i][dim_j] = 0.5*(grad(u[dim_i])[dim_j] + grad(u[dim_j])[dim_i])
       return S
 
    def eddy_viscosity(self, u, density, smagorinsky_coefficient, filter_width):
@@ -49,11 +49,6 @@ class LES:
 
       solution = Function(self.function_space)
       solve(a == L, solution, bcs=[])
-      
-      nodes = solution.vector()
-      for i in range(0, len(nodes)):
-         if(nodes[i] < 1.0e-16):
-            nodes[i] = 1.0e-16
 
       return solution
 
