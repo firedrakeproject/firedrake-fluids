@@ -5,7 +5,7 @@ from firedrake import *
 
 from les import *
 
-def mms_les_smagorinsky():
+def les_smagorinsky_eddy_viscosity():
    errors = []
    for n in [4, 8, 16, 32]:
       mesh = UnitSquareMesh(n, n)
@@ -23,8 +23,8 @@ def mms_les_smagorinsky():
 
    return errors
 
-def test_mms_les_smagorinsky():
-   errors = numpy.array(mms_les_smagorinsky())
+def test_les_smagorinsky_eddy_viscosity():
+   errors = numpy.array(les_smagorinsky_eddy_viscosity())
    convergence_order = numpy.log2(errors[:-1] / errors[1:])
    print "Eddy viscosity convergence order:", convergence_order
    assert (numpy.array(convergence_order) > 1.9).all()
