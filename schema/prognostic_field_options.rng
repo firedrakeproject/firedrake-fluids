@@ -197,12 +197,10 @@ Note: This is a weak boundary condition. It is only applied if the continuity eq
         <attribute name="name">
           <value>flather</value>
         </attribute>
-        <optional>
-          <element name="exterior_velocity">
-            <a:documentation>The exterior value of the Velocity field</a:documentation>
-            <ref name="input_choice_real_dim_vector"/>
-          </element>
-        </optional>
+        <element name="exterior_velocity">
+          <a:documentation>The exterior value of the Velocity field</a:documentation>
+          <ref name="input_choice_real_dim_vector"/>
+        </element>
         <element name="exterior_free_surface_perturbation">
           <a:documentation>The exterior value of the FreeSurfacePerturbation field</a:documentation>
           <ref name="input_choice_real"/>

@@ -162,7 +162,7 @@ vector_boundary_condition =
                ## The exterior value of the Velocity field
                element exterior_velocity {
                   input_choice_real_dim_vector
-               }?,
+               },
                ## The exterior value of the FreeSurfacePerturbation field
                element exterior_free_surface_perturbation {
                   input_choice_real
