@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0">
+  <define name="les">
+    <element name="smagorinsky">
+      <a:documentation>The standard Smagorinsky model for Large Eddy Simulation (LES).</a:documentation>
+      <element name="smagorinsky_coefficient">
+        <a:documentation>A typical value for the Smagorinsky coefficient is between 0.1 and 0.2.</a:documentation>
+        <ref name="real"/>
+      </element>
+      <element name="filter_width">
+        <ref name="real"/>
+      </element>
+    </element>
+  </define>
+</grammar>

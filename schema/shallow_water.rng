@@ -4,6 +4,8 @@
   <include href="input_options.rng"/>
   <include href="prognostic_field_options.rng"/>
   <include href="prescribed_field_options.rng"/>
+  <include href="turbulence_parameterisation.rng"/>
+  <include href="les.rng"/>
   <start>
     <element name="shallow_water_options">
       <a:documentation>The root node of the options dictionary.</a:documentation>
@@ -265,16 +267,7 @@ Enabling this field enables the drag term.</a:documentation>
           </optional>
           <optional>
             <element name="turbulence_parameterisation">
-              <optional>
-                <element name="les">
-                  <element name="smagorinsky_coefficient">
-                    <ref name="real"/>
-                  </element>
-                  <element name="filter_width">
-                    <ref name="real"/>
-                  </element>
-                </element>
-              </optional>
+              <ref name="turbulence_parameterisation"/>
             </element>
           </optional>
         </group>

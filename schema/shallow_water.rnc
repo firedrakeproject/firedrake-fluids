@@ -4,6 +4,9 @@ include "input_options.rnc"
 include "prognostic_field_options.rnc"
 include "prescribed_field_options.rnc"
 
+include "turbulence_parameterisation.rnc"
+include "les.rnc"
+
 start =
    (
       ## The root node of the options dictionary.
@@ -213,14 +216,7 @@ start =
                   empty
                }?,
                element turbulence_parameterisation {
-                  element les {
-                     element smagorinsky_coefficient {
-                        real
-                     },
-                     element filter_width {
-                        real
-                     }
-                  }?
+                  turbulence_parameterisation
                }?
             )
          }

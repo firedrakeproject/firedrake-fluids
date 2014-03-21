@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0">
+  <define name="turbulence_parameterisation">
+    <optional>
+      <element name="les">
+        <a:documentation>Various models for Large Eddy Simulation (LES).</a:documentation>
+        <ref name="les"/>
+      </element>
+    </optional>
+  </define>
+</grammar>

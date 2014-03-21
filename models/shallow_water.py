@@ -287,8 +287,8 @@ class ShallowWater:
                if(libspud.have_option("/material_phase[0]/turbulence_parameterisation/les")):
                   les = LES(self.mesh, self.W.sub(0))
                   density = Function(self.W.sub(0)).interpolate(Expression("1.0")) # We divide through by density in the momentum equation, so just set this to 1.0 for now.
-                  smagorinsky_coefficient = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option("/material_phase[0]/turbulence_parameterisation/les/smagorinsky_coefficient")))
-                  filter_width = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option("/material_phase[0]/turbulence_parameterisation/les/filter_width"))) # FIXME: Remove this when CellSize is supported in Firedrake.
+                  smagorinsky_coefficient = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option("/material_phase[0]/turbulence_parameterisation/les/smagorinsky/smagorinsky_coefficient")))
+                  filter_width = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option("/material_phase[0]/turbulence_parameterisation/les/smagorinsky/filter_width"))) # FIXME: Remove this when CellSize is supported in Firedrake.
                   eddy_viscosity = les.eddy_viscosity(self.u, density, smagorinsky_coefficient, filter_width)
                   
                viscosity += eddy_viscosity
