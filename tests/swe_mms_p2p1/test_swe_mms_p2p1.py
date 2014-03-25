@@ -47,8 +47,8 @@ def test_swe_mms_p2p1(input):
    print "Velocity (x-component) convergence order:", ux_convergence_order
    print "Velocity (y-component) convergence order:", uy_convergence_order
    assert (numpy.array(h_convergence_order) > 1.3).all()
-   assert (numpy.array(ux_convergence_order) > 2.8).all()
-   assert (numpy.array(uy_convergence_order) > 2.6).all()
+   assert (numpy.array(ux_convergence_order) > 2.4).all()
+   assert (numpy.array(uy_convergence_order) > 2.4).all()
    
 if __name__ == '__main__':
    pytest.main(os.path.abspath(__file__))

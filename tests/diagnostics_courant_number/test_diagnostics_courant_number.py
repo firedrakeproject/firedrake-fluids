@@ -28,7 +28,7 @@ def diagnostics_courant_number():
 def test_diagnostics_courant_number(input):
    norm = diagnostics_courant_number()
    print "L2 error norm:", norm
-   assert norm <= 5.0e-3
+   assert norm <= 9.0e-3
    
 if __name__ == '__main__':
    pytest.main(os.path.abspath(__file__))

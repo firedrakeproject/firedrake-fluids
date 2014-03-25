@@ -46,7 +46,7 @@ def test_swe_mms_p2p1_quadratic_drag(input):
    print "FreeSurfacePerturbation convergence order:", h_convergence_order
    print "Velocity (x-component) convergence order:", ux_convergence_order
    print "Velocity (y-component) convergence order:", uy_convergence_order
-   assert (numpy.array(h_convergence_order) > 1.3).all()
+   assert (numpy.array(h_convergence_order) > 1.2).all()
    assert (numpy.array(ux_convergence_order) > 2.2).all()
    assert (numpy.array(uy_convergence_order) > 1.4).all()
    
