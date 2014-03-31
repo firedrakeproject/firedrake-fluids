@@ -1,5 +1,5 @@
 input:	clean
-	gmsh -2 -bin src/swe_standing_wave.geo -o swe_standing_wave.msh
+	gmsh -2 src/swe_standing_wave.geo -o swe_standing_wave.msh
 
 run:
 	python ../../models/shallow_water.py swe_standing_wave.swml
