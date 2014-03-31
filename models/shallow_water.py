@@ -476,7 +476,10 @@ class ShallowWater:
          self.output_file[dimension] << self.output_function[dimension]
          
          # Check whether a steady-state has been reached.
-         if(max(abs(self.solution.split()[dimension].vector().array() - self.solution_old.split()[dimension].vector().array())) <= self.options["steady_state_tolerance"]):
+         # Take the maximum difference across all processes.
+         global_max_difference = max(abs(self.solution.split()[dimension].vector().gather() - self.solution_old.split()[dimension].vector().gather()))
+         # If the difference is less than a set tolerance, then break out of the time-stepping loop.
+         if(global_max_difference <= self.options["steady_state_tolerance"]):
             print "Steady-state attained. Exiting the time-stepping loop..."
             break
 
