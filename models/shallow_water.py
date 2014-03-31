@@ -5,11 +5,7 @@ import libspud
 import numpy
 import time
 
-backend = "firedrake"
-if(backend == "firedrake"):
-   from firedrake import *
-else:
-   from dolfin import *
+from firedrake import *
 
 import stabilisation
 import fields_calculations
