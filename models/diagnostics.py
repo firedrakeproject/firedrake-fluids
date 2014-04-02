@@ -22,7 +22,7 @@ class Diagnostics:
       solution = Function(self.function_space)
       
       h = CellSize(self.mesh)
-      magnitude = fields_calculations.magnitude_vector(self.mesh, u)
+      magnitude = fields_calculations.magnitude_vector(self.mesh, u, self.function_space)
       
       a = inner(self.test, self.trial)*dx
       L = (self.test*(magnitude*dt)/h)*dx
@@ -39,7 +39,7 @@ class Diagnostics:
       solution = Function(self.function_space)
       
       h = CellSize(self.mesh)
-      magnitude = fields_calculations.magnitude_vector(self.mesh, u)
+      magnitude = fields_calculations.magnitude_vector(self.mesh, u, self.function_space)
       
       a = inner(self.test, self.trial)*dx
       L = (self.test*(rho*magnitude*h)/mu)*dx
