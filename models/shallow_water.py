@@ -1,6 +1,6 @@
 # Copyright 2013 Imperial College London. All rights reserved.
 
-import sys
+import sys, os
 import libspud
 import numpy
 import time
@@ -250,6 +250,9 @@ class ShallowWater:
       dimension = self.options["dimension"]
       g_magnitude = self.options["g_magnitude"]
       H = self.h_mean + self.h # The total height of the free surface.
+      
+      P1 = FunctionSpace(self.mesh, "CG", 1)
+      cellsize = CellSize(self.mesh)
             
       t = dt
             
@@ -422,7 +425,7 @@ class ShallowWater:
             u_k = []
             for dim in range(dimension):
                u_k.append(self.solution_old.split()[dim])
-            F += stabilisation.streamline_upwind(self.mesh, dimension, self.w, self.u, u_k)
+            F += stabilisation.streamline_upwind(self.mesh, dimension, self.w, self.u, u_k, P1, cellsize)
 
          # Get all the Dirichlet boundary conditions for the Velocity field
          bcs = []
