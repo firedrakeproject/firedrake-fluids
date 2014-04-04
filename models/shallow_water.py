@@ -7,9 +7,9 @@ import time
 
 from firedrake import *
 
-import stabilisation
 import fields_calculations
 import diagnostics
+from stabilisation import *
 from les import *
 
 # FIXME: the detectors module currently relies on vtktools.
@@ -423,10 +423,11 @@ class ShallowWater:
          # Add in any SU stabilisation
          if(self.options["have_su_stabilisation"]):
             print "Adding momentum SU stabilisation..."
-            u_k = []
+            stabilisation = Stabilisation(self.mesh, P1, cellsize)
+            u_temp = []
             for dim in range(dimension):
-               u_k.append(self.solution_old.split()[dim])
-            F += stabilisation.streamline_upwind(self.mesh, dimension, self.w, self.u, u_k, P1, cellsize)
+               u_temp.append(self.solution_old.split()[dim])
+            F += stabilisation.streamline_upwind(self.w, self.u, u_temp, self.options["nu"])
 
          # Get all the Dirichlet boundary conditions for the Velocity field
          bcs = []
