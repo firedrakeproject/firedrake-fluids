@@ -139,7 +139,7 @@ class ShallowWater:
       # These are like the TrialFunctions, but are just regular Functions here because we want to solve a non-linear problem
       functions = split(self.solution)
       self.u = list(functions[:-1]); self.h = functions[-1]
-      self.solution.assign(project(Expression([1.0e-16 for i in range(dimension)] + [0]), self.W))
+
       # Get the test functions
       test_functions = TestFunctions(self.W)
       self.w = test_functions[:-1]; self.v = test_functions[-1]
@@ -158,6 +158,9 @@ class ShallowWater:
       self.solution_old = Function(self.W).interpolate(Expression(codes))
       functions_old = split(self.solution_old)
       self.u_old = list(functions_old[:-1]); self.h_old = functions_old[-1]
+      
+      # The solution should first hold the initial condition.
+      self.solution.assign(self.solution_old)
       
       # Mean free surface height
       self.h_mean = Function(self.W.sub(dimension))
