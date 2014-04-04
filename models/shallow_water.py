@@ -386,7 +386,8 @@ class ShallowWater:
                         Ct_continuity += H*inner(u_bdy[dim], self.n[dim]) * self.v * ds(int(marker))
                   elif(bc_type == "dirichlet"):
                      # Add in the surface integral as it is here. The BC will be applied strongly later using a DirichletBC object.
-                     Ct_continuity += H*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
+                     for dim in range(dimension):
+                        Ct_continuity += H*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
                   elif(bc_type == "no_normal_flow"):
                      print "Applying no normal flow BC to surface ID %d..." % marker
                      # Do nothing here since dot(u, n) is zero.
@@ -429,8 +430,9 @@ class ShallowWater:
 
          # Get all the Dirichlet boundary conditions for the Velocity field
          bcs = []
-         for i in range(0, libspud.option_count("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions/type::dirichlet")):
-            if(not(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/type::dirichlet/apply_weakly" % i))):
+         for i in range(0, libspud.option_count("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions")):
+            if(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/type::dirichlet" % i) and
+               not libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/type::dirichlet/apply_weakly" % i)):
                # If it's not a weak BC, then it must be a strong one.
                print "Applying Velocity BC #%d" % i
                expr = VectorExpressionFromOptions(path = ("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/type::dirichlet" % i), t=t)
