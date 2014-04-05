@@ -3,7 +3,6 @@
 import sys, os
 import libspud
 import numpy
-import time
 
 from firedrake import *
 
