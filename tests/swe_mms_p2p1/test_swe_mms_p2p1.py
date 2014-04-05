@@ -24,11 +24,11 @@ def swe_mms_p2p1():
       uy_old = sw.solution_old.split()[1]
       h_old = sw.solution_old.split()[-1]
       
-      exact_fs = FunctionSpace(sw.mesh, "CG", 3)
+      fs_exact = FunctionSpace(sw.mesh, "CG", 3)
       
-      ux_exact = project(Expression("cos(x[0])*sin(x[1])"), exact_fs)
-      uy_exact = project(Expression("sin(x[0]*x[0]) + cos(x[1])"), exact_fs)
-      h_exact = project(Expression("sin(x[0])*sin(x[1])"), exact_fs)
+      ux_exact = project(Expression("cos(x[0])*sin(x[1])"), fs_exact)
+      uy_exact = project(Expression("sin(x[0]*x[0]) + cos(x[1])"), fs_exact)
+      h_exact = project(Expression("sin(x[0])*sin(x[1])"), fs_exact)
       
       h_norms.append(sqrt(assemble(dot(h_old - h_exact, h_old - h_exact) * dx)))
       ux_norms.append(sqrt(assemble(dot(ux_old - ux_exact, ux_old - ux_exact) * dx)))
@@ -38,19 +38,9 @@ def swe_mms_p2p1():
 
 def test_swe_mms_p2p1(input):
    h_norms, ux_norms, uy_norms = numpy.array(swe_mms_p2p1())
-   assert (numpy.array([numpy.log2(h_norms[i]/h_norms[i+1]) for i in range(len(h_norms)-1)]) > 1.9).all()
-   assert (numpy.array([numpy.log2(ux_norms[i]/ux_norms[i+1]) for i in range(len(ux_norms)-1)]) > 2.85).all()
-   assert (numpy.array([numpy.log2(uy_norms[i]/uy_norms[i+1]) for i in range(len(uy_norms)-1)]) > 2.85).all()
-   
-   #h_convergence_order = numpy.log2(h_norms[:-1] / h_norms[1:])
-   #ux_convergence_order = numpy.log2(ux_norms[:-1] / ux_norms[1:])
-   #uy_convergence_order = numpy.log2(uy_norms[:-1] / uy_norms[1:])
-   #print "FreeSurfacePerturbation convergence order:", h_convergence_order
-   #print "Velocity (x-component) convergence order:", ux_convergence_order
-   #print "Velocity (y-component) convergence order:", uy_convergence_order
-   #assert (numpy.array(h_convergence_order) > 1.3).all()
-   #assert (numpy.array(ux_convergence_order) > 2.4).all()
-   #assert (numpy.array(uy_convergence_order) > 2.4).all()
+   assert (numpy.array([numpy.log2(h_norms[i]/h_norms[i+1]) for i in range(len(h_norms)-1)]) > 1.85).all()
+   assert (numpy.array([numpy.log2(ux_norms[i]/ux_norms[i+1]) for i in range(len(ux_norms)-1)]) > 2.7).all()
+   assert (numpy.array([numpy.log2(uy_norms[i]/uy_norms[i+1]) for i in range(len(uy_norms)-1)]) > 2.3).all()
    
 if __name__ == '__main__':
    pytest.main(os.path.abspath(__file__))

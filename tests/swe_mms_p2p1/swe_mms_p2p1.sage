@@ -18,11 +18,13 @@ v = sin(x*x) + cos(y)
 
 g = 9.8
 
-mu = 0.7
-tau_xx = mu*diff(u,x)            
-tau_yy = mu*diff(v,y)
-tau_xy = mu*diff(u,y)
-tau_yx = mu*diff(v,x)
+print (diff(u,x) + diff(v,y))
+
+nu = 0.7
+tau_xx = 2*nu*diff(u,x) - (2.0/3.0)*nu*(diff(u,x) + diff(v,y))
+tau_xy = nu*(diff(u,y) + diff(v,x))
+tau_yy = 2*nu*diff(v,y) - (2.0/3.0)*nu*(diff(u,x) + diff(v,y)) 
+tau_yx = nu*(diff(u,y) + diff(v,x))
 
 Su = u*diff(u,x) + v*diff(u,y) + g*diff(h,x) - diff(tau_xx, x) - diff(tau_xy, y)
 Sv = u*diff(v,x) + v*diff(v,y) + g*diff(h,y) - diff(tau_yy, y) - diff(tau_yx, x) 

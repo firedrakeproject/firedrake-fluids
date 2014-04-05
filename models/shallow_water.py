@@ -299,12 +299,16 @@ class ShallowWater:
                viscosity += eddy_viscosity
                
             K_momentum = 0
+            
+            # Compute the divergence of the velocity field.
+            velocity_divergence = sum([grad(self.u[dim])[dim] for dim in range(dimension)])
+            
             # Perform a double dot product of the stress tensor and grad(w).
+            # tau = grad(u) + transpose(grad(u)) - (2/3)*div(u)
             for dim_i in range(dimension):
                for dim_j in range(dimension):
-                  # tau = grad(u) + transpose(grad(u))
                   K_momentum += -viscosity*inner(grad(self.u[dim_i])[dim_j] + grad(self.u[dim_j])[dim_i], grad(self.w[dim_i])[dim_j])*dx
-               K_momentum += viscosity*(2.0/3.0)*inner(grad(self.u[dim_i])[dim_i], grad(self.w[dim_i])[dim_i])*dx
+               K_momentum += viscosity*(2.0/3.0)*inner(velocity_divergence, grad(self.w[dim_i])[dim_i])*dx
                
             F -= K_momentum # Negative sign here because we are bringing the stress term over from the RHS.
 
@@ -491,7 +495,7 @@ class ShallowWater:
          global_max_difference_h = max(abs(self.solution.split()[dimension].vector().gather() - self.solution_old.split()[dimension].vector().gather()))
          global_max_difference_u = [max(abs(self.solution.split()[dim].vector().gather() - self.solution_old.split()[dim].vector().gather())) for dim in range(0, dimension)]
          # If the difference is less than a set tolerance, then break out of the time-stepping loop.
-         if(global_max_difference_h <= self.options["steady_state_tolerance"] and (global_max_difference_u <= self.options["steady_state_tolerance"]).all()):
+         if(global_max_difference_h <= self.options["steady_state_tolerance"] and (numpy.array(global_max_difference_u) <= self.options["steady_state_tolerance"]).all()):
             print "Steady-state attained. Exiting the time-stepping loop..."
             break
 
