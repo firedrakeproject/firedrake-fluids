@@ -133,7 +133,8 @@
     </optional>
     <optional>
       <element name="viscosity">
-        <a:documentation>Viscosity.</a:documentation>
+        <a:documentation>Viscosity. 
+Note that this is the kinematic viscosity for shallow water simulations.</a:documentation>
         <ref name="real"/>
       </element>
     </optional>

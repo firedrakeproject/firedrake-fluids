@@ -100,7 +100,8 @@ prognostic_vector_field =
             }
          )
       }?,
-      ## Viscosity.
+      ## Viscosity. 
+      ## Note that this is the kinematic viscosity for shallow water simulations.
       element viscosity {
          real
       }?
