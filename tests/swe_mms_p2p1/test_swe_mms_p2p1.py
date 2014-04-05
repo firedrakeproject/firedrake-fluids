@@ -39,8 +39,8 @@ def swe_mms_p2p1():
 def test_swe_mms_p2p1(input):
    h_norms, ux_norms, uy_norms = numpy.array(swe_mms_p2p1())
    assert (numpy.array([numpy.log2(h_norms[i]/h_norms[i+1]) for i in range(len(h_norms)-1)]) > 1.9).all()
-   assert (numpy.array([numpy.log2(ux_norms[i]/ux_norms[i+1]) for i in range(len(ux_norms)-1)]) > 3).all()
-   assert (numpy.array([numpy.log2(uy_norms[i]/uy_norms[i+1]) for i in range(len(uy_norms)-1)]) > 3).all()
+   assert (numpy.array([numpy.log2(ux_norms[i]/ux_norms[i+1]) for i in range(len(ux_norms)-1)]) > 2.85).all()
+   assert (numpy.array([numpy.log2(uy_norms[i]/uy_norms[i+1]) for i in range(len(uy_norms)-1)]) > 2.85).all()
    
    #h_convergence_order = numpy.log2(h_norms[:-1] / h_norms[1:])
    #ux_convergence_order = numpy.log2(ux_norms[:-1] / ux_norms[1:])
