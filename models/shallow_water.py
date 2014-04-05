@@ -128,6 +128,9 @@ class ShallowWater:
          else:
             print "Unknown element type and/or continuity."
             sys.exit(1)
+            
+      # Define the coordinate function space as P1.
+      self.function_spaces["CoordinateFunctionSpace"] = FunctionSpace(self.mesh, "CG", 1)
                 
       # Define the mixed function space
       U = self.function_spaces["VelocityFunctionSpace"]
@@ -254,7 +257,7 @@ class ShallowWater:
       g_magnitude = self.options["g_magnitude"]
       H = self.h_mean + self.h # The total height of the free surface.
       
-      P1 = FunctionSpace(self.mesh, "CG", 1)
+      P1 = self.function_spaces["CoordinateFunctionSpace"]
       cellsize = CellSize(self.mesh)
             
       t = dt
@@ -294,12 +297,12 @@ class ShallowWater:
                   eddy_viscosity = les.eddy_viscosity(self.u, density, smagorinsky_coefficient, filter_width)
                   
                viscosity += eddy_viscosity
+               
             K_momentum = 0
-            for dim in range(dimension):
-               K_momentum += -viscosity*inner(grad(self.u[dim]), grad(self.w[dim]))*dx
-            #for dim_i in range(dimension):
-            #   for dim_j in range(dimension):
-            #      K_momentum += -viscosity*inner(grad(self.u[dim_i])[dim_j] + grad(self.u[dim_j])[dim_i] - (2.0/3.0)*grad(self.u[dim_j])[dim_j], grad(self.w[dim_i])[dim_j])*dx 
+            for dim_i in range(dimension):
+               for dim_j in range(dimension):
+                  K_momentum += -viscosity*inner(grad(self.u[dim_i])[dim_j], grad(self.w[dim_i])[dim_j])*dx
+               
             F -= K_momentum # Negative sign here because we are bringing the stress term over from the RHS.
 
          # The gradient of the height of the free surface, h
@@ -482,9 +485,11 @@ class ShallowWater:
          
          # Check whether a steady-state has been reached.
          # Take the maximum difference across all processes.
-         global_max_difference = max(abs(self.solution.split()[dimension].vector().gather() - self.solution_old.split()[dimension].vector().gather()))
+         global_max_difference_h = max(abs(self.solution.split()[dimension].vector().gather() - self.solution_old.split()[dimension].vector().gather()))
+         global_max_difference_ux = max(abs(self.solution.split()[0].vector().gather() - self.solution_old.split()[0].vector().gather()))
+         global_max_difference_uy = max(abs(self.solution.split()[1].vector().gather() - self.solution_old.split()[1].vector().gather()))
          # If the difference is less than a set tolerance, then break out of the time-stepping loop.
-         if(global_max_difference <= self.options["steady_state_tolerance"]):
+         if(global_max_difference_h <= self.options["steady_state_tolerance"] and global_max_difference_ux <= self.options["steady_state_tolerance"] and global_max_difference_uy <= self.options["steady_state_tolerance"]):
             print "Steady-state attained. Exiting the time-stepping loop..."
             break
 
