@@ -104,7 +104,7 @@ def diamond_validation():
 
    # Shallow water model-related tests in Firedrake-Fluids.
    validator.TestXmlFiles(testDir = "tests", depth = 2)
-   validator.ValidateOptionsFiles(schemafile = os.path.join("schema", "shallow_water.rng"), testDir = "tests", depth = 2, xmlRootNode = "shallow_water_options")
+   validator.ValidateOptionsFiles(schemafile = os.path.join("schema", "shallow_water.rng"), testDir = "tests", depth = 2, extension = "swml")
    
    passes = validator.Passes()
    optionErrors = validator.OptionErrors()
@@ -119,6 +119,7 @@ def diamond_validation():
 
 def test_diamond_validation():
    optionErrors = diamond_validation()
+   print optionErrors.keys()
    
    failures = []
    for filename in optionErrors.keys():
