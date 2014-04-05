@@ -21,7 +21,7 @@
 \chapter{Introduction}
 Firedrake-Fluids is a collection of numerical models for the study of fluid dynamics. It uses the Firedrake framework (\texttt{http://firedrakeproject.org/}) to automate the solution of the governing equations written in their weak form using the Unified Form Language.
 
-\chapter{Shallow water}
+\chapter{Shallow water model}
 The shallow water model solves the non-linear version of the shallow water equations. The free surface is split up into a mean component $H$, and a perturbation component $h$ (see Figure \ref{fig:shallow_water_setup}).
 
 \begin{figure}
@@ -58,7 +58,7 @@ The momentum equation is solved in non-conservative form such that
 \end{equation}
 where $g$ is the acceleration due to gravity, $\mathbf{u}$ is the velocity, and $C_D$ is the non-dimensional drag coefficient. The stress tensor $\tau$ is given by 
 \begin{equation}
-   \nu\nabla\mathbf{u},
+   \nu\left(\nabla\mathbf{u} + \nabla\mathbf{u}^{\mathrm{T}}\right) - \frac{2}{3}\nu\nabla\cdot\mathbf{u},
 \end{equation}
 where $\nu$ is the kinematic viscosity.
 
@@ -77,7 +77,7 @@ The model requires three fields to be set up:
 \end{itemize}
 
 \subsection{Drag}
-To include the quadratic drag term in the momentum equation, the drag coefficient field must be enabled and the drag coefficient $C_D$ must be specified.
+To include the quadratic drag term in the momentum equation, the DragCoefficient field must be enabled and the drag coefficient $C_D$ must be specified.
 
 \subsection{Boundary conditions}
 Strong Dirichlet boundary conditions can be enforced for both the FreeSurfacePerturbation and Velocity fields by selecting the \texttt{dirichlet} type. Imposing a no-normal flow condition for velocity can currently only be done weakly by integrating the continuity equation by parts and selecting the \texttt{no\_normal\_flow} boundary condition type in the configuration options.
