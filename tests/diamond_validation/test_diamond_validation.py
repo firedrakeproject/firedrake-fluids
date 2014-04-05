@@ -119,7 +119,6 @@ def diamond_validation():
 
 def test_diamond_validation():
    optionErrors = diamond_validation()
-   print optionErrors.keys()
    
    failures = []
    for filename in optionErrors.keys():
