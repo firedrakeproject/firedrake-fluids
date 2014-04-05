@@ -225,7 +225,7 @@ class ShallowWater:
          
       if(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/viscosity")):
          self.options["have_momentum_stress"] = True
-         self.options["nu"] = libspud.get_option("/material_phase[0]/vector_field::Velocity/prognostic/viscosity")
+         self.options["viscosity"] = libspud.get_option("/material_phase[0]/vector_field::Velocity/prognostic/viscosity")
       else:
          self.options["have_momentum_stress"] = False
          
@@ -284,9 +284,9 @@ class ShallowWater:
                   A_momentum += inner(dot(grad(self.u[dim_i])[dim_j], self.u[dim_j]), self.w[dim_i])*dx
             F += A_momentum
             
-         # Viscous stress term. Note that 'nu' is the kinematic (not dynamic) viscosity.
+         # Viscous stress term. Note that the viscosity is kinematic (not dynamic).
          if(self.options["have_momentum_stress"]):
-            viscosity = Function(self.W.sub(0)).interpolate(Expression(self.options["nu"])) # Background viscosity
+            viscosity = Function(self.W.sub(0)).interpolate(Expression(self.options["viscosity"])) # Background viscosity
             if(self.options["have_turbulence_parameterisation"]):
                # Add on eddy viscosity, if necessary
                if(libspud.have_option("/material_phase[0]/turbulence_parameterisation/les")):
@@ -299,10 +299,12 @@ class ShallowWater:
                viscosity += eddy_viscosity
                
             K_momentum = 0
-            # Perform a double dot product of the two tensors grad(u) and grad(w).
+            # Perform a double dot product of the stress tensor and grad(w).
             for dim_i in range(dimension):
                for dim_j in range(dimension):
-                  K_momentum += -viscosity*inner(grad(self.u[dim_i])[dim_j], grad(self.w[dim_i])[dim_j])*dx
+                  # tau = grad(u) + transpose(grad(u))
+                  K_momentum += -viscosity*inner(grad(self.u[dim_i])[dim_j] + grad(self.u[dim_j])[dim_i], grad(self.w[dim_i])[dim_j])*dx
+               K_momentum += viscosity*(2.0/3.0)*inner(grad(self.u[dim_i])[dim_i], grad(self.w[dim_i])[dim_i])*dx
                
             F -= K_momentum # Negative sign here because we are bringing the stress term over from the RHS.
 
@@ -434,7 +436,7 @@ class ShallowWater:
             u_temp = []
             for dim in range(dimension):
                u_temp.append(self.solution_old.split()[dim])
-            F += stabilisation.streamline_upwind(self.w, self.u, u_temp, self.options["nu"])
+            F += stabilisation.streamline_upwind(self.w, self.u, u_temp, self.options["viscosity"])
 
          # Get all the Dirichlet boundary conditions for the Velocity field
          bcs = []
@@ -487,10 +489,9 @@ class ShallowWater:
          # Check whether a steady-state has been reached.
          # Take the maximum difference across all processes.
          global_max_difference_h = max(abs(self.solution.split()[dimension].vector().gather() - self.solution_old.split()[dimension].vector().gather()))
-         global_max_difference_ux = max(abs(self.solution.split()[0].vector().gather() - self.solution_old.split()[0].vector().gather()))
-         global_max_difference_uy = max(abs(self.solution.split()[1].vector().gather() - self.solution_old.split()[1].vector().gather()))
+         global_max_difference_u = [max(abs(self.solution.split()[dim].vector().gather() - self.solution_old.split()[dim].vector().gather())) for dim in range(0, dimension)]
          # If the difference is less than a set tolerance, then break out of the time-stepping loop.
-         if(global_max_difference_h <= self.options["steady_state_tolerance"] and global_max_difference_ux <= self.options["steady_state_tolerance"] and global_max_difference_uy <= self.options["steady_state_tolerance"]):
+         if(global_max_difference_h <= self.options["steady_state_tolerance"] and (global_max_difference_u <= self.options["steady_state_tolerance"]).all()):
             print "Steady-state attained. Exiting the time-stepping loop..."
             break
 
