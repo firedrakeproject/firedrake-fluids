@@ -13,9 +13,8 @@ def function(phi_0, phi_x, phi_y, phi_xy,
     return f
 
 h = sin(x)*sin(y)
-u = cos(x)
-v = 0
-#v = integral(-diff(u,x),y)  # divergence free
+u = cos(x)*sin(y)
+v = sin(x*x) + cos(y)
 
 g = 9.8
 

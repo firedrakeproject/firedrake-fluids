@@ -8,12 +8,11 @@
       <integer_value rank="0">2</integer_value>
     </dimension>
     <mesh>
-      <unit_mesh>
-        <number_of_nodes>
-          <integer_value shape="2" dim1="dim" rank="1">777 888</integer_value>
-        </number_of_nodes>
-        <crossed/>
-      </unit_mesh>
+      <from_file>
+        <path>
+          <string_value lines="1">src/MMS_X.msh</string_value>
+        </path>
+      </from_file>
     </mesh>
   </geometry>
   <function_spaces>
@@ -122,12 +121,12 @@
         </initial_condition>
         <boundary_conditions name="All">
           <surface_ids>
-            <integer_value shape="4" rank="1">1 2 3 4</integer_value>
+            <integer_value shape="4" rank="1">3 4 5 6</integer_value>
           </surface_ids>
           <type name="dirichlet">
             <cpp>
               <string_value lines="20" type="code" language="python">def val(t):
-  return ("cos(x[0])", "0.0")</string_value>
+  return ("cos(x[0])*sin(x[1])", "sin(x[0]*x[0]) + cos(x[1])")</string_value>
             </cpp>
           </type>
         </boundary_conditions>
@@ -136,7 +135,7 @@
             <value name="WholeMesh">
               <cpp>
                 <string_value lines="20" type="code" language="python">def val(t):
-  return ("-cos(x[0])*sin(x[0]) + 9.80*cos(x[0])*sin(x[1]) + 0.700*cos(x[0])", "9.80*cos(x[1])*sin(x[0])")</string_value>
+  return ("-cos(x[0])*sin(x[0])*pow(sin(x[1]), 2) + (cos(x[1]) + sin(pow(x[0], 2)))*cos(x[0])*cos(x[1]) + 11.2*cos(x[0])*sin(x[1])", "2*x[0]*cos(pow(x[0], 2))*cos(x[0])*sin(x[1]) + 2.80*pow(x[0], 2)*sin(pow(x[0], 2)) + 9.80*cos(x[1])*sin(x[0]) - (cos(x[1]) + sin(pow(x[0], 2)))*sin(x[1]) - 1.40*cos(pow(x[0], 2)) + 0.700*cos(x[1])")</string_value>
               </cpp>
             </value>
           </prescribed>
@@ -162,7 +161,7 @@
         </initial_condition>
         <boundary_conditions name="All">
           <surface_ids>
-            <integer_value shape="4" rank="1">1 2 3 4</integer_value>
+            <integer_value shape="4" rank="1">3 4 5 6</integer_value>
           </surface_ids>
           <type name="dirichlet">
             <cpp>
@@ -176,7 +175,7 @@
             <value name="WholeMesh">
               <cpp>
                 <string_value lines="20" type="code" language="python">def val(t):
-  return "pow(cos(x[0]), 2)*sin(x[1]) - (sin(x[0])*sin(x[1]) + 50.0)*sin(x[0])"</string_value>
+  return "pow(cos(x[0]), 2)*pow(sin(x[1]), 2) + (cos(x[1]) + sin(pow(x[0], 2)))*cos(x[1])*sin(x[0]) - (sin(x[0])*sin(x[1]) + 50.0)*sin(x[0])*sin(x[1]) - (sin(x[0])*sin(x[1]) + 50.0)*sin(x[1])"</string_value>
               </cpp>
             </value>
           </prescribed>
