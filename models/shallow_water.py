@@ -299,6 +299,7 @@ class ShallowWater:
                viscosity += eddy_viscosity
                
             K_momentum = 0
+            # Perform a double dot product of the two tensors grad(u) and grad(w).
             for dim_i in range(dimension):
                for dim_j in range(dimension):
                   K_momentum += -viscosity*inner(grad(self.u[dim_i])[dim_j], grad(self.w[dim_i])[dim_j])*dx
