@@ -1,29 +1,17 @@
 y = var('y')
 from math import pi
 
-def function(phi_0, phi_x, phi_y, phi_xy, 
-             f_sin_x, f_cos_x, f_sin_y, f_cos_y, f_sin_xy, f_cos_xy, 
-             alpha_x, alpha_y, alpha_xy):
-    
-    f_0 = phi_0 
-    f_x = phi_x*(f_sin_x*sin(alpha_x*x) + f_cos_x*cos(alpha_x*x)) 
-    f_y = phi_y*(f_sin_y*sin(alpha_y*y) + f_cos_y*cos(alpha_y*y)) 
-    f_xy = phi_xy*(f_sin_xy*sin(alpha_xy*x*y/pi) + f_cos_xy*cos(alpha_xy*x*y/pi)) 
-    f = f_0 + f_x + f_y + f_xy
-    return f
-
 h = sin(x)*sin(y)
 u = sin(x)*cos(y)**3
 v = sin(x)**2*sin(y)
-#v = integral(-diff(u,x),y)  # divergence free
 
 g = 9.8
 
-mu = 0.6
-tau_xx = mu*diff(u,x)            
-tau_yy = mu*diff(v,y)
-tau_xy = mu*diff(u,y)
-tau_yx = mu*diff(v,x)
+nu = 0.6
+tau_xx = 2*nu*diff(u,x) - (2.0/3.0)*nu*(diff(u,x) + diff(v,y))
+tau_xy = nu*(diff(u,y) + diff(v,x))
+tau_yy = 2*nu*diff(v,y) - (2.0/3.0)*nu*(diff(u,x) + diff(v,y)) 
+tau_yx = nu*(diff(u,y) + diff(v,x))
 
 h_mean = 20.0 # The mean free surface height
 C_D = 0.0025 # Drag coefficient
