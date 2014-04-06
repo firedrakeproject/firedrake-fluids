@@ -100,7 +100,7 @@ def diamond_validation():
      def OptionErrors(self):
        return self._optionErrors
 
-   validator = DiamondValidator(rootDir = os.path.join(os.path.pardir, os.path.pardir))
+   validator = DiamondValidator(rootDir = ".")
 
    # Shallow water model-related tests in Firedrake-Fluids.
    validator.TestXmlFiles(testDir = "tests", depth = 2)
