@@ -409,7 +409,8 @@ class ShallowWater:
                      
                # If no boundary condition has been applied, include the surface integral as it is.
                if(bc_type is None):
-                  Ct_continuity += H*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
+                  for dim in range(0, dimension):
+                     Ct_continuity += H*inner(self.u[dim], self.n[dim]) * self.v * ds(int(marker))
 
          else:
             divergence = 0
