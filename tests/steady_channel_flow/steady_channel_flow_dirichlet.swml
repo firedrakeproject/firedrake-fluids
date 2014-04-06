@@ -179,16 +179,6 @@
         </value>
       </prescribed>
     </scalar_field>
-    <scalar_field name="DragCoefficient" rank="0">
-      <prescribed>
-        <function_space name="FreeSurfaceFunctionSpace"/>
-        <value name="WholeMesh">
-          <constant>
-            <real_value rank="0">0.0025</real_value>
-          </constant>
-        </value>
-      </prescribed>
-    </scalar_field>
     <integrate_continuity_equation_by_parts/>
   </material_phase>
 </shallow_water_options>
