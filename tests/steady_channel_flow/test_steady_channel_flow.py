@@ -42,12 +42,12 @@ def test_steady_channel_flow():
    print "h_max: ", h_max
    print "h_min: ", h_min
    
-   assert h_max <= 0.1
-   assert h_min >= 0
+   assert h_max <= 1e-4
+   assert h_min >= -1e-4
    
    # A steady-state Velocity (in the x direction) of 2.0 is desired.
    assert ux_max <= 2.005
-   assert ux_min >= 2.0
+   assert ux_min >= 1.99
    
    # The y component of the Velocity field should be close to zero in the channel.
    assert uy_max <= 1e-4
@@ -71,12 +71,12 @@ def test_steady_channel_flow():
    print "h_max: ", h_max
    print "h_min: ", h_min
    
-   assert h_max <= 0.1
-   assert h_min >= 0
+   assert h_max <= 1e-4
+   assert h_min >= -1e-4
    
    # A steady-state Velocity (in the x direction) of 2.0 is desired.
    assert ux_max <= 2.005
-   assert ux_min >= 2.0
+   assert ux_min >= 1.99
    
    # The y component of the Velocity field should be close to zero in the channel.
    assert uy_max <= 1e-4
