@@ -45,22 +45,24 @@ def test_swe_tidal_flow_regular_bed():
    h_analytical = H + 4 - 4*numpy.sin(numpy.pi*(4*t/86400.0 + 0.5))
    ux_analytical = ((x - 14000.0)*numpy.pi/(5400.0*h_analytical))*numpy.cos(numpy.pi*(4*t/86400.0 + 0.5))
    
-   pylab.figure(0)
-   pylab.plot(x, ux_analytical, 'g-', label="Analytical")
-   pylab.plot(x[0:len(ux):5], ux[0:len(ux):5], 'b.', label="Numerical (Firedrake)")
-   pylab.legend()
-   pylab.xlabel("x (m)")
-   pylab.ylabel("Velocity (m/s)")
-   pylab.savefig('swe_tidal_flow_regular_bed_velocity.png')
-   
-   pylab.figure(1)
-   pylab.plot(x, h_analytical, 'g-', label="Analytical")
-   pylab.plot(x[0:len(h):5], h[0:len(h):5] + H[0:len(h):5], 'b.', label="Numerical (Firedrake)")
-   pylab.legend()
-   pylab.xlabel("x (m)")
-   pylab.ylabel("Free surface (m)")
-   pylab.axis([0, 14000, 0, 70])
-   pylab.savefig('swe_tidal_flow_regular_bed_freesurface.png')
+   plot = True
+   if(plot):
+      pylab.figure(0)
+      pylab.plot(x, ux_analytical, 'g-', label="Analytical")
+      pylab.plot(x[0:len(ux):5], ux[0:len(ux):5], 'b.', label="Numerical (Firedrake)")
+      pylab.legend()
+      pylab.xlabel("x (m)")
+      pylab.ylabel("Velocity (m/s)")
+      pylab.savefig('swe_tidal_flow_regular_bed_velocity.png')
+      
+      pylab.figure(1)
+      pylab.plot(x, h_analytical, 'g-', label="Analytical")
+      pylab.plot(x[0:len(h):5], h[0:len(h):5] + H[0:len(h):5], 'b.', label="Numerical (Firedrake)")
+      pylab.legend()
+      pylab.xlabel("x (m)")
+      pylab.ylabel("Free surface (m)")
+      pylab.axis([0, 14000, 0, 70])
+      pylab.savefig('swe_tidal_flow_regular_bed_freesurface.png')
 
    # Check that the maximum error between the numerical and analytical solution is small.
    ux_difference = abs(ux_analytical - ux)
