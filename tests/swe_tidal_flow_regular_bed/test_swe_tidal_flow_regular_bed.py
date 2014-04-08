@@ -45,7 +45,7 @@ def test_swe_tidal_flow_regular_bed():
    h_analytical = H + 4 - 4*numpy.sin(numpy.pi*(4*t/86400.0 + 0.5))
    ux_analytical = ((x - 14000.0)*numpy.pi/(5400.0*h_analytical))*numpy.cos(numpy.pi*(4*t/86400.0 + 0.5))
    
-   plot = True
+   plot = False
    if(plot):
       pylab.figure(0)
       pylab.plot(x, ux_analytical, 'g-', label="Analytical")
