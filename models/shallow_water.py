@@ -262,7 +262,8 @@ class ShallowWater:
       t = dt
             
       # The time-stepping loop
-      while t <= T:
+      EPSILON = 1.0e-14
+      while t <= T + EPSILON: # A small value EPSILON is added here in case of round-off error.
          print "\nt = %g" % t
             
          # The collection of all the individual terms in their weak form.
