@@ -7,26 +7,26 @@ import shallow_water
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
-def steady_channel_flow_dirichlet():
-   sw = shallow_water.ShallowWater(path=os.path.join(cwd, "steady_channel_flow_dirichlet.swml"))
+def swe_steady_flow_dirichlet():
+   sw = shallow_water.ShallowWater(path=os.path.join(cwd, "swe_steady_flow_dirichlet.swml"))
    sw.run()
    u_old = sw.solution_old.split()[0:2]
    h_old = sw.solution_old.split()[2]
    
    return u_old[0].vector().array(), u_old[1].vector().array(), h_old.vector().array()
    
-def steady_channel_flow_flather():
-   sw = shallow_water.ShallowWater(path=os.path.join(cwd, "steady_channel_flow_flather.swml"))
+def swe_steady_flow_flather():
+   sw = shallow_water.ShallowWater(path=os.path.join(cwd, "swe_steady_flow_flather.swml"))
    sw.run()
    u_old = sw.solution_old.split()[0:2]
    h_old = sw.solution_old.split()[2]
    
    return u_old[0].vector().array(), u_old[1].vector().array(), h_old.vector().array()
    
-def test_steady_channel_flow():
+def test_swe_steady_flow():
    
    # First test the version that uses a strong Dirichlet BC along the outflow boundary.
-   ux_values, uy_values, h_values = numpy.array(steady_channel_flow_dirichlet())
+   ux_values, uy_values, h_values = numpy.array(swe_steady_flow_dirichlet())
    
    ux_max = max(ux_values)
    ux_min = min(ux_values)
@@ -55,7 +55,7 @@ def test_steady_channel_flow():
 
 
    # Now test the version that uses a Flather boundary condition.
-   ux_values, uy_values, h_values = numpy.array(steady_channel_flow_flather())
+   ux_values, uy_values, h_values = numpy.array(swe_steady_flow_flather())
    
    ux_max = max(ux_values)
    ux_min = min(ux_values)

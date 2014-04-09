@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <shallow_water_options>
   <simulation_name>
-    <string_value lines="1">steady_channel_flow_dirichlet</string_value>
+    <string_value lines="1">swe_steady_flow_dirichlet</string_value>
   </simulation_name>
   <geometry>
     <dimension>
@@ -10,7 +10,7 @@
     <mesh>
       <from_file>
         <path>
-          <string_value lines="1">src/steady_channel_flow.msh</string_value>
+          <string_value lines="1">src/swe_steady_flow.msh</string_value>
           <comment>FluidMikecomp_4_1b.msh</comment>
         </path>
       </from_file>
