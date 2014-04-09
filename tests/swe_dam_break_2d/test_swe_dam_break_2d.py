@@ -16,7 +16,7 @@ def swe_dam_break_2d():
    sw.run()
    h_old = sw.solution_old.split()[-1]
    ux_old = sw.solution_old.split()[0]
-   uy_old = sw.solution_old.split()[0]
+   uy_old = sw.solution_old.split()[1]
    
    return h_old.vector().array(), ux_old.vector().array(), uy_old.vector().array()
 
