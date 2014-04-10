@@ -22,9 +22,6 @@ characters in the simulation name should be avoided.</a:documentation>
           <a:documentation>Dimension of the problem.
 &lt;b&gt;This can only be set once&lt;/b&gt;</a:documentation>
           <element name="integer_value">
-            <attribute name="rank">
-              <value>0</value>
-            </attribute>
             <choice>
               <value>1</value>
               <value>2</value>
@@ -33,20 +30,14 @@ characters in the simulation name should be avoided.</a:documentation>
           </element>
         </element>
         <element name="mesh">
-          <a:documentation>The position mesh</a:documentation>
+          <a:documentation>The underlying mesh of vertices and edges that discretises the domain.</a:documentation>
           <choice>
             <element name="unit_mesh">
-              <a:documentation>Unit (structured) mesh.</a:documentation>
+              <a:documentation>Unit mesh.</a:documentation>
               <element name="number_of_nodes">
                 <a:documentation>Number of nodes along each axis</a:documentation>
                 <ref name="integer_dim_vector"/>
               </element>
-              <optional>
-                <element name="crossed">
-                  <a:documentation>Crossed cells?</a:documentation>
-                  <ref name="comment"/>
-                </element>
-              </optional>
             </element>
             <element name="interval_mesh">
               <a:documentation>An interval mesh, going from x = 0 to x = L (where L is the length).</a:documentation>
@@ -57,9 +48,9 @@ characters in the simulation name should be avoided.</a:documentation>
                 <ref name="integer"/>
               </element>
             </element>
-            <element name="from_file">
-              <a:documentation>Input mesh from a file.</a:documentation>
-              <element name="path">
+            <element name="gmsh">
+              <a:documentation>Input mesh from a Gmsh .msh file.</a:documentation>
+              <element name="path_to_file">
                 <ref name="anystring"/>
               </element>
             </element>
@@ -67,22 +58,23 @@ characters in the simulation name should be avoided.</a:documentation>
         </element>
       </element>
       <element name="function_spaces">
+        <a:documentation>The function spaces used to represent the solution fields
+that are solved for.</a:documentation>
         <element name="function_space">
           <a:documentation>The function spaces used for various fields.</a:documentation>
           <attribute name="name">
             <a:documentation>The position mesh</a:documentation>
-            <value>CoordinateFunctionSpace</value>
+            <value>VelocityFunctionSpace</value>
           </attribute>
           <ref name="function_space_info"/>
         </element>
-        <zeroOrMore>
-          <element name="function_space">
-            <attribute name="name">
-              <data type="string"/>
-            </attribute>
-            <ref name="function_space_info"/>
-          </element>
-        </zeroOrMore>
+        <element name="function_space">
+          <attribute name="name">
+            <a:documentation>The position mesh</a:documentation>
+            <value>FreeSurfaceFunctionSpace</value>
+          </attribute>
+          <ref name="function_space_info"/>
+        </element>
       </element>
       <element name="io">
         <a:documentation>Input/output options</a:documentation>
@@ -114,6 +106,7 @@ A value of 0 indicates a dump at every timestep.</a:documentation>
         </choice>
         <optional>
           <element name="detectors">
+            <a:documentation>Output field values at particular points in space at each timestep.</a:documentation>
             <element name="locations_file">
               <ref name="anystring"/>
             </element>
@@ -124,7 +117,7 @@ A value of 0 indicates a dump at every timestep.</a:documentation>
         </optional>
       </element>
       <element name="timestepping">
-        <a:documentation>Options dealing with time discretisation</a:documentation>
+        <a:documentation>Options concerning the time loop.</a:documentation>
         <element name="current_time">
           <a:documentation>Current simulation time. At the start of the simulation this
 is the start time.</a:documentation>
@@ -162,146 +155,106 @@ then this is the initial time step size.</a:documentation>
             <a:documentation>Acceleration due to gravity. This is 9.8 m/s^2 on Earth.</a:documentation>
             <ref name="real"/>
           </element>
-          <element name="vector_field">
-            <a:documentation>The direction of the gravity vector.</a:documentation>
-            <attribute name="name">
-              <value>GravityDirection</value>
-            </attribute>
-            <attribute name="rank">
-              <value>1</value>
-            </attribute>
-            <element name="prescribed">
-              <element name="mesh">
-                <attribute name="name">
-                  <value>CoordinateFunctionSpace</value>
-                </attribute>
-              </element>
-              <ref name="real_dim_vector"/>
-            </element>
-          </element>
         </element>
       </element>
-      <element name="material_phase">
-        <a:documentation>The material or phase options.</a:documentation>
-        <attribute name="name">
-          <value>Fluid</value>
-        </attribute>
-        <group>
-          <element name="vector_field">
-            <a:documentation>Velocity options (found by solving the momentum equation).</a:documentation>
-            <attribute name="rank">
-              <value>1</value>
-            </attribute>
-            <attribute name="name">
-              <value>Velocity</value>
-            </attribute>
-            <choice>
-              <a:documentation>Field type</a:documentation>
-              <element name="prognostic">
-                <element name="function_space">
-                  <attribute name="name">
-                    <value>VelocityFunctionSpace</value>
-                  </attribute>
-                </element>
-                <ref name="prognostic_vector_field"/>
-              </element>
-              <element name="prescribed">
-                <element name="function_space">
-                  <attribute name="name">
-                    <value>VelocityFunctionSpace</value>
-                  </attribute>
-                </element>
-                <ref name="prescribed_vector_field"/>
-              </element>
-            </choice>
+      <element name="core_fields">
+        <a:documentation>The options available for the various fields associated with the shallow water equations.</a:documentation>
+        <element name="vector_field">
+          <a:documentation>Velocity (found by solving the momentum equation).</a:documentation>
+          <attribute name="name">
+            <value>Velocity</value>
+          </attribute>
+          <element name="initial_condition">
+            <ref name="input_choice_real_dim_vector"/>
           </element>
-          <element name="scalar_field">
-            <a:documentation>The perturbation component of the free surface height.</a:documentation>
-            <attribute name="rank">
-              <value>0</value>
-            </attribute>
-            <attribute name="name">
-              <value>FreeSurfacePerturbation</value>
-            </attribute>
-            <element name="prognostic">
-              <element name="function_space">
-                <attribute name="name">
-                  <value>FreeSurfaceFunctionSpace</value>
-                </attribute>
-              </element>
-              <ref name="prognostic_scalar_field"/>
-            </element>
-          </element>
-          <element name="scalar_field">
-            <a:documentation>The mean free surface height.</a:documentation>
-            <attribute name="rank">
-              <value>0</value>
-            </attribute>
-            <attribute name="name">
-              <value>FreeSurfaceMean</value>
-            </attribute>
-            <element name="prescribed">
-              <element name="function_space">
-                <attribute name="name">
-                  <value>FreeSurfaceFunctionSpace</value>
-                </attribute>
-              </element>
-              <ref name="prescribed_scalar_field"/>
-            </element>
-          </element>
-          <optional>
-            <element name="scalar_field">
-              <a:documentation>The drag coefficient in the quadratic free surface drag term.
-Enabling this field enables the drag term.</a:documentation>
-              <attribute name="rank">
-                <value>0</value>
-              </attribute>
+          <zeroOrMore>
+            <element name="boundary_condition">
               <attribute name="name">
-                <value>DragCoefficient</value>
+                <data type="string"/>
               </attribute>
-              <element name="prescribed">
-                <element name="function_space">
-                  <attribute name="name">
-                    <value>FreeSurfaceFunctionSpace</value>
-                  </attribute>
-                </element>
-                <ref name="prescribed_scalar_field"/>
+              <element name="surface_ids">
+                <a:documentation>Surface IDs</a:documentation>
+                <ref name="integer_vector"/>
               </element>
+              <choice>
+                <ref name="core_vector_boundary_condition"/>
+                <ref name="velocity_boundary_condition"/>
+              </choice>
             </element>
-          </optional>
-          <optional>
-            <element name="integrate_continuity_equation_by_parts">
-              <empty/>
+          </zeroOrMore>
+        </element>
+        <element name="scalar_field">
+          <a:documentation>The deviation of the free surface height from the mean.</a:documentation>
+          <attribute name="name">
+            <value>FreeSurfacePerturbation</value>
+          </attribute>
+          <element name="initial_condition">
+            <ref name="input_choice_real"/>
+          </element>
+          <zeroOrMore>
+            <element name="boundary_condition">
+              <attribute name="name">
+                <data type="string"/>
+              </attribute>
+              <element name="surface_ids">
+                <a:documentation>Surface IDs</a:documentation>
+                <ref name="integer_vector"/>
+              </element>
+              <ref name="core_scalar_boundary_condition"/>
             </element>
-          </optional>
-          <optional>
-            <element name="turbulence_parameterisation">
-              <ref name="turbulence_parameterisation"/>
+          </zeroOrMore>
+        </element>
+        <element name="scalar_field">
+          <a:documentation>The mean free surface height. Also known as the depth of the
+fluid at rest (always positive).</a:documentation>
+          <attribute name="name">
+            <value>FreeSurfaceMean</value>
+          </attribute>
+          <element name="value">
+            <ref name="input_choice_real"/>
+          </element>
+        </element>
+        <optional>
+          <element name="scalar_field">
+            <a:documentation>Isotropic viscosity. 
+Note that this is the kinematic viscosity for shallow water simulations.</a:documentation>
+            <attribute name="name">
+              <value>Viscosity</value>
+            </attribute>
+            <element name="value">
+              <ref name="input_choice_real"/>
             </element>
-          </optional>
-        </group>
+          </element>
+        </optional>
+        <optional>
+          <element name="scalar_field">
+            <a:documentation>The drag coefficient in the quadratic free surface drag term.
+Enabling this field enables the drag term.</a:documentation>
+            <attribute name="name">
+              <value>DragCoefficient</value>
+            </attribute>
+            <element name="value">
+              <ref name="input_choice_real"/>
+            </element>
+          </element>
+        </optional>
+      </element>
+      <element name="equations">
+        <a:documentation>The options available for the governing equations of the shallow water model.</a:documentation>
+        <element name="continuity_equation">
+          <a:documentation>Options for the continuity equation.</a:documentation>
+          <ref name="continuity_equation_options"/>
+        </element>
+        <element name="momentum_equation">
+          <a:documentation>Options for the momentum equation.</a:documentation>
+          <ref name="momentum_equation_options"/>
+        </element>
       </element>
     </element>
   </start>
   <define name="function_space_info">
-    <element name="type">
-      <element name="string_value">
-        <choice>
-          <value>scalar</value>
-          <value>vector</value>
-          <value>tensor</value>
-        </choice>
-      </element>
-    </element>
     <element name="polynomial_degree">
       <ref name="integer"/>
-    </element>
-    <element name="element_type">
-      <element name="string_value">
-        <a:documentation>Select the element type. "lagrangian" means the usual
-Pn element type.</a:documentation>
-        <value>lagrangian</value>
-      </element>
     </element>
     <element name="continuity">
       <element name="string_value">
@@ -311,5 +264,105 @@ Pn element type.</a:documentation>
         </choice>
       </element>
     </element>
+  </define>
+  <define name="continuity_equation_options">
+    <optional>
+      <element name="integrate_by_parts">
+        <empty/>
+      </element>
+    </optional>
+    <optional>
+      <element name="source_term">
+        <a:documentation>Source term.</a:documentation>
+        <ref name="prescribed_scalar_field"/>
+      </element>
+    </optional>
+  </define>
+  <define name="momentum_equation_options">
+    <element name="spatial_discretisation">
+      <a:documentation>Spatial discretisation options.</a:documentation>
+      <element name="continuous_galerkin">
+        <a:documentation>Continuous Galerkin discretisation.</a:documentation>
+        <empty/>
+      </element>
+    </element>
+    <element name="mass_term">
+      <a:documentation>Options for the mass term.</a:documentation>
+      <optional>
+        <element name="exclude_mass_term">
+          <a:documentation>Remove the mass term from the equation.</a:documentation>
+          <empty/>
+        </element>
+      </optional>
+    </element>
+    <element name="advection_term">
+      <a:documentation>Options for the advection term.</a:documentation>
+      <optional>
+        <element name="integrate_by_parts">
+          <a:documentation>Integrate the advection term by parts.</a:documentation>
+          <empty/>
+        </element>
+      </optional>
+      <optional>
+        <element name="exclude_advection_term">
+          <a:documentation>Remove the mass terms from the equation.</a:documentation>
+          <empty/>
+        </element>
+      </optional>
+      <optional>
+        <element name="streamline_upwind_stabilisation">
+          <a:documentation>Add a streamline upwind stabilisation term
+(given by equation 2.52 in Donea &amp; Huerta (2003))
+to the advection term.</a:documentation>
+          <ref name="comment"/>
+        </element>
+      </optional>
+    </element>
+    <optional>
+      <element name="source_term">
+        <a:documentation>Options for the source term.</a:documentation>
+        <ref name="prescribed_vector_field"/>
+      </element>
+    </optional>
+    <optional>
+      <element name="turbulence_parameterisation">
+        <a:documentation>Turbulence parameterisations</a:documentation>
+        <ref name="turbulence_parameterisation"/>
+      </element>
+    </optional>
+  </define>
+  <define name="velocity_boundary_condition">
+    <choice>
+      <element name="type">
+        <a:documentation>The no_normal_flow boundary condition weakly applies the condition
+
+dot(u, n) = 0
+
+if the continuity equation is integrated by parts.</a:documentation>
+        <attribute name="name">
+          <value>no_normal_flow</value>
+        </attribute>
+      </element>
+      <element name="type">
+        <a:documentation>Applies a Flather boundary condition:
+
+u = u_ext + sqrt(g/H)*(h - h_ext)
+
+where H = h + h_mean, 
+and u_ext and h_ext are the exterior values of the Velocity and FreeSurfacePerturbation fields, respectively.
+Note: This is a weak boundary condition. It is only applied if the continuity equation is integrated by parts.</a:documentation>
+        <attribute name="name">
+          <value>flather</value>
+        </attribute>
+        <element name="exterior_velocity">
+          <a:documentation>The exterior value of the Velocity field</a:documentation>
+          <ref name="input_choice_real_dim_vector"/>
+        </element>
+        <element name="exterior_free_surface_perturbation">
+          <a:documentation>The exterior value of the FreeSurfacePerturbation field</a:documentation>
+          <ref name="input_choice_real"/>
+        </element>
+      </element>
+    </choice>
   </define>
 </grammar>

@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0">
+  <define name="core_scalar_boundary_condition">
+    <element name="type">
+      <attribute name="name">
+        <value>dirichlet</value>
+      </attribute>
+      <optional>
+        <element name="apply_weakly">
+          <a:documentation>Apply the Dirichlet BC weakly.
+If not selected, the boundary condition is applied strongly.</a:documentation>
+          <ref name="comment"/>
+        </element>
+      </optional>
+      <ref name="input_choice_real"/>
+    </element>
+  </define>
+  <define name="core_vector_boundary_condition">
+    <element name="type">
+      <attribute name="name">
+        <value>dirichlet</value>
+      </attribute>
+      <optional>
+        <element name="apply_weakly">
+          <a:documentation>Apply the dirichlet bc weakly.
+If not selected boundary conditions are applied strongly.</a:documentation>
+          <ref name="comment"/>
+        </element>
+      </optional>
+      <ref name="input_choice_real_dim_vector"/>
+    </element>
+  </define>
+</grammar>

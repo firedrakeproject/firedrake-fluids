@@ -19,7 +19,7 @@ where x is a tuple of length geometry dimension.</a:documentation>
       <element name="cpp">
         <a:documentation>Python function prescribing real input given as a C++ string. Functions should be of the form:
 
- def val():
+ def val(t):
     # Function code
     return # String containing the input as C++ code.
 
@@ -47,7 +47,7 @@ where X is a tuple of length geometry dimension.</a:documentation>
       <element name="cpp">
         <a:documentation>Python function prescribing real input given as a C++ string. Functions should be of the form:
 
- def val():
+ def val(t):
     # Function code
     return # String containing the input as C++ code.
 

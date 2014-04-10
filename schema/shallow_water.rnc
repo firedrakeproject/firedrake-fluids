@@ -10,37 +10,37 @@ include "les.rnc"
 start =
    (
       ## The root node of the options dictionary.
-      element shallow_water_options {
+      element shallow_water_options 
+      {
          comment,
          ## Model output files are named according to the simulation
          ## name, e.g. [simulation_name]_0.vtu. Non-standard
          ## characters in the simulation name should be avoided.
-         element simulation_name {
+         element simulation_name 
+         {
             anystring
          },
          ## Options dealing with the specification of geometry
-         element geometry {
+         element geometry 
+         {
             ## Dimension of the problem.
             ## <b>This can only be set once</b>
-            element dimension {
-               element integer_value {
-                  attribute rank {"0"},
+            element dimension 
+            {
+               element integer_value 
+               {
                   ("1"|"2"|"3")
                }
             },
-            ## The position mesh
+            ## The underlying mesh of vertices and edges that discretises the domain.
             element mesh {
                (
-                  ## Unit (structured) mesh.
+                  ## Unit mesh.
                   element unit_mesh {
                      ## Number of nodes along each axis
                      element number_of_nodes {
                         integer_dim_vector
-                     },
-                     ## Crossed cells?
-                     element crossed {
-                        comment
-                     }?
+                     }
                   }|
                   ## An interval mesh, going from x = 0 to x = L (where L is the length).
                   element interval_mesh {
@@ -51,32 +51,42 @@ start =
                         integer
                      }
                   }|
-                  ## Input mesh from a file.
-                  element from_file {
-                     element path {
+                  ## Input mesh from a Gmsh .msh file.
+                  element gmsh {
+                     element path_to_file
+                     {
                         anystring
                      }
                   }
                )
             }
          },
-         element function_spaces {
+         ## The function spaces used to represent the solution fields
+         ## that are solved for.
+         element function_spaces 
+         {
             ## The function spaces used for various fields.
-            element function_space {
+            element function_space 
+            {
                ## The position mesh
-               attribute name { "CoordinateFunctionSpace" },
+               attribute name { "VelocityFunctionSpace" },
                function_space_info
             },
-            element function_space {
-               attribute name { xsd:string },
+            element function_space 
+            {
+               ## The position mesh
+               attribute name { "FreeSurfaceFunctionSpace" },
                function_space_info
-            }*
+            }
          },
          ## Input/output options
-         element io {
+         element io 
+         {
             ## Format for dump files. Only vtk for now.
-            element dump_format {
-               element string_value {
+            element dump_format 
+            {
+               element string_value 
+               {
                   "vtk"
                }
             },
@@ -85,9 +95,11 @@ start =
                ##
                ## Specifies the period between each dump of the solution to disk.
                ## A value of 0.0 indicates that there would be a dump at every timestep.
-               element dump_period {
+               element dump_period 
+               {
                   (
-                     element constant {
+                     element constant 
+                     {
                         real
                      }
                   )  
@@ -96,163 +108,294 @@ start =
                ## 
                ## Specifies the number of timesteps between each dump of the solution to disk.
                ## A value of 0 indicates a dump at every timestep.
-               element dump_period_in_timesteps {
+               element dump_period_in_timesteps 
+               {
                   (
-                     element constant {
+                     element constant 
+                     {
                         integer
                      }
                   )   
                }
             ),
-            element detectors {
-               element locations_file {
+            ## Output field values at particular points in space at each timestep.
+            element detectors 
+            {
+               element locations_file 
+               {
                   anystring
                },
-               element values_file {
+               element values_file 
+               {
                   anystring
                }
             }?
          },
-         ## Options dealing with time discretisation
-         element timestepping {
+         ## Options concerning the time loop.
+         element timestepping 
+         {
             ## Current simulation time. At the start of the simulation this
             ## is the start time.
-            element current_time {
+            element current_time 
+            {
                real
             },
             ## The time step size. If adaptive time stepping is used
             ## then this is the initial time step size.
-            element timestep {
+            element timestep 
+            {
                real
             },
             ## How many nonlinear iterations in the timestepping loop
-            element nonlinear_iterations {
+            element nonlinear_iterations 
+            {
                integer,
-               element tolerance {
+               element tolerance 
+               {
                   real
                }
             },
             ## Simulation time at which the simulation should end.
-            element finish_time {
+            element finish_time 
+            {
                real
             },
             ## Activate if you want to terminate the simulation once a steady state is reached.
-            element steady_state {
-               element tolerance {
+            element steady_state 
+            {
+               element tolerance 
+               {
                   real
                }
             }?
          },
          ## The physical parameters
-         element physical_parameters {
-            element gravity {
+         element physical_parameters 
+         {
+            element gravity 
+            {
                ## Acceleration due to gravity. This is 9.8 m/s^2 on Earth.
-               element magnitude {
+               element magnitude 
+               {
                   real
-               },
-               ## The direction of the gravity vector.
-               element vector_field {
-                  attribute name { "GravityDirection" },
-                  attribute rank { "1" },
-                  element prescribed {
-                     element mesh {
-                        attribute name { "CoordinateFunctionSpace" }
-                     },
-                     real_dim_vector
-                  }
                }
             }
          },
-         ## The material or phase options.
-         element material_phase {
-            attribute name { "Fluid" },
+         ## The options available for the various fields associated with the shallow water equations.
+         element core_fields 
+         {
             (
-               ## Velocity options (found by solving the momentum equation).
-               element vector_field {
-                  attribute rank { "1" },
+               ## Velocity (found by solving the momentum equation).
+               element vector_field 
+               {
                   attribute name { "Velocity" },
-                  ## Field type
-                  (
-                     element prognostic {
-                        element function_space {
-                           attribute name { "VelocityFunctionSpace" }
-                        },
-                        prognostic_vector_field
-                     }|
-                     element prescribed {
-                        element function_space {
-                           attribute name { "VelocityFunctionSpace" }
-                        },
-                        prescribed_vector_field
-                     }
-                  )
+                  element initial_condition 
+                  {
+                     input_choice_real_dim_vector
+                  },
+                  element boundary_condition 
+                  {
+                     attribute name { xsd:string },
+                     ## Surface IDs
+                     element surface_ids 
+                     {
+                        integer_vector
+                     },
+                     (
+                        core_vector_boundary_condition | velocity_boundary_condition
+                     )
+                  }*
                },
-               ## The perturbation component of the free surface height.
-               element scalar_field {
-                  attribute rank { "0" },
+               ## The deviation of the free surface height from the mean.
+               element scalar_field 
+               {
                   attribute name { "FreeSurfacePerturbation" },
-                  element prognostic {
-                     element function_space {
-                        attribute name { "FreeSurfaceFunctionSpace" }
+                  element initial_condition 
+                  {
+                     input_choice_real
+                  },
+                  element boundary_condition 
+                  {
+                     attribute name { xsd:string },
+                     ## Surface IDs
+                     element surface_ids 
+                     {
+                        integer_vector
                      },
-                     prognostic_scalar_field
-                  }
+                     (
+                        core_scalar_boundary_condition
+                     )
+                  }*
                },
-               ## The mean free surface height.
-               element scalar_field {
-                  attribute rank { "0" },
+               ## The mean free surface height. Also known as the depth of the
+               ## fluid at rest (always positive).
+               element scalar_field
+               {
                   attribute name { "FreeSurfaceMean" },
-                  element prescribed {
-                     element function_space {
-                        attribute name { "FreeSurfaceFunctionSpace" }
-                     },
-                     prescribed_scalar_field
+                  element value 
+                  {
+                     input_choice_real
                   }
                },
+               ## Isotropic viscosity. 
+               ## Note that this is the kinematic viscosity for shallow water simulations.
+               element scalar_field 
+               {
+                  attribute name { "Viscosity" },
+                  element value 
+                  {
+                     input_choice_real
+                  }
+               }?,
                ## The drag coefficient in the quadratic free surface drag term.
                ## Enabling this field enables the drag term.
-               element scalar_field {
-                  attribute rank { "0" },
+               element scalar_field 
+               {
                   attribute name { "DragCoefficient" },
-                  element prescribed {
-                     element function_space {
-                        attribute name { "FreeSurfaceFunctionSpace" }
-                     },
-                     prescribed_scalar_field
+                  element value 
+                  {
+                     input_choice_real
                   }
-               }?,
-               element integrate_continuity_equation_by_parts {
-                  empty
-               }?,
-               element turbulence_parameterisation {
-                  turbulence_parameterisation
                }?
             )
+         },
+         ## The options available for the governing equations of the shallow water model.
+         element equations
+         {
+            ## Options for the continuity equation.
+            element continuity_equation
+            {
+               continuity_equation_options
+            },
+            ## Options for the momentum equation.
+            element momentum_equation
+            {
+               momentum_equation_options
+            }
          }
       }
    )
    
-   
 function_space_info =
    (
-      element type {
-         element string_value{
-            "scalar" | "vector" | "tensor"
-         }
-      },
-      element polynomial_degree {
+      element polynomial_degree
+      {
          integer
       },
-      element element_type {
-         ## Select the element type. "lagrangian" means the usual
-         ## Pn element type.
-         element string_value{
-            "lagrangian"
-         }
-      },
-      element continuity {
-         element string_value{
+      element continuity 
+      {
+         element string_value
+         {
             "continuous" | "discontinuous"
          }
       }
    )
+
+continuity_equation_options =
+   (
+      ## Spatial discretisation options.
+      element spatial_discretisation 
+      {
+      
+      }
+      
+      ## Integrate the divergence term in the continuity equation by parts.
+      ## This allows the imposition of weak boundary conditions for the Velocity field.
+      element integrate_by_parts {
+         empty
+      }?,
+      ## Adds a source term to the RHS of the continuity equation.
+      element source_term
+      {
+         prescribed_scalar_field
+      }?
+   )
+
+momentum_equation_options =
+   (
+      ## Spatial discretisation options.
+      element spatial_discretisation 
+      {
+         ## Continuous Galerkin discretisation.
+         element continuous_galerkin 
+         {
+            empty
+         }
+      },
+      ## Options for the mass term.
+      element mass_term 
+      {
+         ## Remove the mass term from the equation.
+         element exclude_mass_term 
+         {
+            empty
+         }?
+      },
+      ## Options for the advection term.
+      element advection_term 
+      {
+         ## Integrate the advection term by parts.
+         element integrate_by_parts 
+         {
+            empty
+         }?,
+         ## Remove the mass terms from the equation.
+         element exclude_advection_term 
+         {
+            empty
+         }?,
+         ## Add a streamline upwind stabilisation term
+         ## (given by equation 2.52 in Donea & Huerta (2003))
+         ## to the advection term.
+         element streamline_upwind_stabilisation 
+         {
+            comment
+         }?
+      },
+      ## Adds a source term to the RHS of the momentum equation.
+      element source_term
+      {
+         prescribed_vector_field
+      }?,
+      ## Turbulence parameterisations.
+      element turbulence_parameterisation 
+      {
+         turbulence_parameterisation
+      }?
+   )
+
+velocity_boundary_condition =
+(
+   ## The no_normal_flow boundary condition weakly applies the condition
+   ##
+   ## dot(u, n) = 0
+   ##
+   ## if the continuity equation is integrated by parts.
+   element type 
+   {
+      attribute name { "no_normal_flow" }
+   }|
+   ## Applies a Flather boundary condition:
+   ##
+   ## u = u_ext + sqrt(g/H)*(h - h_ext)
+   ##
+   ## where H = h + h_mean, 
+   ## and u_ext and h_ext are the exterior values of the Velocity and FreeSurfacePerturbation fields, respectively.
+   ## Note: This is a weak boundary condition. It is only applied if the divergence term in the continuity equation is integrated by parts.
+   element type 
+   {
+      attribute name { "flather" },
+      ## The exterior value of the Velocity field
+      element exterior_velocity 
+      {
+         input_choice_real_dim_vector
+      },
+      ## The exterior value of the FreeSurfacePerturbation field
+      element exterior_free_surface_perturbation 
+      {
+         input_choice_real
+      }
+   }
+)
+
+

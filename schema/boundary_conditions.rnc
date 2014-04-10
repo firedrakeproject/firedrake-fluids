@@ -1,0 +1,30 @@
+core_scalar_boundary_condition =
+   (
+      element type 
+      {
+         attribute name { "dirichlet" },
+         ## Apply the Dirichlet BC weakly.
+         ## If not selected, the boundary condition is applied strongly.
+         element apply_weakly 
+         {
+            comment
+         }?,
+         input_choice_real
+      }
+   )
+
+core_vector_boundary_condition =
+   (
+      element type 
+      {
+         attribute name { "dirichlet" },
+         ## Apply the dirichlet bc weakly.
+         ## If not selected boundary conditions are applied strongly.
+         element apply_weakly 
+         {
+            comment
+         }?,
+         input_choice_real_dim_vector
+      }
+   )
+   
