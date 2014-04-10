@@ -1,6 +1,6 @@
 include "spud_base.rnc"
 
-include "input_options.rnc"
+include "input.rnc"
 include "boundary_conditions.rnc"
 include "turbulence_parameterisation.rnc"
 include "les.rnc"
@@ -234,27 +234,7 @@ start =
                   {
                      input_choice_real
                   }
-               },
-               ## Isotropic viscosity. 
-               ## Note that this is the kinematic viscosity for shallow water simulations.
-               element scalar_field 
-               {
-                  attribute name { "Viscosity" },
-                  element value 
-                  {
-                     input_choice_real
-                  }
-               }?,
-               ## The drag coefficient in the quadratic free surface drag term.
-               ## Enabling this field enables the drag term.
-               element scalar_field 
-               {
-                  attribute name { "DragCoefficient" },
-                  element value 
-                  {
-                     input_choice_real
-                  }
-               }?
+               }
             )
          },
          ## The options available for the governing equations of the shallow water model.
@@ -356,6 +336,35 @@ momentum_equation_options =
             comment
          }?
       },
+      ## Options for the stress term div(T) where T is the stress tensor, defined by
+      ##
+      ## T = viscosity*( (grad(u) + grad(u)^T) - (2/3)*div(u) )
+      element stress_term
+      {
+         ## Isotropic viscosity.
+         ## Note that this is the kinematic viscosity for shallow water simulations.
+         element scalar_field 
+         {
+            attribute name { "Viscosity" },
+            element value 
+            {
+               input_choice_real
+            }
+         }
+      }?,
+      ## Options for the drag term.
+      element drag_term
+      {
+         ## The drag coefficient in the quadratic drag term.
+         element scalar_field 
+         {
+            attribute name { "DragCoefficient" },
+            element value 
+            {
+               input_choice_real
+            }
+         }
+      }?,
       ## Adds a source term to the RHS of the momentum equation.
       element source_term
       {
@@ -363,7 +372,7 @@ momentum_equation_options =
          {
             input_choice_real_dim_vector
          }
-      }?,
+      }?,      
       ## Turbulence parameterisations.
       element turbulence_parameterisation 
       {

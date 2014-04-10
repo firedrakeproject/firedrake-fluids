@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
   <include href="spud_base.rng"/>
-  <include href="input_options.rng"/>
+  <include href="input.rng"/>
   <include href="boundary_conditions.rng"/>
   <include href="turbulence_parameterisation.rng"/>
   <include href="les.rng"/>
@@ -213,30 +213,6 @@ fluid at rest (always positive).</a:documentation>
             <ref name="input_choice_real"/>
           </element>
         </element>
-        <optional>
-          <element name="scalar_field">
-            <a:documentation>Isotropic viscosity. 
-Note that this is the kinematic viscosity for shallow water simulations.</a:documentation>
-            <attribute name="name">
-              <value>Viscosity</value>
-            </attribute>
-            <element name="value">
-              <ref name="input_choice_real"/>
-            </element>
-          </element>
-        </optional>
-        <optional>
-          <element name="scalar_field">
-            <a:documentation>The drag coefficient in the quadratic free surface drag term.
-Enabling this field enables the drag term.</a:documentation>
-            <attribute name="name">
-              <value>DragCoefficient</value>
-            </attribute>
-            <element name="value">
-              <ref name="input_choice_real"/>
-            </element>
-          </element>
-        </optional>
       </element>
       <element name="equations">
         <a:documentation>The options available for the governing equations of the shallow water model.</a:documentation>
@@ -328,6 +304,37 @@ to the advection term.</a:documentation>
         </element>
       </optional>
     </element>
+    <optional>
+      <element name="stress_term">
+        <a:documentation>Options for the stress term div(T) where T is the stress tensor, defined by
+
+T = viscosity*( (grad(u) + grad(u)^T) - (2/3)*div(u) )</a:documentation>
+        <element name="scalar_field">
+          <a:documentation>Isotropic viscosity.
+Note that this is the kinematic viscosity for shallow water simulations.</a:documentation>
+          <attribute name="name">
+            <value>Viscosity</value>
+          </attribute>
+          <element name="value">
+            <ref name="input_choice_real"/>
+          </element>
+        </element>
+      </element>
+    </optional>
+    <optional>
+      <element name="drag_term">
+        <a:documentation>Options for the drag term.</a:documentation>
+        <element name="scalar_field">
+          <a:documentation>The drag coefficient in the quadratic drag term.</a:documentation>
+          <attribute name="name">
+            <value>DragCoefficient</value>
+          </attribute>
+          <element name="value">
+            <ref name="input_choice_real"/>
+          </element>
+        </element>
+      </element>
+    </optional>
     <optional>
       <element name="source_term">
         <a:documentation>Adds a source term to the RHS of the momentum equation.</a:documentation>
