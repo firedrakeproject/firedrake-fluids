@@ -1,9 +1,7 @@
 include "spud_base.rnc"
 
 include "input_options.rnc"
-include "prognostic_field_options.rnc"
-include "prescribed_field_options.rnc"
-
+include "boundary_conditions.rnc"
 include "turbulence_parameterisation.rnc"
 include "les.rnc"
 
@@ -296,9 +294,12 @@ continuity_equation_options =
       ## Spatial discretisation options.
       element spatial_discretisation 
       {
-      
-      }
-      
+         ## Continuous Galerkin discretisation.
+         element continuous_galerkin 
+         {
+            empty
+         }
+      },      
       ## Integrate the divergence term in the continuity equation by parts.
       ## This allows the imposition of weak boundary conditions for the Velocity field.
       element integrate_by_parts {
@@ -307,7 +308,10 @@ continuity_equation_options =
       ## Adds a source term to the RHS of the continuity equation.
       element source_term
       {
-         prescribed_scalar_field
+         element value 
+         {
+            input_choice_real
+         }
       }?
    )
 
@@ -355,7 +359,10 @@ momentum_equation_options =
       ## Adds a source term to the RHS of the momentum equation.
       element source_term
       {
-         prescribed_vector_field
+         element value 
+         {
+            input_choice_real_dim_vector
+         }
       }?,
       ## Turbulence parameterisations.
       element turbulence_parameterisation 

@@ -2,8 +2,7 @@
 <grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="http://www.w3.org/2001/XMLSchema-datatypes">
   <include href="spud_base.rng"/>
   <include href="input_options.rng"/>
-  <include href="prognostic_field_options.rng"/>
-  <include href="prescribed_field_options.rng"/>
+  <include href="boundary_conditions.rng"/>
   <include href="turbulence_parameterisation.rng"/>
   <include href="les.rng"/>
   <start>
@@ -266,15 +265,26 @@ Enabling this field enables the drag term.</a:documentation>
     </element>
   </define>
   <define name="continuity_equation_options">
+    <element name="spatial_discretisation">
+      <a:documentation>Spatial discretisation options.</a:documentation>
+      <element name="continuous_galerkin">
+        <a:documentation>Continuous Galerkin discretisation.</a:documentation>
+        <empty/>
+      </element>
+    </element>
     <optional>
       <element name="integrate_by_parts">
+        <a:documentation>Integrate the divergence term in the continuity equation by parts.
+This allows the imposition of weak boundary conditions for the Velocity field.</a:documentation>
         <empty/>
       </element>
     </optional>
     <optional>
       <element name="source_term">
-        <a:documentation>Source term.</a:documentation>
-        <ref name="prescribed_scalar_field"/>
+        <a:documentation>Adds a source term to the RHS of the continuity equation.</a:documentation>
+        <element name="value">
+          <ref name="input_choice_real"/>
+        </element>
       </element>
     </optional>
   </define>
@@ -320,13 +330,15 @@ to the advection term.</a:documentation>
     </element>
     <optional>
       <element name="source_term">
-        <a:documentation>Options for the source term.</a:documentation>
-        <ref name="prescribed_vector_field"/>
+        <a:documentation>Adds a source term to the RHS of the momentum equation.</a:documentation>
+        <element name="value">
+          <ref name="input_choice_real_dim_vector"/>
+        </element>
       </element>
     </optional>
     <optional>
       <element name="turbulence_parameterisation">
-        <a:documentation>Turbulence parameterisations</a:documentation>
+        <a:documentation>Turbulence parameterisations.</a:documentation>
         <ref name="turbulence_parameterisation"/>
       </element>
     </optional>
@@ -350,7 +362,7 @@ u = u_ext + sqrt(g/H)*(h - h_ext)
 
 where H = h + h_mean, 
 and u_ext and h_ext are the exterior values of the Velocity and FreeSurfacePerturbation fields, respectively.
-Note: This is a weak boundary condition. It is only applied if the continuity equation is integrated by parts.</a:documentation>
+Note: This is a weak boundary condition. It is only applied if the divergence term in the continuity equation is integrated by parts.</a:documentation>
         <attribute name="name">
           <value>flather</value>
         </attribute>
