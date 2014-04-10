@@ -303,7 +303,10 @@ momentum_equation_options =
          ## Continuous Galerkin discretisation.
          element continuous_galerkin 
          {
-            empty
+            element stabilisation
+            {
+               stabilisation_options
+            }
          }
       },
       ## Options for the mass term.
@@ -318,22 +321,10 @@ momentum_equation_options =
       ## Options for the advection term.
       element advection_term 
       {
-         ## Integrate the advection term by parts.
-         element integrate_by_parts 
-         {
-            empty
-         }?,
          ## Remove the mass terms from the equation.
          element exclude_advection_term 
          {
             empty
-         }?,
-         ## Add a streamline upwind stabilisation term
-         ## (given by equation 2.52 in Donea & Huerta (2003))
-         ## to the advection term.
-         element streamline_upwind_stabilisation 
-         {
-            comment
          }?
       },
       ## Options for the stress term div(T) where T is the stress tensor, defined by
@@ -414,4 +405,17 @@ velocity_boundary_condition =
    }
 )
 
-
+stabilisation_options = 
+(
+   element no_stabilisation
+   {
+      empty
+   }|
+   ## Add a streamline upwind stabilisation term
+   ## (given by equation 2.52 in Donea & Huerta (2003))
+   ## to the advection term.
+   element streamline_upwind_stabilisation 
+   {
+      comment
+   }
+)

@@ -269,7 +269,9 @@ This allows the imposition of weak boundary conditions for the Velocity field.</
       <a:documentation>Spatial discretisation options.</a:documentation>
       <element name="continuous_galerkin">
         <a:documentation>Continuous Galerkin discretisation.</a:documentation>
-        <empty/>
+        <element name="stabilisation">
+          <ref name="stabilisation_options"/>
+        </element>
       </element>
     </element>
     <element name="mass_term">
@@ -284,23 +286,9 @@ This allows the imposition of weak boundary conditions for the Velocity field.</
     <element name="advection_term">
       <a:documentation>Options for the advection term.</a:documentation>
       <optional>
-        <element name="integrate_by_parts">
-          <a:documentation>Integrate the advection term by parts.</a:documentation>
-          <empty/>
-        </element>
-      </optional>
-      <optional>
         <element name="exclude_advection_term">
           <a:documentation>Remove the mass terms from the equation.</a:documentation>
           <empty/>
-        </element>
-      </optional>
-      <optional>
-        <element name="streamline_upwind_stabilisation">
-          <a:documentation>Add a streamline upwind stabilisation term
-(given by equation 2.52 in Donea &amp; Huerta (2003))
-to the advection term.</a:documentation>
-          <ref name="comment"/>
         </element>
       </optional>
     </element>
@@ -381,6 +369,19 @@ Note: This is a weak boundary condition. It is only applied if the divergence te
           <a:documentation>The exterior value of the FreeSurfacePerturbation field</a:documentation>
           <ref name="input_choice_real"/>
         </element>
+      </element>
+    </choice>
+  </define>
+  <define name="stabilisation_options">
+    <choice>
+      <element name="no_stabilisation">
+        <empty/>
+      </element>
+      <element name="streamline_upwind_stabilisation">
+        <a:documentation>Add a streamline upwind stabilisation term
+(given by equation 2.52 in Donea &amp; Huerta (2003))
+to the advection term.</a:documentation>
+        <ref name="comment"/>
       </element>
     </choice>
   </define>
