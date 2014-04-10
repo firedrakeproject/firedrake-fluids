@@ -49,8 +49,8 @@ start =
                         integer
                      }
                   }|
-                  ## Input mesh from a Gmsh .msh file.
-                  element gmsh {
+                  ## Input mesh from a file.
+                  element from_file {
                      element path_to_file
                      {
                         anystring

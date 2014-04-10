@@ -47,8 +47,8 @@ characters in the simulation name should be avoided.</a:documentation>
                 <ref name="integer"/>
               </element>
             </element>
-            <element name="gmsh">
-              <a:documentation>Input mesh from a Gmsh .msh file.</a:documentation>
+            <element name="from_file">
+              <a:documentation>Input mesh from a file.</a:documentation>
               <element name="path_to_file">
                 <ref name="anystring"/>
               </element>
