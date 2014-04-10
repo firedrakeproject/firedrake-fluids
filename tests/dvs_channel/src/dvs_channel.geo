@@ -1,4 +1,5 @@
-dx = 20.0;
+//dx = 20.0;
+dx = 100.0;
 Point(1) = {0,0,0,dx};
 Extrude {3e3,0,0} {
   Point{1}; Layers{3e3/dx};
