@@ -105,6 +105,10 @@ class ShallowWater:
          else:
             print "Unsupported dimension."
             sys.exit(1)
+      elif(libspud.have_option("/geometry/mesh/interval_mesh")):
+         L = libspud.get_option("/geometry/mesh/interval_mesh/length")
+         n = libspud.get_option("/geometry/mesh/interval_mesh/number_of_cells")
+         self.mesh = IntervalMesh(n, L)
       elif(libspud.have_option("/geometry/mesh/from_file")):
          path_to_config = os.path.dirname(os.path.abspath(path))
          path_to_mesh = libspud.get_option("/geometry/mesh/from_file/path") # This is the path relative to the directory where the configuration file is stored.

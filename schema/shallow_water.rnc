@@ -42,6 +42,15 @@ start =
                         comment
                      }?
                   }|
+                  ## An interval mesh, going from x = 0 to x = L (where L is the length).
+                  element interval_mesh {
+                     element length {
+                        real
+                     },
+                     element number_of_cells {
+                        integer
+                     }
+                  }|
                   ## Input mesh from a file.
                   element from_file {
                      element path {

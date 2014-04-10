@@ -48,6 +48,15 @@ characters in the simulation name should be avoided.</a:documentation>
                 </element>
               </optional>
             </element>
+            <element name="interval_mesh">
+              <a:documentation>An interval mesh, going from x = 0 to x = L (where L is the length).</a:documentation>
+              <element name="length">
+                <ref name="real"/>
+              </element>
+              <element name="number_of_cells">
+                <ref name="integer"/>
+              </element>
+            </element>
             <element name="from_file">
               <a:documentation>Input mesh from a file.</a:documentation>
               <element name="path">
