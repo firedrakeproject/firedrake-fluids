@@ -15,7 +15,9 @@ def diagnostics_grid_reynolds_number():
 
    mesh = UnitSquareMesh(10, 10)
    fs = FunctionSpace(mesh, "CG", 1)
-   velocity = [Function(fs).interpolate(Expression("x[0]")), Function(fs).interpolate(Expression("x[1]"))]
+   vfs = VectorFunctionSpace(mesh, "CG", 1)
+   
+   velocity = Function(vfs).interpolate(Expression(("x[0]", "x[1]")))
    density = Function(fs).interpolate(Expression("2.0"))
    mu = Function(fs).interpolate(Expression("0.7"))
 

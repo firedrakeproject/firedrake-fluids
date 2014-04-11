@@ -15,7 +15,8 @@ def diagnostics_courant_number():
 
    mesh = UnitSquareMesh(10, 10)
    fs = FunctionSpace(mesh, "CG", 1)
-   velocity = [Function(fs).interpolate(Expression("x[0]")), Function(fs).interpolate(Expression("x[1]"))]
+   vfs = VectorFunctionSpace(mesh, "CG", 1)
+   velocity = Function(vfs).interpolate(Expression(("x[0]", "x[1]")))
    dt = 0.5
 
    diagnostics = Diagnostics(mesh, fs)
