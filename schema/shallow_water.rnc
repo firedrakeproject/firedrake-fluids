@@ -50,8 +50,10 @@ start =
                      }
                   }|
                   ## Input mesh from a file.
-                  element from_file {
-                     element path_to_file
+                  element from_file 
+                  {
+                     ## The path to the mesh file, relative to the directory where this simulation setup file is stored.
+                     element relative_path
                      {
                         anystring
                      }
@@ -256,15 +258,15 @@ start =
    
 function_space_info =
    (
-      element polynomial_degree
+      element degree
       {
          integer
       },
-      element continuity 
+      element family 
       {
          element string_value
          {
-            "continuous" | "discontinuous"
+            "Continuous Lagrange" | "Discontinuous Lagrange"
          }
       }
    )

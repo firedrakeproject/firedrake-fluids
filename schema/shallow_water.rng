@@ -49,7 +49,8 @@ characters in the simulation name should be avoided.</a:documentation>
             </element>
             <element name="from_file">
               <a:documentation>Input mesh from a file.</a:documentation>
-              <element name="path_to_file">
+              <element name="relative_path">
+                <a:documentation>The path to the mesh file, relative to the directory where this simulation setup file is stored.</a:documentation>
                 <ref name="anystring"/>
               </element>
             </element>
@@ -228,14 +229,14 @@ fluid at rest (always positive).</a:documentation>
     </element>
   </start>
   <define name="function_space_info">
-    <element name="polynomial_degree">
+    <element name="degree">
       <ref name="integer"/>
     </element>
-    <element name="continuity">
+    <element name="family">
       <element name="string_value">
         <choice>
-          <value>continuous</value>
-          <value>discontinuous</value>
+          <value>Continuous Lagrange</value>
+          <value>Discontinuous Lagrange</value>
         </choice>
       </element>
     </element>

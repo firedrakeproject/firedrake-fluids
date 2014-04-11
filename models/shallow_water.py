@@ -111,7 +111,8 @@ class ShallowWater:
          self.mesh = IntervalMesh(n, L)
       elif(libspud.have_option("/geometry/mesh/from_file")):
          path_to_config = os.path.dirname(os.path.abspath(path))
-         path_to_mesh = libspud.get_option("/geometry/mesh/from_file/path") # This is the path relative to the directory where the configuration file is stored.
+         # This is the path relative to the directory where the configuration file is stored.
+         path_to_mesh = libspud.get_option("/geometry/mesh/from_file/relative_path") 
          self.mesh = Mesh(os.path.join(path_to_config, path_to_mesh))
       else:
          print "Unsupported input mesh type."
@@ -120,16 +121,16 @@ class ShallowWater:
       # Create a dictionary containing all the function spaces
       self.function_spaces = {}
       for i in range(0, libspud.option_count("/function_spaces/function_space")):
-         function_space_name = libspud.get_option("/function_spaces/function_space["+str(i)+"]/name")
-         function_space_type = libspud.get_option("/function_spaces/function_space["+str(i)+"]/type")
-         function_space_polynomial_degree = libspud.get_option("/function_spaces/function_space["+str(i)+"]/polynomial_degree")
-         function_space_element_type = libspud.get_option("/function_spaces/function_space["+str(i)+"]/element_type")
-         function_space_continuity = libspud.get_option("/function_spaces/function_space["+str(i)+"]/continuity")
-         print "Setting up a new %s function space called %s" % (function_space_type, function_space_name)
-         if(function_space_element_type == "lagrangian" and function_space_continuity == "continuous"):
-            self.function_spaces[function_space_name] = FunctionSpace(self.mesh, "CG", function_space_polynomial_degree)
+         name = libspud.get_option("/function_spaces/function_space["+str(i)+"]/name")
+         family = libspud.get_option("/function_spaces/function_space["+str(i)+"]/family")
+         degree = libspud.get_option("/function_spaces/function_space["+str(i)+"]/degree")
+         print "Setting up a new %s function space of degree %d called %s" % (family, degree, name)
+         if(family == "Continuous Lagrange"):
+            self.function_spaces[name] = FunctionSpace(self.mesh, "CG", degree)
+         elif(family == "Discontinuous Lagrange"):
+            self.function_spaces[name] = FunctionSpace(self.mesh, "DG", degree)
          else:
-            print "Unknown element type and/or continuity."
+            print "Unknown element family: %s." % family
             sys.exit(1)
             
       # Define the coordinate function space as P1.
@@ -155,8 +156,8 @@ class ShallowWater:
       
       # Set up initial conditions
       # FIXME: Subclassing of the Expression class needs to be DOLFIN compatible. The current method used here is a hack.
-      h_initial = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/initial_condition", t=self.options["t"])
-      expr = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/initial_condition", t=self.options["t"])
+      h_initial = ScalarExpressionFromOptions(path = "/core_fields/scalar_field::FreeSurfacePerturbation/initial_condition", t=self.options["t"])
+      expr = VectorExpressionFromOptions(path = "/core_fields/vector_field::Velocity/initial_condition", t=self.options["t"])
       u_initial = [expr.code[dim] for dim in range(dimension)]
 
       # Define the compulsory shallow water fields
@@ -170,7 +171,7 @@ class ShallowWater:
       
       # Mean free surface height
       self.h_mean = Function(self.W.sub(dimension))
-      self.h_mean.interpolate(ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfaceMean/prescribed/value", t=self.options["t"]))
+      self.h_mean.interpolate(ScalarExpressionFromOptions(path = "/core_fields/scalar_field::FreeSurfaceMean/value", t=self.options["t"]))
 
       # Set up the functions used to write fields to file.
       self.output_function = [Function(self.W.sub(dimension), name="Velocity_%d" % dim) for dim in range(dimension)] + [Function(self.W.sub(dimension), name="FreeSurfacePerturbation")]
@@ -216,35 +217,31 @@ class ShallowWater:
       self.options["g_magnitude"] = libspud.get_option("/physical_parameters/gravity/magnitude")
       
       # Enable/disable terms in the shallow water equations
-      if(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/spatial_discretisation/continuous_galerkin/mass_term/exclude_mass_term")):
+      if(libspud.have_option("/equations/momentum_equation/mass_term/exclude_mass_term")):
          self.options["have_momentum_mass"] = False
       else:
          self.options["have_momentum_mass"] = True
          
-      if(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/spatial_discretisation/continuous_galerkin/advection_term/exclude_advection_term")):
+      if(libspud.have_option("/equations/momentum_equation/advection_term/exclude_advection_term")):
          self.options["have_momentum_advection"] = False
       else:
          self.options["have_momentum_advection"] = True
          
-      if(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/viscosity")):
-         self.options["have_momentum_stress"] = True
-         self.options["viscosity"] = libspud.get_option("/material_phase[0]/vector_field::Velocity/prognostic/viscosity")
-      else:
-         self.options["have_momentum_stress"] = False
+      self.options["have_momentum_stress"] = libspud.have_option("/equations/stress_term")
          
       # Source terms for the momentum and continuity equations
-      self.options["have_momentum_source"] = libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/vector_field::Source")
-      self.options["have_continuity_source"] = libspud.have_option("/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/scalar_field::Source")
+      self.options["have_momentum_source"] = libspud.have_option("/equations/momentum_equation/source_term")
+      self.options["have_continuity_source"] = libspud.have_option("/equations/continuity_equation/source_term")
 
       # Check for any SU stabilisation
-      self.options["have_su_stabilisation"] = libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/spatial_discretisation/continuous_galerkin/streamline_upwind_stabilisation")
+      self.options["have_su_stabilisation"] = libspud.have_option("/equations/momentum_equation/spatial_discretisation/continuous_galerkin/stabilisation/streamline_upwind_stabilisation")
       
       # Turbulence parameterisation
-      self.options["have_turbulence_parameterisation"] = libspud.have_option("/material_phase[0]/turbulence_parameterisation")
+      self.options["have_turbulence_parameterisation"] = libspud.have_option("/equations/momentum_equation/turbulence_parameterisation")
 
-      self.options["have_bottom_drag"] = libspud.have_option("/material_phase[0]/scalar_field::DragCoefficient")
+      self.options["have_bottom_drag"] = libspud.have_option("/equations/momentum_equation/drag_term")
          
-      self.options["integrate_continuity_by_parts"] = libspud.have_option("/material_phase[0]/integrate_continuity_equation_by_parts")
+      self.options["integrate_continuity_equation_by_parts"] = libspud.have_option("/equations/continuity_equation/integrate_by_parts")
 
       self.options["have_detectors"] = libspud.have_option("/io/detectors/")
       
@@ -290,14 +287,16 @@ class ShallowWater:
             
          # Viscous stress term. Note that the viscosity is kinematic (not dynamic).
          if(self.options["have_momentum_stress"]):
-            viscosity = Function(self.W.sub(0)).interpolate(Expression(self.options["viscosity"])) # Background viscosity
+            viscosity = ScalarExpressionFromOptions(path = "/equations/momentum_equation/stress_term/scalar_field::Viscosity/value", t=self.options["t"])
+            viscosity = Function(self.W.sub(0)).interpolate(Expression(viscosity)) # Background viscosity
             if(self.options["have_turbulence_parameterisation"]):
+               base_option_path = "/equations/momentum_equation/turbulence_parameterisation"
                # Add on eddy viscosity, if necessary
-               if(libspud.have_option("/material_phase[0]/turbulence_parameterisation/les")):
+               if(libspud.have_option(base_option_path + "/les")):
                   les = LES(self.mesh, self.W.sub(0))
                   density = Function(self.W.sub(0)).interpolate(Expression("1.0")) # We divide through by density in the momentum equation, so just set this to 1.0 for now.
-                  smagorinsky_coefficient = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option("/material_phase[0]/turbulence_parameterisation/les/smagorinsky/smagorinsky_coefficient")))
-                  filter_width = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option("/material_phase[0]/turbulence_parameterisation/les/smagorinsky/filter_width"))) # FIXME: Remove this when CellSize is supported in Firedrake.
+                  smagorinsky_coefficient = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option(base_option_path + "/les/smagorinsky/smagorinsky_coefficient")))
+                  filter_width = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option(base_option_path + "/les/smagorinsky/filter_width"))) # FIXME: Remove this when CellSize is supported in Firedrake.
                   eddy_viscosity = les.eddy_viscosity(self.u, density, smagorinsky_coefficient, filter_width)
                   
                viscosity += eddy_viscosity
@@ -328,7 +327,7 @@ class ShallowWater:
             
             # Get the drag coefficient C_D.
             # FIXME: This should be moved outside of the time loop.
-            expr = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::DragCoefficient/prescribed/value", t=t)
+            expr = ScalarExpressionFromOptions(path = "/equation/momentum_equation/drag_term/scalar_field::DragCoefficient/value", t=t)
             C_D = Function(self.W.sub(dimension)).interpolate(Expression(expr.code[0]))
             
             D_momentum = 0
@@ -350,7 +349,7 @@ class ShallowWater:
          F += M_continuity
 
          # Divergence term in the shallow water continuity equation
-         if(self.options["integrate_continuity_by_parts"]):
+         if(self.options["integrate_continuity_equation_by_parts"]):
             Ct_continuity = 0
 
             for dim in range(dimension):
@@ -363,8 +362,8 @@ class ShallowWater:
                marker = int(marker) # ds() will not accept markers of type 'numpy.int32', so convert it to type 'int' here.
                
                bc_type = None
-               for i in range(0, libspud.option_count("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions")):
-                  bc_path = "/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]" % i
+               for i in range(0, libspud.option_count("/core_fields/vector_field::Velocity/boundary_conditions")):
+                  bc_path = "/core_fields/vector_field::Velocity/boundary_conditions[%d]" % i
                   if(not (marker in libspud.get_option(bc_path + "/surface_ids"))):
                      # This BC is not associated with this marker, so skip it.
                      continue
@@ -426,14 +425,14 @@ class ShallowWater:
             
          # Add in any source terms
          if(self.options["have_momentum_source"]):
-            expr = VectorExpressionFromOptions(path = "/material_phase[0]/vector_field::Velocity/prognostic/vector_field::Source/prescribed/value", t=t)
+            expr = VectorExpressionFromOptions(path = "/equations/momentum_equation/source_term/vector_field::Source/value", t=t)
             momentum_source = [Function(self.W.sub(dim)).interpolate(Expression(expr.code[dim])) for dim in range(dimension)]
             print "Adding momentum source..."
             for dim in range(dimension):
                F -= inner(self.w[dim], momentum_source[dim])*dx
 
          if(self.options["have_continuity_source"]):
-            expr = ScalarExpressionFromOptions(path = "/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/scalar_field::Source/prescribed/value", t=t)
+            expr = ScalarExpressionFromOptions(path = "/equations/continuity_equation/source_term/vector_field::Source/value", t=t)
             continuity_source = Function(self.W.sub(dimension)).interpolate(Expression(expr.code[0]))
             print "Adding continuity source..."
             F -= inner(self.v, continuity_source)*dx
@@ -449,26 +448,27 @@ class ShallowWater:
 
          # Get all the Dirichlet boundary conditions for the Velocity field
          bcs = []
-         for i in range(0, libspud.option_count("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions")):
-            if(libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/type::dirichlet" % i) and
-               not libspud.have_option("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/type::dirichlet/apply_weakly" % i)):
+         for i in range(0, libspud.option_count("/core_fields/vector_field::Velocity/boundary_condition")):
+            if(libspud.have_option("/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i) and
+               not libspud.have_option("/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet/apply_weakly" % i)):
                # If it's not a weak BC, then it must be a strong one.
                print "Applying Velocity BC #%d" % i
-               expr = VectorExpressionFromOptions(path = ("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/type::dirichlet" % i), t=t)
+               expr = VectorExpressionFromOptions(path = ("/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i), t=t)
                # Surface IDs on the domain boundary
-               surface_ids = libspud.get_option("/material_phase[0]/vector_field::Velocity/prognostic/boundary_conditions[%d]/surface_ids" % i)
+               surface_ids = libspud.get_option("/core_fields/vector_field::Velocity/boundary_condition[%d]/surface_ids" % i)
                for dim in range(dimension):
                   bc = DirichletBC(self.W.sub(dim), Expression(expr.code[dim]), surface_ids)
                   bcs.append(bc)
 
          # Get all the Dirichlet boundary conditions for the FreeSurfacePerturbation field
-         for i in range(0, libspud.option_count("/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/boundary_conditions/type::dirichlet")):
-            if(not(libspud.have_option("/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/boundary_conditions[%d]/type::dirichlet/apply_weakly" % i))):
+         for i in range(0, libspud.option_count("/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition/type::dirichlet")):
+            if(libspud.have_option("/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i) and
+               not(libspud.have_option("/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet/apply_weakly" % i))):
                # If it's not a weak BC, then it must be a strong one.
                print "Applying FreeSurfacePerturbation BC #%d" % i
-               expr = ScalarExpressionFromOptions(path = ("/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/boundary_conditions[%d]/type::dirichlet" % i), t=t)
+               expr = ScalarExpressionFromOptions(path = ("/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i), t=t)
                # Surface IDs on the domain boundary
-               surface_ids = libspud.get_option("/material_phase[0]/scalar_field::FreeSurfacePerturbation/prognostic/boundary_conditions[%d]/surface_ids" % i)
+               surface_ids = libspud.get_option("/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/surface_ids" % i)
                bc = DirichletBC(self.W.sub(dimension), Expression(expr.code[0]), surface_ids)
                bcs.append(bc)
             
