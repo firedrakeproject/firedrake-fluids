@@ -256,7 +256,9 @@ class ShallowWater:
       dt = self.options["dt"]
       dimension = self.options["dimension"]
       g_magnitude = self.options["g_magnitude"]
-      H = self.h_mean + self.h # The total height of the free surface.
+      
+      # The total height of the free surface.
+      H = self.h_mean + self.h
       
       P1 = self.function_spaces["CoordinateFunctionSpace"]
       cellsize = CellSize(self.mesh)
@@ -391,7 +393,7 @@ class ShallowWater:
                      
                # If no boundary condition has been applied, include the surface integral as it is.
                if(bc_type is None):
-                  Ct_continuity += H*inner(self.u, self.n) * self.v * ds(int(marker))
+                  Ct_continuity += H * inner(self.u, self.n) * self.v * ds(int(marker))
 
          else:
             Ct_continuity = inner(self.v, div(H*self.u))*dx
