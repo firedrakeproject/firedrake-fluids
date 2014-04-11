@@ -459,10 +459,11 @@ class ShallowWater:
                                                                   'pc_fieldsplit_type': 'schur',
                                                                   'ksp_type': 'gmres',
                                                                   'pc_fieldsplit_schur_fact_type': 'FULL',
-                                                                  'fieldsplit_0_ksp_type': 'cg',
-                                                                  'fieldsplit_1_ksp_type': 'cg',
+                                                                  'fieldsplit_0_ksp_type': 'preonly',
+                                                                  'fieldsplit_1_ksp_type': 'preonly',
                                                                   'ksp_rtol': 1.0e-7,
                                                                   'snes_type': 'ksponly'})
+
             
          # Write the solution to file.
          print "Writing data to file..."
