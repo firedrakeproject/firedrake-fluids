@@ -14,7 +14,7 @@ def input():
 def swe_dam_break_1d():
    sw = shallow_water.ShallowWater(path=os.path.join(cwd, "swe_dam_break_1d.swml"))
    sw.run()
-   h_old = sw.solution_old.split()[-1]
+   h_old = sw.solution_old.split()[1]
    u_old = sw.solution_old.split()[0]
    
    return h_old.vector().array(), u_old.vector().array()
