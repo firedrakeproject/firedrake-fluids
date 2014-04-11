@@ -20,9 +20,9 @@ def swe_mms_p2p1():
    for c in configs:
       sw = shallow_water.ShallowWater(path=os.path.join(cwd, c + ".swml"))
       sw.run()
-      ux_old = sw.solution_old.split()[0]
-      uy_old = sw.solution_old.split()[1]
-      h_old = sw.solution_old.split()[-1]
+      ux_old = sw.solution_old.split()[0][0]
+      uy_old = sw.solution_old.split()[0][1]
+      h_old = sw.solution_old.split()[1]
       
       fs_exact = FunctionSpace(sw.mesh, "CG", 3)
       
