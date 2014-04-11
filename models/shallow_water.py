@@ -227,7 +227,7 @@ class ShallowWater:
       else:
          self.options["have_momentum_advection"] = True
          
-      self.options["have_momentum_stress"] = libspud.have_option("/equations/stress_term")
+      self.options["have_momentum_stress"] = libspud.have_option("/equations/momentum_equation/stress_term")
          
       # Source terms for the momentum and continuity equations
       self.options["have_momentum_source"] = libspud.have_option("/equations/momentum_equation/source_term")
@@ -266,12 +266,12 @@ class ShallowWater:
       EPSILON = 1.0e-14
       while t <= T + EPSILON: # A small value EPSILON is added here in case of round-off error.
          print "\nt = %g" % t
-            
          # The collection of all the individual terms in their weak form.
          F = 0
 
          # Mass term
          if(self.options["have_momentum_mass"]):
+            print "Adding mass term..."
             M_momentum = 0
             for dim in range(0, dimension):
                M_momentum += (1.0/dt)*(inner(self.w[dim], self.u[dim]) - inner(self.w[dim], self.u_old[dim]))*dx
@@ -279,6 +279,7 @@ class ShallowWater:
          
          # Advection term
          if(self.options["have_momentum_advection"]):
+            print "Adding advection term..."
             A_momentum = 0
             for dim_i in range(dimension):
                for dim_j in range(dimension):
@@ -287,8 +288,9 @@ class ShallowWater:
             
          # Viscous stress term. Note that the viscosity is kinematic (not dynamic).
          if(self.options["have_momentum_stress"]):
+            print "Adding stress term..."
             viscosity = ScalarExpressionFromOptions(path = "/equations/momentum_equation/stress_term/scalar_field::Viscosity/value", t=self.options["t"])
-            viscosity = Function(self.W.sub(0)).interpolate(Expression(viscosity)) # Background viscosity
+            viscosity = Function(self.W.sub(0)).interpolate(viscosity) # Background viscosity
             if(self.options["have_turbulence_parameterisation"]):
                base_option_path = "/equations/momentum_equation/turbulence_parameterisation"
                # Add on eddy viscosity, if necessary
@@ -327,7 +329,7 @@ class ShallowWater:
             
             # Get the drag coefficient C_D.
             # FIXME: This should be moved outside of the time loop.
-            expr = ScalarExpressionFromOptions(path = "/equation/momentum_equation/drag_term/scalar_field::DragCoefficient/value", t=t)
+            expr = ScalarExpressionFromOptions(path = "/equations/momentum_equation/drag_term/scalar_field::DragCoefficient/value", t=t)
             C_D = Function(self.W.sub(dimension)).interpolate(Expression(expr.code[0]))
             
             D_momentum = 0
@@ -362,8 +364,8 @@ class ShallowWater:
                marker = int(marker) # ds() will not accept markers of type 'numpy.int32', so convert it to type 'int' here.
                
                bc_type = None
-               for i in range(0, libspud.option_count("/core_fields/vector_field::Velocity/boundary_conditions")):
-                  bc_path = "/core_fields/vector_field::Velocity/boundary_conditions[%d]" % i
+               for i in range(0, libspud.option_count("/core_fields/vector_field::Velocity/boundary_condition")):
+                  bc_path = "/core_fields/vector_field::Velocity/boundary_condition[%d]" % i
                   if(not (marker in libspud.get_option(bc_path + "/surface_ids"))):
                      # This BC is not associated with this marker, so skip it.
                      continue
@@ -425,16 +427,16 @@ class ShallowWater:
             
          # Add in any source terms
          if(self.options["have_momentum_source"]):
+            print "Adding momentum source..."
             expr = VectorExpressionFromOptions(path = "/equations/momentum_equation/source_term/vector_field::Source/value", t=t)
             momentum_source = [Function(self.W.sub(dim)).interpolate(Expression(expr.code[dim])) for dim in range(dimension)]
-            print "Adding momentum source..."
             for dim in range(dimension):
                F -= inner(self.w[dim], momentum_source[dim])*dx
 
          if(self.options["have_continuity_source"]):
-            expr = ScalarExpressionFromOptions(path = "/equations/continuity_equation/source_term/vector_field::Source/value", t=t)
-            continuity_source = Function(self.W.sub(dimension)).interpolate(Expression(expr.code[0]))
             print "Adding continuity source..."
+            expr = ScalarExpressionFromOptions(path = "/equations/continuity_equation/source_term/scalar_field::Source/value", t=t)
+            continuity_source = Function(self.W.sub(dimension)).interpolate(Expression(expr.code[0]))
             F -= inner(self.v, continuity_source)*dx
             
          # Add in any SU stabilisation

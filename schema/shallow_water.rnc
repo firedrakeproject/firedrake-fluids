@@ -27,6 +27,7 @@ start =
             {
                element integer_value 
                {
+                  attribute rank { "0" },
                   ("1"|"2"|"3")
                }
             },
@@ -290,9 +291,13 @@ continuity_equation_options =
       ## Adds a source term to the RHS of the continuity equation.
       element source_term
       {
-         element value 
+         element scalar_field
          {
-            input_choice_real
+            attribute name { "Source" },
+            element value 
+            {
+               input_choice_real
+            }
          }
       }?
    )
@@ -361,9 +366,13 @@ momentum_equation_options =
       ## Adds a source term to the RHS of the momentum equation.
       element source_term
       {
-         element value 
+         element vector_field
          {
-            input_choice_real_dim_vector
+            attribute name { "Source" },
+            element value 
+            {
+               input_choice_real_dim_vector
+            }
          }
       }?,      
       ## Turbulence parameterisations.

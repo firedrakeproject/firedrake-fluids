@@ -21,6 +21,9 @@ characters in the simulation name should be avoided.</a:documentation>
           <a:documentation>Dimension of the problem.
 &lt;b&gt;This can only be set once&lt;/b&gt;</a:documentation>
           <element name="integer_value">
+            <attribute name="rank">
+              <value>0</value>
+            </attribute>
             <choice>
               <value>1</value>
               <value>2</value>
@@ -259,8 +262,13 @@ This allows the imposition of weak boundary conditions for the Velocity field.</
     <optional>
       <element name="source_term">
         <a:documentation>Adds a source term to the RHS of the continuity equation.</a:documentation>
-        <element name="value">
-          <ref name="input_choice_real"/>
+        <element name="scalar_field">
+          <attribute name="name">
+            <value>Source</value>
+          </attribute>
+          <element name="value">
+            <ref name="input_choice_real"/>
+          </element>
         </element>
       </element>
     </optional>
@@ -327,8 +335,13 @@ Note that this is the kinematic viscosity for shallow water simulations.</a:docu
     <optional>
       <element name="source_term">
         <a:documentation>Adds a source term to the RHS of the momentum equation.</a:documentation>
-        <element name="value">
-          <ref name="input_choice_real_dim_vector"/>
+        <element name="vector_field">
+          <attribute name="name">
+            <value>Source</value>
+          </attribute>
+          <element name="value">
+            <ref name="input_choice_real_dim_vector"/>
+          </element>
         </element>
       </element>
     </optional>
