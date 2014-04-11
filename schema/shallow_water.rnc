@@ -71,13 +71,13 @@ start =
             {
                ## The position mesh
                attribute name { "VelocityFunctionSpace" },
-               function_space_info
+               function_space_options
             },
             element function_space 
             {
                ## The position mesh
                attribute name { "FreeSurfaceFunctionSpace" },
-               function_space_info
+               function_space_options
             }
          },
          ## Input/output options
@@ -182,96 +182,108 @@ start =
                }
             }
          },
-         ## The options available for the various fields associated with the shallow water equations.
-         element core_fields 
+         ## The description of the physical system, specifying the core fields and the options associated with the shallow water equations.
+         element system 
          {
-            (
-               ## Velocity (found by solving the momentum equation).
-               element vector_field 
-               {
-                  attribute name { "Velocity" },
-                  element initial_condition 
-                  {
-                     input_choice_real_dim_vector
-                  },
-                  element boundary_condition 
-                  {
-                     attribute name { xsd:string },
-                     ## Surface IDs
-                     element surface_ids 
-                     {
-                        integer_vector
-                     },
-                     (
-                        core_vector_boundary_condition | velocity_boundary_condition
-                     )
-                  }*
-               },
-               ## The deviation of the free surface height from the mean.
-               element scalar_field 
-               {
-                  attribute name { "FreeSurfacePerturbation" },
-                  element initial_condition 
-                  {
-                     input_choice_real
-                  },
-                  element boundary_condition 
-                  {
-                     attribute name { xsd:string },
-                     ## Surface IDs
-                     element surface_ids 
-                     {
-                        integer_vector
-                     },
-                     (
-                        core_scalar_boundary_condition
-                     )
-                  }*
-               },
-               ## The mean free surface height. Also known as the depth of the
-               ## fluid at rest (always positive).
-               element scalar_field
-               {
-                  attribute name { "FreeSurfaceMean" },
-                  element value 
-                  {
-                     input_choice_real
-                  }
-               }
-            )
-         },
-         ## The options available for the governing equations of the shallow water model.
-         element equations
-         {
-            ## Options for the continuity equation.
-            element continuity_equation
+            element core_fields
             {
-               continuity_equation_options
+               core_fields
             },
-            ## Options for the momentum equation.
-            element momentum_equation
+            ## The options available for the governing equations of the shallow water model.
+            element equations
             {
-               momentum_equation_options
+               equations
             }
          }
       }
    )
    
-function_space_info =
-   (
-      element degree
+function_space_options =
+(
+   element degree
+   {
+      integer
+   },
+   element family 
+   {
+      element string_value
       {
-         integer
-      },
-      element family 
-      {
-         element string_value
-         {
-            "Continuous Lagrange" | "Discontinuous Lagrange"
-         }
+         "Continuous Lagrange" | "Discontinuous Lagrange"
       }
-   )
+   }
+)
+    
+    
+core_fields = 
+(
+   ## Velocity (found by solving the momentum equation).
+   element vector_field 
+   {
+      attribute name { "Velocity" },
+      element initial_condition 
+      {
+         input_choice_real_dim_vector
+      },
+      element boundary_condition 
+      {
+         attribute name { xsd:string },
+         ## Surface IDs
+         element surface_ids 
+         {
+            integer_vector
+         },
+         (
+            core_vector_boundary_condition | velocity_boundary_condition
+         )
+      }*
+   },
+   ## The deviation of the free surface height from the mean.
+   element scalar_field 
+   {
+      attribute name { "FreeSurfacePerturbation" },
+      element initial_condition 
+      {
+         input_choice_real
+      },
+      element boundary_condition 
+      {
+         attribute name { xsd:string },
+         ## Surface IDs
+         element surface_ids 
+         {
+            integer_vector
+         },
+         (
+            core_scalar_boundary_condition
+         )
+      }*
+   },
+   ## The mean free surface height. Also known as the depth of the
+   ## fluid at rest (always positive).
+   element scalar_field
+   {
+      attribute name { "FreeSurfaceMean" },
+      element value 
+      {
+         input_choice_real
+      }
+   }
+)
 
+equations = 
+(
+   ## Options for the continuity equation.
+   element continuity_equation
+   {
+      continuity_equation_options
+   },
+   ## Options for the momentum equation.
+   element momentum_equation
+   {
+      momentum_equation_options
+   }
+)
+    
 continuity_equation_options =
    (
       ## Spatial discretisation options.

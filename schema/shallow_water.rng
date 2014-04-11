@@ -69,14 +69,14 @@ that are solved for.</a:documentation>
             <a:documentation>The position mesh</a:documentation>
             <value>VelocityFunctionSpace</value>
           </attribute>
-          <ref name="function_space_info"/>
+          <ref name="function_space_options"/>
         </element>
         <element name="function_space">
           <attribute name="name">
             <a:documentation>The position mesh</a:documentation>
             <value>FreeSurfaceFunctionSpace</value>
           </attribute>
-          <ref name="function_space_info"/>
+          <ref name="function_space_options"/>
         </element>
       </element>
       <element name="io">
@@ -160,78 +160,19 @@ then this is the initial time step size.</a:documentation>
           </element>
         </element>
       </element>
-      <element name="core_fields">
-        <a:documentation>The options available for the various fields associated with the shallow water equations.</a:documentation>
-        <element name="vector_field">
-          <a:documentation>Velocity (found by solving the momentum equation).</a:documentation>
-          <attribute name="name">
-            <value>Velocity</value>
-          </attribute>
-          <element name="initial_condition">
-            <ref name="input_choice_real_dim_vector"/>
-          </element>
-          <zeroOrMore>
-            <element name="boundary_condition">
-              <attribute name="name">
-                <data type="string"/>
-              </attribute>
-              <element name="surface_ids">
-                <a:documentation>Surface IDs</a:documentation>
-                <ref name="integer_vector"/>
-              </element>
-              <choice>
-                <ref name="core_vector_boundary_condition"/>
-                <ref name="velocity_boundary_condition"/>
-              </choice>
-            </element>
-          </zeroOrMore>
+      <element name="system">
+        <a:documentation>The description of the physical system, specifying the core fields and the options associated with the shallow water equations.</a:documentation>
+        <element name="core_fields">
+          <ref name="core_fields"/>
         </element>
-        <element name="scalar_field">
-          <a:documentation>The deviation of the free surface height from the mean.</a:documentation>
-          <attribute name="name">
-            <value>FreeSurfacePerturbation</value>
-          </attribute>
-          <element name="initial_condition">
-            <ref name="input_choice_real"/>
-          </element>
-          <zeroOrMore>
-            <element name="boundary_condition">
-              <attribute name="name">
-                <data type="string"/>
-              </attribute>
-              <element name="surface_ids">
-                <a:documentation>Surface IDs</a:documentation>
-                <ref name="integer_vector"/>
-              </element>
-              <ref name="core_scalar_boundary_condition"/>
-            </element>
-          </zeroOrMore>
-        </element>
-        <element name="scalar_field">
-          <a:documentation>The mean free surface height. Also known as the depth of the
-fluid at rest (always positive).</a:documentation>
-          <attribute name="name">
-            <value>FreeSurfaceMean</value>
-          </attribute>
-          <element name="value">
-            <ref name="input_choice_real"/>
-          </element>
-        </element>
-      </element>
-      <element name="equations">
-        <a:documentation>The options available for the governing equations of the shallow water model.</a:documentation>
-        <element name="continuity_equation">
-          <a:documentation>Options for the continuity equation.</a:documentation>
-          <ref name="continuity_equation_options"/>
-        </element>
-        <element name="momentum_equation">
-          <a:documentation>Options for the momentum equation.</a:documentation>
-          <ref name="momentum_equation_options"/>
+        <element name="equations">
+          <a:documentation>The options available for the governing equations of the shallow water model.</a:documentation>
+          <ref name="equations"/>
         </element>
       </element>
     </element>
   </start>
-  <define name="function_space_info">
+  <define name="function_space_options">
     <element name="degree">
       <ref name="integer"/>
     </element>
@@ -242,6 +183,73 @@ fluid at rest (always positive).</a:documentation>
           <value>Discontinuous Lagrange</value>
         </choice>
       </element>
+    </element>
+  </define>
+  <define name="core_fields">
+    <element name="vector_field">
+      <a:documentation>Velocity (found by solving the momentum equation).</a:documentation>
+      <attribute name="name">
+        <value>Velocity</value>
+      </attribute>
+      <element name="initial_condition">
+        <ref name="input_choice_real_dim_vector"/>
+      </element>
+      <zeroOrMore>
+        <element name="boundary_condition">
+          <attribute name="name">
+            <data type="string"/>
+          </attribute>
+          <element name="surface_ids">
+            <a:documentation>Surface IDs</a:documentation>
+            <ref name="integer_vector"/>
+          </element>
+          <choice>
+            <ref name="core_vector_boundary_condition"/>
+            <ref name="velocity_boundary_condition"/>
+          </choice>
+        </element>
+      </zeroOrMore>
+    </element>
+    <element name="scalar_field">
+      <a:documentation>The deviation of the free surface height from the mean.</a:documentation>
+      <attribute name="name">
+        <value>FreeSurfacePerturbation</value>
+      </attribute>
+      <element name="initial_condition">
+        <ref name="input_choice_real"/>
+      </element>
+      <zeroOrMore>
+        <element name="boundary_condition">
+          <attribute name="name">
+            <data type="string"/>
+          </attribute>
+          <element name="surface_ids">
+            <a:documentation>Surface IDs</a:documentation>
+            <ref name="integer_vector"/>
+          </element>
+          <ref name="core_scalar_boundary_condition"/>
+        </element>
+      </zeroOrMore>
+    </element>
+    <element name="scalar_field">
+      <a:documentation>The mean free surface height. Also known as the depth of the
+fluid at rest (always positive).</a:documentation>
+      <attribute name="name">
+        <value>FreeSurfaceMean</value>
+      </attribute>
+      <element name="value">
+        <ref name="input_choice_real"/>
+      </element>
+    </element>
+  </define>
+  <define name="equations">
+    <element name="continuity_equation">
+      <a:documentation>Options for the continuity equation.</a:documentation>
+      <ref name="continuity_equation_options"/>
+    </element>
+    <element name="momentum_equation">
+      <a:documentation>Options for the momentum equation.</a:documentation>
+      <ref name="momentum_equation_options"/>
     </element>
   </define>
   <define name="continuity_equation_options">
