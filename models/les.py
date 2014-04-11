@@ -8,7 +8,6 @@ class LES:
    def __init__(self, mesh, function_space):
       self.mesh = mesh
       self.function_space = function_space
-      
       return
 
    def element_volume(self, v):
@@ -16,11 +15,7 @@ class LES:
       return v.cell().volume()
       
    def strain_rate_tensor(self, u):
-      dimension = len(u)
-      S = [[0 for j in range(dimension)] for i in range(dimension)]
-      for dim_i in range(dimension):
-         for dim_j in range(dimension):
-            S[dim_i][dim_j] = 0.5*(grad(u[dim_i])[dim_j] + grad(u[dim_j])[dim_i])
+      S = 0.5*(grad(u) + grad(u).T)
       return S
 
    def eddy_viscosity(self, u, density, smagorinsky_coefficient, filter_width):
@@ -40,7 +35,7 @@ class LES:
       second_invariant = 0.0
       for i in range(0, dimension):
          for j in range(0, dimension):
-            second_invariant += 2.0*(S[i][j]**2)
+            second_invariant += 2.0*(S[i,j]**2)
       second_invariant = sqrt(second_invariant)
       rhs = density*(smagorinsky_coefficient*filter_width)**2*second_invariant
 

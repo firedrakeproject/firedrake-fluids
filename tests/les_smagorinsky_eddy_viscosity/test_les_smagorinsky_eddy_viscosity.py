@@ -14,8 +14,9 @@ def les_smagorinsky_eddy_viscosity():
       
       fs_exact = FunctionSpace(mesh, "CG", 3)
       fs = FunctionSpace(mesh, "CG", 1)
+      vfs = VectorFunctionSpace(mesh, "CG", 1)
       
-      u = [Function(fs).interpolate(Expression('sin(x[0])')), Function(fs).interpolate(Expression('cos(x[0])'))]
+      u = Function(vfs).interpolate(Expression(('sin(x[0])', 'cos(x[0])')))
       density = Function(fs).interpolate(Expression("1.0"))
       
       exact_solution = project(Expression('pow(%f, 2) * sqrt(2.0*cos(x[0])*cos(x[0]) + 0.5*sin(x[0])*sin(x[0]) + 0.5*sin(x[0])*sin(x[0]))' % smagorinsky_coefficient), fs_exact)
