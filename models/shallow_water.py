@@ -126,7 +126,7 @@ class ShallowWater:
          degree = libspud.get_option("/function_spaces/function_space["+str(i)+"]/degree")
          print "Setting up a new %s function space of degree %d called %s" % (family, degree, name)
          if(family == "Continuous Lagrange"):
-            if(name == "VelocityFunctionSpace"):
+            if(name == "VelocityFunctionSpace"): # FIXME: Include a "scalar/vector/tensor" type for the function space in the schema.
                self.function_spaces[name] = VectorFunctionSpace(self.mesh, "CG", degree)
             else:
                self.function_spaces[name] = FunctionSpace(self.mesh, "CG", degree)
@@ -291,10 +291,10 @@ class ShallowWater:
                base_option_path = "/system/equations/momentum_equation/turbulence_parameterisation"
                # Add on eddy viscosity, if necessary
                if(libspud.have_option(base_option_path + "/les")):
-                  les = LES(self.mesh, self.W.sub(0))
-                  density = Function(self.W.sub(0)).interpolate(Expression("1.0")) # We divide through by density in the momentum equation, so just set this to 1.0 for now.
-                  smagorinsky_coefficient = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option(base_option_path + "/les/smagorinsky/smagorinsky_coefficient")))
-                  filter_width = Function(self.W.sub(0)).interpolate(Expression(libspud.get_option(base_option_path + "/les/smagorinsky/filter_width"))) # FIXME: Remove this when CellSize is supported in Firedrake.
+                  les = LES(self.mesh, self.W.sub(1))
+                  density = Function(self.W.sub(1)).interpolate(Expression("1.0")) # We divide through by density in the momentum equation, so just set this to 1.0 for now.
+                  smagorinsky_coefficient = Function(self.W.sub(1)).interpolate(Expression(libspud.get_option(base_option_path + "/les/smagorinsky/smagorinsky_coefficient")))
+                  filter_width = Function(self.W.sub(1)).interpolate(Expression(libspud.get_option(base_option_path + "/les/smagorinsky/filter_width"))) # FIXME: Remove this when CellSize is supported in Firedrake.
                   eddy_viscosity = les.eddy_viscosity(self.u, density, smagorinsky_coefficient, filter_width)
                   
                viscosity += eddy_viscosity
@@ -378,8 +378,7 @@ class ShallowWater:
                      print "Applying weak Dirichlet BC to surface ID %d..." % marker
                      expr = VectorExpressionFromOptions(path = (bc_path + "/type::dirichlet"), t=t)
                      u_bdy = Function(self.W.sub(0)).interpolate(Expression(expr.code))
-                     for dim in range(dimension):
-                        Ct_continuity += H*inner(u_bdy, self.n) * self.v * ds(int(marker))
+                     Ct_continuity += H*inner(u_bdy, self.n) * self.v * ds(int(marker))
                   elif(bc_type == "dirichlet"):
                      # Add in the surface integral as it is here. The BC will be applied strongly later using a DirichletBC object.
                      Ct_continuity += H*inner(self.u, self.n) * self.v * ds(int(marker))
@@ -415,10 +414,10 @@ class ShallowWater:
          if(self.options["have_su_stabilisation"]):
             print "Adding momentum SU stabilisation..."
             stabilisation = Stabilisation(self.mesh, P1, cellsize)
-            u_temp = []
-            for dim in range(dimension):
-               u_temp.append(self.solution_old.split()[dim])
-            F += stabilisation.streamline_upwind(self.w, self.u, u_temp, self.options["viscosity"])
+            u_temp = self.solution_old.split()[0]
+            viscosity = ScalarExpressionFromOptions(path = "/system/equations/momentum_equation/stress_term/scalar_field::Viscosity/value", t=self.options["t"])
+            viscosity = Function(self.W.sub(1)).interpolate(viscosity) # Background viscosity
+            F += stabilisation.streamline_upwind(self.w, self.u, u_temp, viscosity)
 
          # Get all the Dirichlet boundary conditions for the Velocity field
          bcs = []

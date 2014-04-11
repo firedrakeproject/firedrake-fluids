@@ -27,10 +27,7 @@ class Stabilisation:
       scaling_factor = 0.5
       k_bar = self.k_bar(magnitude, diffusivity)
 
-      F = 0
-      for dim_i in range(dimension):
-         for dim_j in range(dimension):
-            F += scaling_factor*(k_bar/(magnitude**2))*inner(dot(grad(w[dim_i])[dim_j], u[dim_j]), dot(grad(u[dim_i])[dim_j], u[dim_j]))*dx
+      F = scaling_factor*(k_bar/(magnitude**2))*inner(dot(grad(w), u), dot(grad(u), u))*dx
 
       return F
 

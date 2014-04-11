@@ -11,7 +11,7 @@ def magnitude_vector(mesh, u, function_space):
    solution = Function(function_space)
 
    a = w*magnitude*dx
-   L = w*sqrt(sum([dot(u[i], u[i]) for i in range(0, len(u))]))*dx
+   L = w*sqrt(dot(u, u))*dx
    solve(a == L, solution, bcs=[])
 
    return solution

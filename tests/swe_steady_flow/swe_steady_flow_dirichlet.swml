@@ -91,6 +91,12 @@
             </cpp>
           </type>
         </boundary_condition>
+        <boundary_condition name="Sides">
+          <surface_ids>
+            <integer_value shape="2" rank="1">5 6</integer_value>
+          </surface_ids>
+          <type name="no_normal_flow"/>
+        </boundary_condition>
       </vector_field>
       <scalar_field name="FreeSurfacePerturbation">
         <initial_condition>
