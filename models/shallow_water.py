@@ -455,8 +455,12 @@ class ShallowWater:
          solve(F == 0, self.solution, bcs=bcs, solver_parameters={'ksp_monitor': True, 
                                                                   'ksp_view': False, 
                                                                   'pc_view': False, 
-                                                                  'ksp_type': 'gmres', 
-                                                                  'pc_type': 'jacobi',
+                                                                  'pc_type': 'fieldsplit',
+                                                                  'pc_fieldsplit_type': 'schur',
+                                                                  'ksp_type': 'gmres',
+                                                                  'pc_fieldsplit_schur_fact_type': 'FULL',
+                                                                  'fieldsplit_0_ksp_type': 'cg',
+                                                                  'fieldsplit_1_ksp_type': 'cg',
                                                                   'ksp_rtol': 1.0e-7,
                                                                   'snes_type': 'ksponly'})
             
