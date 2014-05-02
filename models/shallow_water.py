@@ -373,7 +373,7 @@ class ShallowWater:
                      
                      # The known exterior value for the FreeSurfacePerturbation.
                      expr = ScalarExpressionFromOptions(path = (bc_path + "/type::flather/exterior_free_surface_perturbation"), t=t)
-                     h_ext = Function(self.W.sub(dimension)).interpolate(Expression(expr.code[0]))
+                     h_ext = Function(self.W.sub(1)).interpolate(Expression(expr.code[0]))
                      Ct_continuity += H*sqrt(g_magnitude/H)*inner(self.h - h_ext, self.v) * ds(int(marker))
                      
                   elif(bc_type == "weak_dirichlet"):
