@@ -25,7 +25,7 @@ def swe_tidal_flow_regular_bed():
    # For projecting to the same space as the coordinate field
    fs = FunctionSpace(sw.mesh, "CG", 1)
    
-   u_old = sw.solution_old.split()[0:1]
+   u_old = sw.solution_old.split()[0]
    h_old = sw.solution_old.split()[1]
    
    u_old = project(u_old[0], fs)
