@@ -14,19 +14,22 @@ def input():
 def swe_dam_break_2d():
    sw = shallow_water.ShallowWater(path=os.path.join(cwd, "swe_dam_break_2d.swml"))
    sw.run()
-   h_old = sw.solution_old.split()[1]
-   ux_old = sw.solution_old.split()[0][0]
-   uy_old = sw.solution_old.split()[0][1]
    
-   return h_old.vector().array(), ux_old.vector().array(), uy_old.vector().array()
+   fs = FunctionSpace(sw.mesh, "CG", 1)
+   vfs = VectorFunctionSpace(sw.mesh, "CG", 2)
+   
+   h_old = project(sw.solution_old.split()[1], fs)
+   u_old = project(sw.solution_old.split()[0], vfs)   
+   
+   return h_old.vector().array(), u_old.vector().array()
 
 def test_swe_dam_break_2d(input):
-   h, ux, uy = swe_dam_break_2d()
+   h, u = swe_dam_break_2d()
    
-   assert(max(ux) <= 9.0)   
-   assert(max(ux) >= -2.0)
-   assert(max(uy) <= 6.0)   
-   assert(max(uy) >= -6.0)
+   assert(max(u[:,0]) <= 9.0)   
+   assert(max(u[:,0]) >= -2.0)
+   assert(max(u[:,1]) <= 6.0)   
+   assert(max(u[:,1]) >= -6.0)
    assert(max(h) <= 5.0)   
    assert(max(h) >= -4.0)
 
