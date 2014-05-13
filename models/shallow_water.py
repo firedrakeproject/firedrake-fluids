@@ -368,22 +368,23 @@ class ShallowWater:
                      
                      # The known exterior value for the Velocity.
                      expr = VectorExpressionFromOptions(path = (bc_path + "/type::flather/exterior_velocity"), t=t)
+                     #expr = Constant([x_val, y_val])
                      u_ext = Function(self.W.sub(0)).interpolate(Expression(expr.code))
-                     Ct_continuity += H*inner(u_ext, self.n) * self.v * ds(int(marker))
+                     Ct_continuity += H*dot(inner(u_ext, self.n), self.v) * ds(int(marker))
                      
                      # The known exterior value for the FreeSurfacePerturbation.
                      expr = ScalarExpressionFromOptions(path = (bc_path + "/type::flather/exterior_free_surface_perturbation"), t=t)
                      h_ext = Function(self.W.sub(1)).interpolate(Expression(expr.code[0]))
-                     Ct_continuity += H*sqrt(g_magnitude/H)*inner(self.h - h_ext, self.v) * ds(int(marker))
+                     Ct_continuity += H*sqrt(g_magnitude/H)*dot(self.h - h_ext, self.v) * ds(int(marker))
                      
                   elif(bc_type == "weak_dirichlet"):
                      print "Applying weak Dirichlet BC to surface ID %d..." % marker
                      expr = VectorExpressionFromOptions(path = (bc_path + "/type::dirichlet"), t=t)
                      u_bdy = Function(self.W.sub(0)).interpolate(Expression(expr.code))
-                     Ct_continuity += H*inner(u_bdy, self.n) * self.v * ds(int(marker))
+                     Ct_continuity += H*(u_bdy*self.n) * self.v * ds(int(marker))
                   elif(bc_type == "dirichlet"):
                      # Add in the surface integral as it is here. The BC will be applied strongly later using a DirichletBC object.
-                     Ct_continuity += H*inner(self.u, self.n) * self.v * ds(int(marker))
+                     Ct_continuity += H*dot(inner(self.u, self.n), self.v) * ds(int(marker))
                   elif(bc_type == "no_normal_flow"):
                      print "Applying no normal flow BC to surface ID %d..." % marker
                      # Do nothing here since dot(u, n) is zero.
@@ -393,7 +394,7 @@ class ShallowWater:
                      
                # If no boundary condition has been applied, include the surface integral as it is.
                if(bc_type is None):
-                  Ct_continuity += H * inner(self.u, self.n) * self.v * ds(int(marker))
+                  Ct_continuity += H * dot(inner(self.u, self.n), self.v) * ds(int(marker))
 
          else:
             Ct_continuity = inner(self.v, div(H*self.u))*dx
