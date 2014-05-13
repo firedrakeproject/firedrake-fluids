@@ -72,7 +72,7 @@ def test_swe_tidal_flow_regular_bed():
    for i in range(len(h)):
       height[i] = h[i] + H[i]
    h_difference = abs(h_analytical - height)
-   assert(max(h_difference) < 2.0e-3)
+   assert(max(h_difference) < 5.0e-3)
 
 if __name__ == '__main__':
    pytest.main(os.path.abspath(__file__))
