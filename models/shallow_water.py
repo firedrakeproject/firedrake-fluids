@@ -5,6 +5,7 @@ import libspud
 import numpy
 
 from firedrake import *
+parameters["assembly_cache"]["enabled"] = False
 
 import fields_calculations
 import diagnostics
