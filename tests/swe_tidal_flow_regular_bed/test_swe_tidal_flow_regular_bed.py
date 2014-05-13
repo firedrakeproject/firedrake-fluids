@@ -66,7 +66,7 @@ def test_swe_tidal_flow_regular_bed():
 
    # Check that the maximum error between the numerical and analytical solution is small.
    ux_difference = abs(ux_analytical - ux)
-   assert(max(ux_difference) < 2.0e-3)
+   assert(max(ux_difference) < 5.0e-3)
    
    height = numpy.zeros(len(h))
    for i in range(len(h)):
