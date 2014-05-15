@@ -5,7 +5,6 @@ import libspud
 import numpy
 
 from firedrake import *
-parameters["assembly_cache"]["enabled"] = False
 
 import fields_calculations
 import diagnostics
@@ -341,7 +340,7 @@ class ShallowWater:
                                 #+ inner(jump(v, n)[dim], avg(u[dim]))*dS
                               
             # Add in the surface integrals, but check to see if any boundary conditions need to be applied weakly here.
-            boundary_markers = set(self.mesh.exterior_facets.markers)
+            boundary_markers = self.mesh.exterior_facets.unique_markers
             for marker in boundary_markers:
                marker = int(marker) # ds() will not accept markers of type 'numpy.int32', so convert it to type 'int' here.
                
