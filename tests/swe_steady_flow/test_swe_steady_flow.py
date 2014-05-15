@@ -10,23 +10,35 @@ cwd = os.path.dirname(os.path.abspath(__file__))
 def swe_steady_flow_dirichlet():
    sw = shallow_water.ShallowWater(path=os.path.join(cwd, "swe_steady_flow_dirichlet.swml"))
    sw.run()
-   u_old = sw.solution_old.split()[0:2]
-   h_old = sw.solution_old.split()[2]
+   u_old = sw.u_old
+   h_old = sw.h_old
    
-   return u_old[0].vector().array(), u_old[1].vector().array(), h_old.vector().array()
+   vfs = VectorFunctionSpace(sw.mesh, "CG", 2)
+   fs = FunctionSpace(sw.mesh, "CG", 1)
+   u_old = project(u_old, vfs)
+   h_old = project(h_old, fs)
+   
+   return u_old.vector().array(), h_old.vector().array()
    
 def swe_steady_flow_flather():
    sw = shallow_water.ShallowWater(path=os.path.join(cwd, "swe_steady_flow_flather.swml"))
    sw.run()
-   u_old = sw.solution_old.split()[0:2]
-   h_old = sw.solution_old.split()[2]
+   u_old = sw.u_old
+   h_old = sw.h_old
+
+   vfs = VectorFunctionSpace(sw.mesh, "CG", 2)
+   fs = FunctionSpace(sw.mesh, "CG", 1)
+   u_old = project(u_old, vfs)
+   h_old = project(h_old, fs)
    
-   return u_old[0].vector().array(), u_old[1].vector().array(), h_old.vector().array()
+   return u_old.vector().array(), h_old.vector().array()
    
 def test_swe_steady_flow():
    
    # First test the version that uses a strong Dirichlet BC along the outflow boundary.
-   ux_values, uy_values, h_values = numpy.array(swe_steady_flow_dirichlet())
+   u_values, h_values = numpy.array(swe_steady_flow_dirichlet())
+   ux_values = u_values[:,0]
+   uy_values = u_values[:,1]
    
    ux_max = max(ux_values)
    ux_min = min(ux_values)
@@ -55,7 +67,9 @@ def test_swe_steady_flow():
 
 
    # Now test the version that uses a Flather boundary condition.
-   ux_values, uy_values, h_values = numpy.array(swe_steady_flow_flather())
+   u_values, h_values = numpy.array(swe_steady_flow_flather())
+   ux_values = u_values[:,0]
+   uy_values = u_values[:,1]
    
    ux_max = max(ux_values)
    ux_min = min(ux_values)
