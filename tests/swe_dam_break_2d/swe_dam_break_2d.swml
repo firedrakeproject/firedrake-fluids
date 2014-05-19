@@ -85,7 +85,7 @@
       <scalar_field name="FreeSurfacePerturbation">
         <initial_condition>
           <cpp>
-            <string_value lines="20" type="code" language="python">def val(t):
+            <string_value lines="20" type="code" language="python">def val():
   return "x[0] &lt; 100 ? 5 : 0"</string_value>
           </cpp>
         </initial_condition>
