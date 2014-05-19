@@ -29,7 +29,7 @@ class ExpressionFromOptions(Expression):
          self.source_type = "cpp"
          self.source_value = libspud.get_option(path + "/cpp")
          exec self.source_value
-         Expression.__init__(self, code=val(), t=t)
+         Expression.__init__(self, code=val(t), t=t)
       else:
          print "No value specified"
          sys.exit(1)
