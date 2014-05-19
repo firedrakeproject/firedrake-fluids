@@ -82,17 +82,17 @@
           <type name="flather">
             <exterior_velocity>
               <cpp>
-                <string_value type="code" lines="20" language="python">def val(t):
+                <string_value lines="20" type="code" language="python">def val():
   period = 1.24 * 60 * 60 # 1.24 hours in seconds
-  expr = "2.0*sin(pi*%f/%f)" % (t, period/2.0)
+  expr = "2.0*sin(pi*t/%s)" % str(period/2.0)
   return [expr, "0.0"]</string_value>
               </cpp>
             </exterior_velocity>
             <exterior_free_surface_perturbation>
               <cpp>
-                <string_value type="code" lines="20" language="python">def val(t):
+                <string_value lines="20" type="code" language="python">def val():
   period = 1.24 * 60 * 60 # 1.24 hours in seconds
-  expr = "-cos(pi*%f/%f)" % (t, period/2.0)
+  expr = "-cos(pi*t/%s)" % str(period/2.0)
   return expr</string_value>
               </cpp>
             </exterior_free_surface_perturbation>
@@ -105,17 +105,17 @@
           <type name="flather">
             <exterior_velocity>
               <cpp>
-                <string_value lines="20" type="code" language="python">def val(t):
+                <string_value lines="20" type="code" language="python">def val():
   period = 1.24 * 60 * 60 # 1.24 hours in seconds
-  expr = "2.0*sin(pi*%f/%f)" % (t, period/2.0)
+  expr = "2.0*sin(pi*t/%s)" % str(period/2.0)
   return [expr, "0.0"]</string_value>
               </cpp>
             </exterior_velocity>
             <exterior_free_surface_perturbation>
               <cpp>
-                <string_value lines="20" type="code" language="python">def val(t):
+                <string_value lines="20" type="code" language="python">def val():
   period = 1.24 * 60 * 60 # 1.24 hours in seconds
-  expr = "cos(pi*%f/%f)" % (t, period/2.0)
+  expr = "cos(pi*t/%s)" % str(period/2.0)
   return expr</string_value>
               </cpp>
             </exterior_free_surface_perturbation>
@@ -131,7 +131,7 @@
       <scalar_field name="FreeSurfacePerturbation">
         <initial_condition>
           <cpp>
-            <string_value type="code" lines="20" language="python">def val(t):
+            <string_value lines="20" type="code" language="python">def val():
   expr = "cos(pi/3e3*x[0])"
   return expr</string_value>
           </cpp>
@@ -175,7 +175,7 @@
           <scalar_field name="DragCoefficient">
             <value>
               <cpp>
-                <string_value type="code" lines="20" language="python">def val(t):
+                <string_value lines="20" type="code" language="python">def val():
   C_D = "x[0] &gt;= 1500 &amp;&amp; x[0] &lt;= 1520 &amp;&amp; x[1] &gt;= 480 &amp;&amp; x[1] &lt;= 520 ? 12 : 0.0025"
   #C_D = 0.0025
   return C_D</string_value>
