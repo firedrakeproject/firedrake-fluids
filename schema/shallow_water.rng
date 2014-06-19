@@ -308,6 +308,12 @@ This allows the imposition of weak boundary conditions for the Velocity field.</
           <empty/>
         </element>
       </optional>
+      <optional>
+        <element name="integrate_by_parts">
+          <a:documentation>Integrate the advection term by parts.</a:documentation>
+          <empty/>
+        </element>
+      </optional>
     </element>
     <optional>
       <element name="stress_term">

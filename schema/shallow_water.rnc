@@ -344,6 +344,11 @@ momentum_equation_options =
          element exclude_advection_term 
          {
             empty
+         }?,
+         ## Integrate the advection term by parts.
+         element integrate_by_parts
+         {
+            empty
          }?
       },
       ## Options for the stress term div(T) where T is the stress tensor, defined by
