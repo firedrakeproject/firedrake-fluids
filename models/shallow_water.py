@@ -201,11 +201,17 @@ class ShallowWater:
       # Turbulence parameterisation
       self.options["have_turbulence_parameterisation"] = libspud.have_option("/system/equations/momentum_equation/turbulence_parameterisation")
 
+      # Drag parameterisation
       self.options["have_bottom_drag"] = libspud.have_option("/system/equations/momentum_equation/drag_term")
          
+      # Integration by parts
       self.options["integrate_continuity_equation_by_parts"] = libspud.have_option("/system/equations/continuity_equation/integrate_by_parts")
       self.options["integrate_advection_term_by_parts"] = libspud.have_option("/system/equations/momentum_equation/advection_term/integrate_by_parts")
 
+      # Spatial discretisation
+      self.options["dg"] = libspud.have_option("/system/equations/momentum_equation/spatial_discretisation/continuous_galerkin")
+
+      # Detectors
       self.options["have_detectors"] = libspud.have_option("/io/detectors/")
       
       return
@@ -272,8 +278,7 @@ class ShallowWater:
             viscosity += eddy_viscosity
             
          # Stress tensor: tau = grad(u) + transpose(grad(u)) - (2/3)*div(u)
-         dg = False
-         if(not dg):
+         if(not self.options["dg"]):
             # Perform a double dot product of the stress tensor and grad(w).
             K_momentum = -viscosity*inner(grad(self.u) + grad(self.u).T, grad(self.w))*dx
             #K_momentum += viscosity*(2.0/3.0)*inner(div(self.u)*Identity(dimension), grad(self.w))*dx
