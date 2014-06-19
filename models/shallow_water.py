@@ -276,7 +276,7 @@ class ShallowWater:
             
          # Stress tensor: tau = grad(u) + transpose(grad(u)) - (2/3)*div(u)
          dg = (self.W.sub(0).ufl_element().family() == "Discontinuous Lagrange")
-         if(dg):
+         if(not dg):
             # Perform a double dot product of the stress tensor and grad(w).
             K_momentum = -viscosity*inner(grad(self.u) + grad(self.u).T, grad(self.w))*dx
             #K_momentum += viscosity*(2.0/3.0)*inner(div(self.u)*Identity(dimension), grad(self.w))*dx
@@ -286,7 +286,7 @@ class ShallowWater:
             alpha = Constant(5.0) # Penalty parameter.
             
             K_momentum = -viscosity('+')*inner(grad(self.u), grad(self.w))*dx
-            for dim in range(len(self.u)):
+            for dim in range(self.options["dimension"]):
                K_momentum += -viscosity('+')*(alpha('+')/cellsize('+'))*dot(jump(self.w[dim], self.n), jump(self.u[dim], self.n))*dS
                K_momentum += viscosity('+')*dot(avg(grad(self.w[dim])), jump(self.u[dim], self.n))*dS + viscosity('+')*dot(jump(self.w[dim], self.n), avg(grad(self.u[dim])))*dS
 
