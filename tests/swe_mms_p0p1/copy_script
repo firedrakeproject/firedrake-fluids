@@ -1,0 +1,18 @@
+#!/bin/bash
+
+for F in A B C
+do
+    echo creating set $F
+
+    cp MMS_X.swml MMS_$F.swml 
+    sed s/MMS_X/MMS_$F/ MMS_$F.swml > MMS_$F.swml.cp
+done
+
+echo setting swml timestep values
+
+sed s/999/0.01/ MMS_A.swml.cp > MMS_A.swml
+rm MMS_A.swml.cp*
+sed s/999/0.005/ MMS_B.swml.cp > MMS_B.swml
+rm MMS_B.swml.cp*
+sed s/999/0.0025/ MMS_C.swml.cp > MMS_C.swml
+rm MMS_C.swml.cp*
