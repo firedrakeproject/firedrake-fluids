@@ -89,7 +89,10 @@ class ShallowWater:
             else:
                self.function_spaces[name] = FunctionSpace(self.mesh, "CG", degree)
          elif(family == "Discontinuous Lagrange"):
-            self.function_spaces[name] = FunctionSpace(self.mesh, "DG", degree)
+            if(name == "VelocityFunctionSpace"):
+               self.function_spaces[name] = VectorFunctionSpace(self.mesh, "DG", degree)
+            else:
+               self.function_spaces[name] = FunctionSpace(self.mesh, "DG", degree)
          else:
             print "Unknown element family: %s." % family
             sys.exit(1)
@@ -201,6 +204,7 @@ class ShallowWater:
       self.options["have_bottom_drag"] = libspud.have_option("/system/equations/momentum_equation/drag_term")
          
       self.options["integrate_continuity_equation_by_parts"] = libspud.have_option("/system/equations/continuity_equation/integrate_by_parts")
+      self.options["integrate_advection_term_by_parts"] = libspud.have_option("/system/equations/momentum_equation/advection_term/integrate_by_parts")
 
       self.options["have_detectors"] = libspud.have_option("/io/detectors/")
       
@@ -235,32 +239,54 @@ class ShallowWater:
       # Advection term
       if(self.options["have_momentum_advection"]):
          print "Adding advection term..."
-         A_momentum = inner(dot(grad(self.u), self.u), self.w)*dx
+
+         if(self.options["integrate_advection_term_by_parts"]):
+            outflow = (dot(self.u, self.n) + abs(dot(self.u, self.n)))/2.0
+
+            A_momentum = -inner(dot(self.u, grad(self.w)), self.u)*dx - inner(dot(self.u, grad(self.u)), self.w)*dx
+            A_momentum += inner(self.w, outflow*self.u)*ds
+            A_momentum += dot(outflow('+')*self.u('+') - outflow('-')*self.u('-'), jump(self.w))*dS
+
+         else:
+            A_momentum = inner(dot(grad(self.u), self.u), self.w)*dx
          F += A_momentum
          
       # Viscous stress term. Note that the viscosity is kinematic (not dynamic).
       if(self.options["have_momentum_stress"]):
          print "Adding stress term..."
+         
          # Background viscosity
          viscosity = Constant(libspud.get_option("/system/equations/momentum_equation/stress_term/scalar_field::Viscosity/value/constant"))
+         
          # Eddy viscosity
          if(self.options["have_turbulence_parameterisation"]):
             base_option_path = "/system/equations/momentum_equation/turbulence_parameterisation"
-            # Add on eddy viscosity, if necessary
+            # Large eddy simulation (LES)
             if(libspud.have_option(base_option_path + "/les")):
                les = LES(self.mesh, self.W.sub(1))
                density = Function(self.W.sub(1)).interpolate(Constant("1.0")) # We divide through by density in the momentum equation, so just set this to 1.0 for now.
                smagorinsky_coefficient = Function(self.W.sub(1)).interpolate(Constant(libspud.get_option(base_option_path + "/les/smagorinsky/smagorinsky_coefficient")))
                filter_width = Function(self.W.sub(1)).interpolate(Constant(libspud.get_option(base_option_path + "/les/smagorinsky/filter_width"))) # FIXME: Remove this when CellSize is supported in Firedrake.
                eddy_viscosity = les.eddy_viscosity(self.u, density, smagorinsky_coefficient, filter_width)
-               
+            # Add on eddy viscosity
             viscosity += eddy_viscosity
             
-         # Perform a double dot product of the stress tensor and grad(w).
-         # tau = grad(u) + transpose(grad(u)) - (2/3)*div(u)
-         K_momentum = -viscosity*inner(grad(self.u) + grad(self.u).T, grad(self.w))*dx
-         K_momentum += viscosity*(2.0/3.0)*inner(div(self.u)*Identity(dimension), grad(self.w))*dx
+         # Stress tensor: tau = grad(u) + transpose(grad(u)) - (2/3)*div(u)
+         dg = False
+         if(not dg):
+            # Perform a double dot product of the stress tensor and grad(w).
+            K_momentum = -viscosity*inner(grad(self.u) + grad(self.u).T, grad(self.w))*dx
+            #K_momentum += viscosity*(2.0/3.0)*inner(div(self.u)*Identity(dimension), grad(self.w))*dx
+         else:
+            # Interior penalty method
+            cellsize = Constant(0.2) #CellSize(self.mesh)
+            alpha = Constant(5.0) # Penalty parameter.
             
+            K_momentum = -viscosity('+')*inner(grad(self.u), grad(self.w))*dx
+            for dim in range(len(self.u)):
+               K_momentum += -viscosity('+')*(alpha('+')/cellsize('+'))*dot(jump(self.w[dim], self.n), jump(self.u[dim], self.n))*dS
+               K_momentum += viscosity('+')*dot(avg(grad(self.w[dim])), jump(self.u[dim], self.n))*dS + viscosity('+')*dot(jump(self.w[dim], self.n), avg(grad(self.u[dim])))*dS
+
          F -= K_momentum # Negative sign here because we are bringing the stress term over from the RHS.
 
       # The gradient of the height of the free surface, h
@@ -292,8 +318,8 @@ class ShallowWater:
       # Divergence term in the shallow water continuity equation
       if(self.options["integrate_continuity_equation_by_parts"]):
 
-         Ct_continuity = - H*inner(self.u, grad(self.v))*dx
-                             #+ inner(jump(v, n)[dim], avg(u[dim]))*dS
+         Ct_continuity = - H*inner(self.u, grad(self.v))*dx \
+                         + inner(jump(self.v, self.n), avg(H*self.u))*dS
                            
          # Add in the surface integrals, but check to see if any boundary conditions need to be applied weakly here.
          boundary_markers = self.mesh.exterior_facets.unique_markers
@@ -337,7 +363,7 @@ class ShallowWater:
                elif(bc_type == "weak_dirichlet"):
                   print "Applying weak Dirichlet BC to surface ID %d..." % marker
                   u_bdy = ExpressionFromOptions(path = (bc_path + "/type::dirichlet"), t=t)
-                  Ct_continuity += H*(Function(self.W.sub(0)).interpolate(u_bdy)*self.n)*self.v*ds(int(marker))
+                  Ct_continuity += H*(dot(Function(self.W.sub(0)).interpolate(u_bdy), self.n))*self.v*ds(int(marker))
                   
                   weak_bc_expressions.append(u_bdy)
                   
@@ -405,7 +431,7 @@ class ShallowWater:
             expr = ExpressionFromOptions(path = ("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i), t=t)
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/surface_ids" % i)
-            bc = DirichletBC(self.W.sub(0), expr, surface_ids)
+            bc = DirichletBC(self.W.sub(0), expr, surface_ids, method="geometric")
             bcs.append(bc)
             bc_expressions.append(expr)
 
@@ -418,7 +444,7 @@ class ShallowWater:
             expr = ExpressionFromOptions(path = ("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i), t=t)
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/surface_ids" % i)
-            bc = DirichletBC(self.W.sub(1), expr, surface_ids)
+            bc = DirichletBC(self.W.sub(1), expr, surface_ids, method="geometric")
             bcs.append(bc)
             bc_expressions.append(expr)
 
