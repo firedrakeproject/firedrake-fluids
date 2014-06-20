@@ -284,7 +284,7 @@ class ShallowWater:
             K_momentum += viscosity*(2.0/3.0)*inner(div(self.u)*Identity(dimension), grad(self.w))*dx
          else:
             # Interior penalty method
-            cellsize = CellSize(self.mesh)
+            cellsize = Constant(0.2) #CellSize(self.mesh)
             alpha = 1/cellsize #Constant(5.0) # Penalty parameter.
             
             K_momentum = -viscosity('+')*inner(grad(self.u), grad(self.w))*dx
