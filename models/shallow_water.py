@@ -223,6 +223,9 @@ class ShallowWater:
       dimension = self.options["dimension"]
       g_magnitude = self.options["g_magnitude"]
       
+      # Are we discretising the momentum equation using a Discontinuous Galerkin method?
+      dg = (self.W.sub(0).ufl_element().family() == "Discontinuous Lagrange")
+      
       # The total height of the free surface.
       H = self.h_mean + self.h
       
@@ -275,7 +278,6 @@ class ShallowWater:
             viscosity += eddy_viscosity
             
          # Stress tensor: tau = grad(u) + transpose(grad(u)) - (2/3)*div(u)
-         dg = (self.W.sub(0).ufl_element().family() == "Discontinuous Lagrange")
          if(not dg):
             # Perform a double dot product of the stress tensor and grad(w).
             K_momentum = -viscosity*inner(grad(self.u) + grad(self.u).T, grad(self.w))*dx
@@ -321,8 +323,9 @@ class ShallowWater:
       # Divergence term in the shallow water continuity equation
       if(self.options["integrate_continuity_equation_by_parts"]):
 
-         Ct_continuity = - H*inner(self.u, grad(self.v))*dx \
-                         + inner(jump(self.v, self.n), avg(H*self.u))*dS
+         Ct_continuity = - H*inner(self.u, grad(self.v))*dx
+         if(dg):
+            Ct_continuity += inner(jump(self.v, self.n), avg(H*self.u))*dS
                            
          # Add in the surface integrals, but check to see if any boundary conditions need to be applied weakly here.
          boundary_markers = self.mesh.exterior_facets.unique_markers
