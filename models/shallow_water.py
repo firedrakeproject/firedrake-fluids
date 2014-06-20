@@ -437,7 +437,11 @@ class ShallowWater:
             expr = ExpressionFromOptions(path = ("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i), t=t)
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/surface_ids" % i)
-            bc = DirichletBC(self.W.sub(0), expr, surface_ids, method="geometric")
+            if(dg):
+               method = "geometric"
+            else:
+               method = "topological"
+            bc = DirichletBC(self.W.sub(0), expr, surface_ids, method=method)
             bcs.append(bc)
             bc_expressions.append(expr)
 
@@ -450,7 +454,11 @@ class ShallowWater:
             expr = ExpressionFromOptions(path = ("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i), t=t)
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/surface_ids" % i)
-            bc = DirichletBC(self.W.sub(1), expr, surface_ids, method="geometric")
+            if(dg):
+               method = "geometric"
+            else:
+               method = "topological"
+            bc = DirichletBC(self.W.sub(1), expr, surface_ids, method=method)
             bcs.append(bc)
             bc_expressions.append(expr)
 
