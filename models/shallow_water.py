@@ -281,11 +281,11 @@ class ShallowWater:
          if(not dg):
             # Perform a double dot product of the stress tensor and grad(w).
             K_momentum = -viscosity*inner(grad(self.u) + grad(self.u).T, grad(self.w))*dx
-            #K_momentum += viscosity*(2.0/3.0)*inner(div(self.u)*Identity(dimension), grad(self.w))*dx
+            K_momentum += viscosity*(2.0/3.0)*inner(div(self.u)*Identity(dimension), grad(self.w))*dx
          else:
             # Interior penalty method
-            cellsize = Constant(0.2) #CellSize(self.mesh)
-            alpha = Constant(5.0) # Penalty parameter.
+            cellsize = CellSize(self.mesh)
+            alpha = 1/cellsize #Constant(5.0) # Penalty parameter.
             
             K_momentum = -viscosity('+')*inner(grad(self.u), grad(self.w))*dx
             for dim in range(self.options["dimension"]):
