@@ -161,8 +161,8 @@
             <value>
               <cpp>
                 <string_value lines="20" type="code" language="python">def val(t):
-  Sx = "-cos(x[0])*sin(x[0])*pow(sin(x[1]), 2) + (cos(x[1]) + sin(pow(x[0], 2)))*cos(x[0])*cos(x[1]) + 11.4333333333333*cos(x[0])*sin(x[1])"
-  Sy = "2*x[0]*cos(pow(x[0], 2))*cos(x[0])*sin(x[1]) + 2.80*pow(x[0], 2)*sin(pow(x[0], 2)) + 10.0333333333333*cos(x[1])*sin(x[0]) - (cos(x[1]) + sin(pow(x[0], 2)))*sin(x[1]) - 1.40*cos(pow(x[0], 2)) + 0.933333333333333*cos(x[1])"
+  Sx = "-cos(x[0])*sin(x[0])*pow(sin(x[1]), 2) + (cos(x[1]) + sin(pow(x[0], 2)))*cos(x[0])*cos(x[1]) + 11.2*cos(x[0])*sin(x[1])"
+  Sy = "2*x[0]*cos(pow(x[0], 2))*cos(x[0])*sin(x[1]) + 2.80*pow(x[0], 2)*sin(pow(x[0], 2)) + 9.80*cos(x[1])*sin(x[0]) - (cos(x[1]) + sin(pow(x[0], 2)))*sin(x[1]) - 1.40*cos(pow(x[0], 2)) + 0.7*cos(x[1])"
   return (Sx, Sy)</string_value>
               </cpp>
             </value>
