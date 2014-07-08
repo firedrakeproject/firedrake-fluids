@@ -1,9 +1,10 @@
 # Copyright 2013 Imperial College London. All rights reserved.
 
 import sys, os
-import libspud
+import optparse
 import numpy
 
+import libspud
 from firedrake import *
 
 import fields_calculations
@@ -36,7 +37,7 @@ class ExpressionFromOptions(Expression):
 
 class ShallowWater:
    
-   def __init__(self, path):
+   def __init__(self, path, checkpoint=None):
       """ Initialise a new shallow water simulation using an options file stored at the location given by 'path'. """
    
       print "Initialising simulation..."
@@ -130,8 +131,9 @@ class ShallowWater:
       functions_old = split(self.solution_old)
       self.u_old = functions_old[0]; self.h_old = functions_old[1]
       
-      if(self.options["initial_conditions_from_checkpoint"]):
-         self.solution_old.dat.load("checkpoint.npy")
+      # Load initial conditions from the specified checkpoint file if desired.
+      if(checkpoint is not None):
+         self.solution_old.dat.load(checkpoint)
       
       # The solution should first hold the initial condition.
       self.solution.assign(self.solution_old)
@@ -184,8 +186,8 @@ class ShallowWater:
       else:
          self.options["dump_period"] = None
      
-      if(libspud.have_option("/io/checkpoint_period")):
-         self.options["checkpoint_period"] = libspud.get_option("/io/checkpoint_period")
+      if(libspud.have_option("/io/checkpoint")):
+         self.options["checkpoint_period"] = libspud.get_option("/io/checkpoint/dump_period")
       else:
          self.options["checkpoint_period"] = None
            
@@ -578,15 +580,19 @@ class ShallowWater:
       return
 
 if(__name__ == "__main__"):
-
+   # Parse options and arguments from the command line
+   parser = optparse.OptionParser()
+   parser.add_option("-c", "--checkpoint", action="store", default=None, help="Initialise field values from a specified checkpoint file.")
+   (options, args) = parser.parse_args()
+   
    try:
-      path = sys.argv[1]
+      path = args[0]
    except IndexError:
       print "Please provide the path to the simulation configuration file."
       sys.exit(1)
       
    # Set up a shallow water simulation.
-   sw = ShallowWater(path)
+   sw = ShallowWater(path, checkpoint=options.checkpoint)
       
    # Solve the shallow water equations!
    sw.run()
