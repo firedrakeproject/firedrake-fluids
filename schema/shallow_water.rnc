@@ -101,12 +101,15 @@ start =
                }
             ),
             (
-               ## Period between checkpoint data dumps in time units.
-               ##
-               ## Setting this to zero will result in dumps at every time-step.
-               element checkpoint_period 
+               element checkpoint
                {
-                  real 
+                  ## Period between checkpoint data dumps in time units.
+                  ##
+                  ## Setting this to zero will result in checkpoint dumps at every time-step.
+                  element dump_period 
+                  {
+                     real
+                  }
                }
             )?,
             ## Output field values at particular points in space at each timestep.

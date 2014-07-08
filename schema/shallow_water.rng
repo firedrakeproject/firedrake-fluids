@@ -94,11 +94,13 @@ Setting this to zero will result in dumps at every time-step.</a:documentation>
           <ref name="real"/>
         </element>
         <optional>
-          <element name="checkpoint_period">
-            <a:documentation>Period between checkpoint data dumps in time units.
+          <element name="checkpoint">
+            <element name="dump_period">
+              <a:documentation>Period between checkpoint data dumps in time units.
 
-Setting this to zero will result in dumps at every time-step.</a:documentation>
-            <ref name="real"/>
+Setting this to zero will result in checkpoint dumps at every time-step.</a:documentation>
+              <ref name="real"/>
+            </element>
           </element>
         </optional>
         <optional>
