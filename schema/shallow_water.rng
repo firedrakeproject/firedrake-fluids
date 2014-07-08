@@ -92,9 +92,7 @@ that are solved for.</a:documentation>
 
 Specifies the period between each dump of the solution to disk.
 A value of 0.0 indicates that there would be a dump at every timestep.</a:documentation>
-          <element name="constant">
-            <ref name="real"/>
-          </element>
+          <ref name="real"/>
         </element>
         <optional>
           <element name="detectors">

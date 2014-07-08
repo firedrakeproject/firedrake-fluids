@@ -98,12 +98,7 @@ start =
                ## A value of 0.0 indicates that there would be a dump at every timestep.
                element dump_period 
                {
-                  (
-                     element constant 
-                     {
-                        real
-                     }
-                  )  
+                  real 
                }
             ),
             ## Output field values at particular points in space at each timestep.
