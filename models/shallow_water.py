@@ -174,6 +174,12 @@ class ShallowWater:
          self.options["steady_state_tolerance"] = libspud.get_option("/timestepping/steady_state/tolerance")
       else:
          self.options["steady_state_tolerance"] = -1000.0
+         
+      # I/O parameters
+      if(libspud.have_option("/io/dump_period")):
+         self.options["dump_period"] = libspud.get_option("/io/dump_period")
+      else:
+         self.options["dump_period"] = None
        
       # Physical parameters
       self.options["g_magnitude"] = libspud.get_option("/physical_parameters/gravity/magnitude")
@@ -477,6 +483,7 @@ class ShallowWater:
                                                                   'snes_type': 'ksponly'})
       
       t += dt
+      iterations_since_dump = 1
 
       # The time-stepping loop
       EPSILON = 1.0e-14
@@ -515,13 +522,16 @@ class ShallowWater:
                    
          # Solve the system of equations!
          solver.solve()
-            
+     
          # Write the solution to file.
-         print "Writing data to file..."
-         self.output_function[0].assign(self.solution.split()[0])
-         self.output_file[0] << self.output_function[0]
-         self.output_function[1].assign(self.solution.split()[1])
-         self.output_file[1] << self.output_function[1]
+         if((self.options["dump_period"] is not None) and (dt*iterations_since_dump >= self.options["dump_period"])):
+            print "Writing data to file..."
+            self.output_function[0].assign(self.solution.split()[0])
+            self.output_file[0] << self.output_function[0]
+            self.output_function[1].assign(self.solution.split()[1])
+            self.output_file[1] << self.output_function[1]
+            # Reset the counter.
+            iterations_since_dump = 0
          
          # Check whether a steady-state has been reached.
          # Take the maximum difference across all processes.
@@ -539,6 +549,7 @@ class ShallowWater:
          # Move to next time step    
          self.solution_old.assign(self.solution)    
          t += dt
+         iterations_since_dump += 1
          print "Moving to next time level..."      
       
       print "Out of the time-stepping loop."
