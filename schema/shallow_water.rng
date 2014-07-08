@@ -90,10 +90,17 @@ that are solved for.</a:documentation>
         <element name="dump_period">
           <a:documentation>Period between dumps in time units.
 
-Specifies the period between each dump of the solution to disk.
-A value of 0.0 indicates that there would be a dump at every timestep.</a:documentation>
+Setting this to zero will result in dumps at every time-step.</a:documentation>
           <ref name="real"/>
         </element>
+        <optional>
+          <element name="checkpoint_period">
+            <a:documentation>Period between checkpoint data dumps in time units.
+
+Setting this to zero will result in dumps at every time-step.</a:documentation>
+            <ref name="real"/>
+          </element>
+        </optional>
         <optional>
           <element name="detectors">
             <a:documentation>Output field values at particular points in space at each timestep.</a:documentation>

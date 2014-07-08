@@ -130,6 +130,9 @@ class ShallowWater:
       functions_old = split(self.solution_old)
       self.u_old = functions_old[0]; self.h_old = functions_old[1]
       
+      if(self.options["initial_conditions_from_checkpoint"]):
+         self.solution_old.dat.load("checkpoint.npy")
+      
       # The solution should first hold the initial condition.
       self.solution.assign(self.solution_old)
       
@@ -180,7 +183,12 @@ class ShallowWater:
          self.options["dump_period"] = libspud.get_option("/io/dump_period")
       else:
          self.options["dump_period"] = None
-       
+     
+      if(libspud.have_option("/io/checkpoint_period")):
+         self.options["checkpoint_period"] = libspud.get_option("/io/checkpoint_period")
+      else:
+         self.options["checkpoint_period"] = None
+           
       # Physical parameters
       self.options["g_magnitude"] = libspud.get_option("/physical_parameters/gravity/magnitude")
       
@@ -484,6 +492,7 @@ class ShallowWater:
       
       t += dt
       iterations_since_dump = 1
+      iterations_since_checkpoint = 1
 
       # The time-stepping loop
       EPSILON = 1.0e-14
@@ -533,6 +542,13 @@ class ShallowWater:
             # Reset the counter.
             iterations_since_dump = 0
          
+         # Checkpointing
+         if((self.options["checkpoint_period"] is not None) and (dt*iterations_since_checkpoint >= self.options["checkpoint_period"])):
+            print "Writing checkpoint data to file..."
+            self.solution.dat.save("checkpoint")
+            # Reset the counter.
+            iterations_since_checkpoint = 0
+            
          # Check whether a steady-state has been reached.
          # Take the maximum difference across all processes.
          global_max_difference_h = max(abs(self.solution.split()[1].vector().gather() - self.solution_old.split()[1].vector().gather()))
@@ -550,10 +566,11 @@ class ShallowWater:
          self.solution_old.assign(self.solution)    
          t += dt
          iterations_since_dump += 1
+         iterations_since_checkpoint += 1
          print "Moving to next time level..."      
       
       print "Out of the time-stepping loop."
-   
+         
       # Any final steps (e.g. closing files)
       if(self.options["have_detectors"]):
          self.detectors.finalise()

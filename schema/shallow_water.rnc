@@ -94,13 +94,21 @@ start =
             (
                ## Period between dumps in time units.
                ##
-               ## Specifies the period between each dump of the solution to disk.
-               ## A value of 0.0 indicates that there would be a dump at every timestep.
+               ## Setting this to zero will result in dumps at every time-step.
                element dump_period 
                {
                   real 
                }
             ),
+            (
+               ## Period between checkpoint data dumps in time units.
+               ##
+               ## Setting this to zero will result in dumps at every time-step.
+               element checkpoint_period 
+               {
+                  real 
+               }
+            )?,
             ## Output field values at particular points in space at each timestep.
             element detectors 
             {
