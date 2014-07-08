@@ -1,1 +1,4 @@
-*.pyc *.vtu *.pvd *.pvtu
+*.pyc
+*.vtu
+*.pvd
+*.pvtu
