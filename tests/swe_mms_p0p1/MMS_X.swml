@@ -37,11 +37,9 @@
     <dump_format>
       <string_value>vtk</string_value>
     </dump_format>
-    <dump_period_in_timesteps>
-      <constant>
-        <integer_value rank="0">0</integer_value>
-      </constant>
-    </dump_period_in_timesteps>
+    <dump_period>
+      <real_value rank="0">0.0</real_value>
+    </dump_period>
   </io>
   <timestepping>
     <current_time>
