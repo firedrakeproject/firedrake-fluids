@@ -108,14 +108,14 @@ def test_swe_tidal_flow_irregular_bed():
    # Check that the maximum error between the numerical and analytical solution is small.
    ux_difference = abs(ux_analytical - ux_numerical)
    print max(ux_difference)
-   assert(max(ux_difference) < 1.0e-8)
+   assert(max(ux_difference) < 2.0e-4)
    
    height = numpy.zeros(len(h_numerical))
    for i in range(len(h_numerical)):
       height[i] = h_numerical[i] + H[i]
    h_difference = abs(h_analytical - height)
    print max(h_difference)
-   assert(max(h_difference) < 1.0e-8)
+   assert(max(h_difference) < 3.0e-4)
 
 if __name__ == '__main__':
    pytest.main(os.path.abspath(__file__))
