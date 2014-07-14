@@ -20,9 +20,7 @@ class LES:
 
    def eddy_viscosity(self, u, density, smagorinsky_coefficient, filter_width):
 
-      u_projected = project(u, VectorFunctionSpace(self.mesh, "CG", 1))
-
-      dimension = len(u_projected)
+      dimension = len(u)
       w = TestFunction(self.function_space)
       eddy_viscosity = TrialFunction(self.function_space)
 
@@ -33,7 +31,7 @@ class LES:
       #else:
       #   print "Dimension == 1"
          
-      S = self.strain_rate_tensor(u_projected)
+      S = self.strain_rate_tensor(u)
       second_invariant = 0.0
       for i in range(0, dimension):
          for j in range(0, dimension):

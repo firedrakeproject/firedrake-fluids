@@ -277,10 +277,12 @@ class ShallowWater:
       if(self.options["have_momentum_stress"]):
          print "Adding stress term..."
          
-         # Background viscosity
-         background_viscosity = libspud.get_option("/system/equations/momentum_equation/stress_term/scalar_field::Viscosity/value/constant")
-         viscosity = Function(self.W.sub(1)).interpolate(Expression(background_viscosity))
+         viscosity = Function(self.W.sub(1))
          
+         # Background viscosity
+         background_viscosity = Function(self.W.sub(1)).interpolate(Expression(libspud.get_option("/system/equations/momentum_equation/stress_term/scalar_field::Viscosity/value/constant")))
+         viscosity.assign(background_viscosity)
+
          # Eddy viscosity
          if(self.options["have_turbulence_parameterisation"]):
             print "Adding turbulence parameterisation..."
@@ -295,7 +297,7 @@ class ShallowWater:
                eddy_viscosity = Function(self.W.sub(1))
                eddy_viscosity_lhs, eddy_viscosity_rhs = les.eddy_viscosity(self.u, density, smagorinsky_coefficient, filter_width)
                eddy_viscosity_problem = LinearVariationalProblem(eddy_viscosity_lhs, eddy_viscosity_rhs, eddy_viscosity, bcs=[])
-               eddy_viscosity_solver = NonlinearVariationalSolver(eddy_viscosity_problem)
+               eddy_viscosity_solver = LinearVariationalSolver(eddy_viscosity_problem)
                
             # Add on eddy viscosity
             viscosity += eddy_viscosity
@@ -530,6 +532,7 @@ class ShallowWater:
 
          if(self.options["have_turbulence_parameterisation"]):
             eddy_viscosity_solver.solve()
+            viscosity.assign(background_viscosity + eddy_viscosity)
 
          # Time-dependent source terms
          if(self.options["have_momentum_source"]):
