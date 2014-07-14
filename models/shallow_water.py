@@ -291,7 +291,12 @@ class ShallowWater:
                density = Constant(1.0) # We divide through by density in the momentum equation, so just set this to 1.0 for now.
                smagorinsky_coefficient = Constant(libspud.get_option(base_option_path + "/les/smagorinsky/smagorinsky_coefficient"))
                filter_width = Constant(libspud.get_option(base_option_path + "/les/smagorinsky/filter_width")) # FIXME: Remove this when CellSize is supported in Firedrake.
-               eddy_viscosity = les.eddy_viscosity(self.solution_old.split()[0], density, smagorinsky_coefficient, filter_width)
+               
+               eddy_viscosity = Function(self.W.sub(1))
+               eddy_viscosity_lhs, eddy_viscosity_rhs = les.eddy_viscosity(self.u, density, smagorinsky_coefficient, filter_width)
+               eddy_viscosity_problem = LinearVariationalProblem(eddy_viscosity_lhs, eddy_viscosity_rhs, eddy_viscosity, bcs=[])
+               eddy_viscosity_solver = NonlinearVariationalSolver(eddy_viscosity_problem)
+               
             # Add on eddy viscosity
             viscosity += eddy_viscosity
 
@@ -524,7 +529,7 @@ class ShallowWater:
             grid_pe_nodes.set_local(numpy.maximum(grid_pe_nodes.array(), values))
 
          if(self.options["have_turbulence_parameterisation"]):
-            viscosity.assign(Function(self.W.sub(1)).interpolate(Expression(background_viscosity)) + les.eddy_viscosity(self.u, density, smagorinsky_coefficient, filter_width))
+            eddy_viscosity_solver.solve()
 
          # Time-dependent source terms
          if(self.options["have_momentum_source"]):

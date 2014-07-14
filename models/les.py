@@ -42,11 +42,8 @@ class LES:
       second_invariant = sqrt(second_invariant)
       rhs = density*(smagorinsky_coefficient*filter_width)**2*second_invariant
 
-      a = inner(w, eddy_viscosity)*dx
-      L = inner(w, rhs)*dx
-
-      solution = Function(self.function_space)
-      solve(a == L, solution, bcs=[])
+      lhs = inner(w, eddy_viscosity)*dx
+      rhs = inner(w, rhs)*dx
       
-      return solution
+      return lhs, rhs
 
