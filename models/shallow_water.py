@@ -278,21 +278,23 @@ class ShallowWater:
          print "Adding stress term..."
          
          # Background viscosity
-         viscosity = Constant(libspud.get_option("/system/equations/momentum_equation/stress_term/scalar_field::Viscosity/value/constant"))
+         background_viscosity = libspud.get_option("/system/equations/momentum_equation/stress_term/scalar_field::Viscosity/value/constant")
+         viscosity = Function(self.W.sub(1)).interpolate(Expression(background_viscosity))
          
          # Eddy viscosity
          if(self.options["have_turbulence_parameterisation"]):
+            print "Adding turbulence parameterisation..."
             base_option_path = "/system/equations/momentum_equation/turbulence_parameterisation"
             # Large eddy simulation (LES)
             if(libspud.have_option(base_option_path + "/les")):
                les = LES(self.mesh, self.W.sub(1))
-               density = Function(self.W.sub(1)).interpolate(Constant("1.0")) # We divide through by density in the momentum equation, so just set this to 1.0 for now.
-               smagorinsky_coefficient = Function(self.W.sub(1)).interpolate(Constant(libspud.get_option(base_option_path + "/les/smagorinsky/smagorinsky_coefficient")))
-               filter_width = Function(self.W.sub(1)).interpolate(Constant(libspud.get_option(base_option_path + "/les/smagorinsky/filter_width"))) # FIXME: Remove this when CellSize is supported in Firedrake.
-               eddy_viscosity = les.eddy_viscosity(self.u, density, smagorinsky_coefficient, filter_width)
+               density = Constant(1.0) # We divide through by density in the momentum equation, so just set this to 1.0 for now.
+               smagorinsky_coefficient = Constant(libspud.get_option(base_option_path + "/les/smagorinsky/smagorinsky_coefficient"))
+               filter_width = Constant(libspud.get_option(base_option_path + "/les/smagorinsky/filter_width")) # FIXME: Remove this when CellSize is supported in Firedrake.
+               eddy_viscosity = les.eddy_viscosity(self.solution_old.split()[0], density, smagorinsky_coefficient, filter_width)
             # Add on eddy viscosity
             viscosity += eddy_viscosity
-            
+
          # Stress tensor: tau = grad(u) + transpose(grad(u)) - (2/3)*div(u)
          if(not dg):
             # Perform a double dot product of the stress tensor and grad(w).
@@ -301,7 +303,7 @@ class ShallowWater:
          else:
             # Interior penalty method
             cellsize = Constant(0.2) #CellSize(self.mesh)
-            alpha = 1/cellsize #Constant(5.0) # Penalty parameter.
+            alpha = 1/cellsize # Penalty parameter.
             
             K_momentum = -viscosity('+')*inner(grad(self.u), grad(self.w))*dx
             for dim in range(self.options["dimension"]):
@@ -489,18 +491,21 @@ class ShallowWater:
                                                                   'pc_fieldsplit_schur_fact_type': 'FULL',
                                                                   'fieldsplit_0_ksp_type': 'preonly',
                                                                   'fieldsplit_1_ksp_type': 'preonly',
-                                                                  'ksp_rtol': 1.0e-7})
+                                                                  'ksp_rtol': 1.0e-7,
+                                                                  'snes_type':'ksponly'})
       
       t += dt
       iterations_since_dump = 1
       iterations_since_checkpoint = 1
-
+      
+      average = Function(self.W.sub(0))
+      
       # The time-stepping loop
       EPSILON = 1.0e-14
       while t <= T + EPSILON: # A small value EPSILON is added here in case of round-off error.
          print "\nt = %g" % t
 
-         # Update any time-dependent Functions and Expressions.
+         ## Update any time-dependent Functions and Expressions.
          
          # Re-compute the velocity magnitude and grid Peclet number fields.
          if(self.options["have_su_stabilisation"]):
@@ -517,6 +522,9 @@ class ShallowWater:
             grid_pe_nodes = grid_pe.vector()
             values = numpy.array([1.0e-9 for i in range(len(grid_pe_nodes))])
             grid_pe_nodes.set_local(numpy.maximum(grid_pe_nodes.array(), values))
+
+         if(self.options["have_turbulence_parameterisation"]):
+            viscosity.assign(Function(self.W.sub(1)).interpolate(Expression(background_viscosity)) + les.eddy_viscosity(self.u, density, smagorinsky_coefficient, filter_width))
 
          # Time-dependent source terms
          if(self.options["have_momentum_source"]):
@@ -550,6 +558,11 @@ class ShallowWater:
             # Reset the counter.
             iterations_since_checkpoint = 0
             
+            
+            
+         
+         average += self.solution.split()[0]
+            
          # Check whether a steady-state has been reached.
          # Take the maximum difference across all processes.
          global_max_difference_h = max(abs(self.solution.split()[1].vector().gather() - self.solution_old.split()[1].vector().gather()))
@@ -571,6 +584,10 @@ class ShallowWater:
          print "Moving to next time level..."      
       
       print "Out of the time-stepping loop."
+      
+      average /= ((t-dt)/dt)
+      f = File("average.pvd")
+      f << average
          
       # Any final steps (e.g. closing files)
       if(self.options["have_detectors"]):
