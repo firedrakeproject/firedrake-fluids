@@ -17,7 +17,7 @@ def checkpoint():
    h_initial = sw.solution_old.split()[1]
 
    # Initialise the simulation using the data in checkpoint.npy for the initial conditions.
-   sw = shallow_water.ShallowWater(path=os.path.join(cwd, "checkpoint.swml"), checkpoint="checkpoint.npy")
+   sw = shallow_water.ShallowWater(path=os.path.join(cwd, "checkpoint.swml"), checkpoint=os.path.join(cwd, "checkpoint.npy"))
    ux_initial_from_checkpoint = sw.solution_old.split()[0]
    h_initial_from_checkpoint = sw.solution_old.split()[1]
    
