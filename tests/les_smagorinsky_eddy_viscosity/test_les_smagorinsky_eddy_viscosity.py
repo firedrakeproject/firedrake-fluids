@@ -10,7 +10,7 @@ def les_smagorinsky_eddy_viscosity():
    for n in [2, 4, 8, 16, 32]:
       mesh = UnitSquareMesh(n, n)
       smagorinsky_coefficient = 2.0
-      filter_width = sqrt((1.0/n)**2 + (1.0/n)**2) # FIXME: Use CellSize instead.
+      filter_width = CellVolume(mesh)**(1.0/2.0) # Square root of element area
       
       fs_exact = FunctionSpace(mesh, "CG", 3)
       fs = FunctionSpace(mesh, "CG", 1)
@@ -24,7 +24,7 @@ def les_smagorinsky_eddy_viscosity():
       les = LES(mesh, fs)
       # Since the eddy viscosity depends on the filter_width, we need to provide smagorinsky_coefficient/filter_width here 
       # for the convergence test because we want to compare against the same exact solution throughout.
-      lhs, rhs = les.eddy_viscosity(u, density, (smagorinsky_coefficient/filter_width), filter_width)
+      lhs, rhs = les.eddy_viscosity(u, density, (smagorinsky_coefficient/filter_width))
       eddy_viscosity = Function(fs)
       problem = LinearVariationalProblem(lhs, rhs, eddy_viscosity, bcs=[])
       solver = LinearVariationalSolver(problem)

@@ -5,9 +5,6 @@ les =
          ## A typical value for the Smagorinsky coefficient is between 0.1 and 0.2.
          element smagorinsky_coefficient {
             real
-         },
-         element filter_width {
-            real
          }
       }
    )

@@ -7,9 +7,6 @@
         <a:documentation>A typical value for the Smagorinsky coefficient is between 0.1 and 0.2.</a:documentation>
         <ref name="real"/>
       </element>
-      <element name="filter_width">
-        <ref name="real"/>
-      </element>
     </element>
   </define>
 </grammar>

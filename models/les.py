@@ -9,28 +9,19 @@ class LES:
       self.mesh = mesh
       self.function_space = function_space
       return
-
-   def element_volume(self, v):
-      # FIXME: There is currently no way to get the cell volume in Firedrake.
-      return v.cell().volume()
       
    def strain_rate_tensor(self, u):
       S = 0.5*(grad(u) + grad(u).T)
       return S
 
-   def eddy_viscosity(self, u, density, smagorinsky_coefficient, filter_width):
+   def eddy_viscosity(self, u, density, smagorinsky_coefficient):
 
       dimension = len(u)
       w = TestFunction(self.function_space)
       eddy_viscosity = TrialFunction(self.function_space)
 
-      #if(dimension == 2):
-      #   filter_width = element_volume(eddy_viscosity)**(1.0/2.0)
-      #elif(dimension == 3):
-      #   filter_width = element_volume(eddy_viscosity)**(1.0/3.0)
-      #else:
-      #   print "Dimension == 1"
-         
+      filter_width = CellVolume(self.mesh)**(1.0/dimension)
+
       S = self.strain_rate_tensor(u)
       second_invariant = 0.0
       for i in range(0, dimension):

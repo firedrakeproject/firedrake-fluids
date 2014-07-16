@@ -292,10 +292,9 @@ class ShallowWater:
                les = LES(self.mesh, self.W.sub(1))
                density = Constant(1.0) # We divide through by density in the momentum equation, so just set this to 1.0 for now.
                smagorinsky_coefficient = Constant(libspud.get_option(base_option_path + "/les/smagorinsky/smagorinsky_coefficient"))
-               filter_width = Constant(libspud.get_option(base_option_path + "/les/smagorinsky/filter_width")) # FIXME: Remove this when CellSize is supported in Firedrake.
                
                eddy_viscosity = Function(self.W.sub(1))
-               eddy_viscosity_lhs, eddy_viscosity_rhs = les.eddy_viscosity(self.u, density, smagorinsky_coefficient, filter_width)
+               eddy_viscosity_lhs, eddy_viscosity_rhs = les.eddy_viscosity(self.u, density, smagorinsky_coefficient)
                eddy_viscosity_problem = LinearVariationalProblem(eddy_viscosity_lhs, eddy_viscosity_rhs, eddy_viscosity, bcs=[])
                eddy_viscosity_solver = LinearVariationalSolver(eddy_viscosity_problem)
                
