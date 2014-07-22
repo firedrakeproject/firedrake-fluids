@@ -164,9 +164,6 @@
               <smagorinsky_coefficient>
                 <real_value rank="0">0.164</real_value>
               </smagorinsky_coefficient>
-              <filter_width>
-                <real_value rank="0">0.002666667</real_value>
-              </filter_width>
             </smagorinsky>
           </les>
         </turbulence_parameterisation>
