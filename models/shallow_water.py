@@ -25,7 +25,14 @@ class ExpressionFromOptions(Expression):
       if(libspud.have_option(path + "/constant")):
          self.source_type = "constant"
          self.source_value = libspud.get_option(path + "/constant")
-         Expression.__init__(self, code=self.source_value, t=t)  
+         # FIXME: If the user provides a single constant value then libspud will convert it to a float.
+         # But the Expression class expects a string, so convert it here if necessary.
+         if(isinstance(self.source_value, float) or isinstance(self.source_value, int)):
+            Expression.__init__(self, code=str(self.source_value), t=t)
+         elif(isinstance(self.source_value, list) or isinstance(self.source_value, tuple)):
+            Expression.__init__(self, code=[str(self.source_value[dim]) for dim in range(len(self.source_value))], t=t)
+         else:
+            Expression.__init__(self, code=self.source_value, t=t)
       elif(libspud.have_option(path + "/cpp")):
          self.source_type = "cpp"
          self.source_value = libspud.get_option(path + "/cpp")
@@ -124,9 +131,9 @@ class ShallowWater:
       h_initial = ExpressionFromOptions(path = "/system/core_fields/scalar_field::FreeSurfacePerturbation/initial_condition", t=self.options["t"])
       expr = ExpressionFromOptions(path = "/system/core_fields/vector_field::Velocity/initial_condition", t=self.options["t"])
       u_initial = [str(expr.code[dim]) for dim in range(dimension)]
-
+   
       # Define the compulsory shallow water fields
-      codes = tuple(u_initial) + (str(h_initial.code),)
+      codes = tuple(u_initial) + (h_initial.code[0],)
       self.solution_old = Function(self.W).interpolate(Expression(codes))
       functions_old = split(self.solution_old)
       self.u_old = functions_old[0]; self.h_old = functions_old[1]
