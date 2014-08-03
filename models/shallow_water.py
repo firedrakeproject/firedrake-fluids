@@ -123,10 +123,10 @@ class ShallowWater:
       # FIXME: Subclassing of the Expression class needs to be DOLFIN compatible. The current method used here is a hack.
       h_initial = ExpressionFromOptions(path = "/system/core_fields/scalar_field::FreeSurfacePerturbation/initial_condition", t=self.options["t"])
       expr = ExpressionFromOptions(path = "/system/core_fields/vector_field::Velocity/initial_condition", t=self.options["t"])
-      u_initial = [expr.code[dim] for dim in range(dimension)]
+      u_initial = [str(expr.code[dim]) for dim in range(dimension)]
 
       # Define the compulsory shallow water fields
-      codes = tuple(u_initial) + (h_initial.code[0],)
+      codes = tuple(u_initial) + (str(h_initial.code),)
       self.solution_old = Function(self.W).interpolate(Expression(codes))
       functions_old = split(self.solution_old)
       self.u_old = functions_old[0]; self.h_old = functions_old[1]
