@@ -3,7 +3,6 @@ import numpy
 import pylab
 import vtktools
 
-
 def bed_height(x):
    if(x <= 50):
       return 0
@@ -65,7 +64,7 @@ t = 10800.0
 
 x_array = numpy.linspace(0, 1500, 201)
 
-f = vtktools.vtu('swe_tidal_flow_irregular_bed_Velocity_36000.vtu')
+f = vtktools.vtu('swe_tidal_flow_irregular_bed_Velocity_1.vtu')
 f.GetFieldNames()
 temp = f.GetVectorField('Velocity')
 
@@ -86,12 +85,30 @@ for x in x_array:
    h_analytical.append(h)
 
 
-pylab.figure(0)
+fig = pylab.figure(0)
+ax = fig.add_subplot(1,1,1)
 pylab.plot(x_array, u_analytical, 'g--', label="Analytical")
 pylab.plot(x_array, u_numerical, 'g-', label="Numerical (Firedrake-Fluids)")
+
+pylab.plot(x_array, [-1 for x in x_array], 'k-', label="Bed height")
+
+ax.axis([0, 1600, 0, 0.06])
+
 pylab.legend()
-pylab.xlabel("x (m)")
-pylab.ylabel("Velocity (m/s)")
+pylab.xlabel(r"$x$ (m)")
+pylab.ylabel(r"Velocity (ms$^{-1}$)")
+
+secondary = fig.add_axes(ax.get_position(), frameon=False)
+secondary.patch.set_visible(False)
+secondary.yaxis.set_label_position('right')
+secondary.yaxis.set_ticks_position('right')
+secondary.plot(x_array, [bed_height(x) for x in x_array], 'k-', label="Bed height")
+secondary.axis([0, 1600, 0, 25])
+secondary.tick_params(labelbottom='off')
+secondary.set_ylabel(r"Bed height $B(x)$ (m)")
+ax.yaxis.set_ticks_position('left')
+pylab.fill_between(x_array, [bed_height(x) for x in x_array], 0, color='0.9')
+
 pylab.savefig('swe_tidal_flow_irregular_bed_velocity.png')
 
 
