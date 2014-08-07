@@ -7,18 +7,19 @@ v = sin(x*x) + cos(y)
 
 g = 9.8
 
-print (diff(u,x) + diff(v,y))
-
-nu = 0.7
+nu = 0.6
 tau_xx = nu*diff(u,x)
 tau_xy = nu*diff(u,y)
 tau_yy = nu*diff(v,y)
 tau_yx = nu*diff(v,x)
 
-Su = u*diff(u,x) + v*diff(u,y) + g*diff(h,x) - diff(tau_xx, x) - diff(tau_xy, y)
-Sv = u*diff(v,x) + v*diff(v,y) + g*diff(h,y) - diff(tau_yy, y) - diff(tau_yx, x) 
+h_mean = 20.0 # The mean free surface height
+C_D = 0.0025 # Drag coefficient
+magnitude = sqrt(u*u + v*v)
 
-h_mean = 50.0
+Su = u*diff(u,x) + v*diff(u,y) + g*diff(h,x) - diff(tau_xx, x) - diff(tau_xy, y) + (C_D/(h_mean + h))*magnitude*u
+Sv = u*diff(v,x) + v*diff(v,y) + g*diff(h,y) - diff(tau_yy, y) - diff(tau_yx, x) + (C_D/(h_mean + h))*magnitude*v
+
 Sh = diff((h_mean + h)*u, x) + diff((h_mean + h)*v, y)
 
 print 'from math import sin, cos, tanh, pi, sqrt'
