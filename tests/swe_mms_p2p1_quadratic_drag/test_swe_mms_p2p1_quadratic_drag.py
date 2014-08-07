@@ -26,8 +26,8 @@ def swe_mms_p2p1_quadratic_drag():
       
       fs_exact = FunctionSpace(sw.mesh, "CG", 3)
       
-      ux_exact = project(Expression("pow(cos(x[1]), 3)*sin(x[0])"), fs_exact)
-      uy_exact = project(Expression("pow(sin(x[0]), 2)*sin(x[1])"), fs_exact)
+      ux_exact = project(Expression("cos(x[0])*sin(x[1])"), fs_exact)
+      uy_exact = project(Expression("sin(x[0]*x[0]) + cos(x[1])"), fs_exact)
       h_exact = project(Expression("sin(x[0])*sin(x[1])"), fs_exact)
       
       h_norms.append(sqrt(assemble(dot(h_old - h_exact, h_old - h_exact) * dx)))
@@ -38,9 +38,12 @@ def swe_mms_p2p1_quadratic_drag():
 
 def test_swe_mms_p2p1_quadratic_drag(input):
    h_norms, ux_norms, uy_norms = numpy.array(swe_mms_p2p1_quadratic_drag())
-   assert (numpy.array([numpy.log2(h_norms[i]/h_norms[i+1]) for i in range(len(h_norms)-1)]) > 1.45).all()
+   print h_norms
+   print ux_norms
+   print uy_norms
+   assert (numpy.array([numpy.log2(h_norms[i]/h_norms[i+1]) for i in range(len(h_norms)-1)]) > 2.0).all()
    assert (numpy.array([numpy.log2(ux_norms[i]/ux_norms[i+1]) for i in range(len(ux_norms)-1)]) > 2.2).all()
-   assert (numpy.array([numpy.log2(uy_norms[i]/uy_norms[i+1]) for i in range(len(uy_norms)-1)]) > 1.4).all()
+   assert (numpy.array([numpy.log2(uy_norms[i]/uy_norms[i+1]) for i in range(len(uy_norms)-1)]) > 2.0).all()
    
 if __name__ == '__main__':
    pytest.main(os.path.abspath(__file__))

@@ -2,8 +2,8 @@ y = var('y')
 from math import pi
 
 h = sin(x)*sin(y)
-u = sin(x)*cos(y)**3
-v = sin(x)**2*sin(y)
+u = cos(x)*sin(y)
+v = sin(x*x) + cos(y)
 
 g = 9.8
 
