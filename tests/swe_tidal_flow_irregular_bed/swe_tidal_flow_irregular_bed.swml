@@ -41,7 +41,7 @@
       <string_value>vtk</string_value>
     </dump_format>
     <dump_period>
-      <real_value rank="0">0.0</real_value>
+      <real_value rank="0">10800.0</real_value>
     </dump_period>
   </io>
   <timestepping>
