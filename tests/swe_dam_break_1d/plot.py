@@ -22,7 +22,7 @@ h_analytical = []
 for point in x:
    h_analytical.append(riemann_swe.solution(point-1000, t)[0] - 5.0)
 
-pylab.plot(x, h_numerical, 'g-', label="Numerical (Firedrake)")
+pylab.plot(x, h_numerical, 'g-', label="Numerical (Firedrake-Fluids)")
 pylab.plot(x, h_analytical, 'g--', label="Analytical")
 pylab.legend()
 pylab.xlabel(r"$x$ (m)")
@@ -49,7 +49,7 @@ u_analytical = []
 for point in x:
    u_analytical.append(riemann_swe.solution(point-1000, t)[1])
 
-pylab.plot(x, u_numerical, 'g-', label="Numerical (Firedrake)")
+pylab.plot(x, u_numerical, 'g-', label="Numerical (Firedrake-Fluids)")
 pylab.plot(x, u_analytical, 'g--', label="Analytical")
 pylab.legend()
 pylab.xlabel(r"$x$ (m)")
