@@ -49,7 +49,7 @@ def test_swe_tidal_flow_regular_bed():
    if(plot):
       pylab.figure(0)
       pylab.plot(x, ux_analytical, 'g-', label="Analytical")
-      pylab.plot(x[0:len(ux):5], ux[0:len(ux):5], 'b.', label="Numerical (Firedrake)")
+      pylab.plot(x[0:len(ux):5], ux[0:len(ux):5], 'b.', label="Numerical (Firedrake-Fluids)")
       pylab.legend()
       pylab.xlabel("x (m)")
       pylab.ylabel("Velocity (m/s)")
@@ -57,7 +57,7 @@ def test_swe_tidal_flow_regular_bed():
       
       pylab.figure(1)
       pylab.plot(x, h_analytical, 'g-', label="Analytical")
-      pylab.plot(x[0:len(h):5], h[0:len(h):5] + H[0:len(h):5], 'b.', label="Numerical (Firedrake)")
+      pylab.plot(x[0:len(h):5], h[0:len(h):5] + H[0:len(h):5], 'b.', label="Numerical (Firedrake-Fluids)")
       pylab.legend()
       pylab.xlabel("x (m)")
       pylab.ylabel("Free surface (m)")
