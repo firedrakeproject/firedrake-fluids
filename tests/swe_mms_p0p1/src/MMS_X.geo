@@ -1,4 +1,4 @@
-dx = 0.025;
+dx = 0.05;
 Point(1) = {0,0,0,dx};
 Extrude {1,0,0} {
   Point{1}; Layers{1/dx};
