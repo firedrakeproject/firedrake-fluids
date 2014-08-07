@@ -26,8 +26,9 @@ pylab.plot(x, h_numerical, 'g-', label="Numerical (Firedrake-Fluids)")
 pylab.plot(x, h_analytical, 'g--', label="Analytical")
 pylab.legend()
 pylab.xlabel(r"$x$ (m)")
-pylab.ylabel(r"$h$ (m)")
+pylab.ylabel(r"Free surface perturbation (m)")
 pylab.axis([0, 2000, 0, 5])
+pylab.figtext(0.18, 0.18, "(a)")
 pylab.savefig('h.pdf')
 
 # Velocity
@@ -51,9 +52,10 @@ for point in x:
 
 pylab.plot(x, u_numerical, 'g-', label="Numerical (Firedrake-Fluids)")
 pylab.plot(x, u_analytical, 'g--', label="Analytical")
-pylab.legend()
+pylab.legend(loc=4)
 pylab.xlabel(r"$x$ (m)")
-pylab.ylabel(r"$u$ (ms$^{-1}$)")
+pylab.ylabel(r"Velocity (ms$^{-1}$)")
 pylab.axis([0, 2000, 0, 3])
+pylab.figtext(0.18, 0.18, "(b)")
 pylab.savefig('u.pdf')
 
