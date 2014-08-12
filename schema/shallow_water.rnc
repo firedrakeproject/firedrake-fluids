@@ -140,15 +140,6 @@ start =
             {
                real
             },
-            ## How many nonlinear iterations in the timestepping loop
-            element nonlinear_iterations 
-            {
-               integer,
-               element tolerance 
-               {
-                  real
-               }
-            },
             ## Simulation time at which the simulation should end.
             element finish_time 
             {
@@ -319,6 +310,11 @@ momentum_equation_options =
             {
                stabilisation_options
             }
+         }|
+         ## Discontinuous Galerkin discretisation.
+         element discontinuous_galerkin 
+         {
+            empty
          }
       },
       ## Options for the mass term.

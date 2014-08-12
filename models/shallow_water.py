@@ -231,7 +231,7 @@ class ShallowWater:
       dimension = self.options["dimension"]
       g_magnitude = self.options["g_magnitude"]
       
-      # Are we discretising the momentum equation using a Discontinuous Galerkin method?
+      # Is the Velocity field represented by a discontinous function space?
       dg = (self.W.sub(0).ufl_element().family() == "Discontinuous Lagrange")
       
       # The total height of the free surface.
@@ -489,8 +489,7 @@ class ShallowWater:
                                                                   'pc_fieldsplit_schur_fact_type': 'FULL',
                                                                   'fieldsplit_0_ksp_type': 'preonly',
                                                                   'fieldsplit_1_ksp_type': 'preonly',
-                                                                  'ksp_rtol': 1.0e-7,
-                                                                  'snes_type':'ksponly'})
+                                                                  'ksp_rtol': 1.0e-7})
       
       t += dt
       iterations_since_dump = 1

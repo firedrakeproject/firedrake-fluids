@@ -51,12 +51,6 @@
     <timestep>
       <real_value rank="0">0.25</real_value>
     </timestep>
-    <nonlinear_iterations>
-      <integer_value rank="0">2</integer_value>
-      <tolerance>
-        <real_value rank="0">1.0e-7</real_value>
-      </tolerance>
-    </nonlinear_iterations>
     <finish_time>
       <real_value rank="0">60.0</real_value>
     </finish_time>

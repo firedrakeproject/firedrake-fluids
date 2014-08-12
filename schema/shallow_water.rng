@@ -127,13 +127,6 @@ is the start time.</a:documentation>
 then this is the initial time step size.</a:documentation>
           <ref name="real"/>
         </element>
-        <element name="nonlinear_iterations">
-          <a:documentation>How many nonlinear iterations in the timestepping loop</a:documentation>
-          <ref name="integer"/>
-          <element name="tolerance">
-            <ref name="real"/>
-          </element>
-        </element>
         <element name="finish_time">
           <a:documentation>Simulation time at which the simulation should end.</a:documentation>
           <ref name="real"/>
@@ -280,12 +273,18 @@ This allows the imposition of weak boundary conditions for the Velocity field.</
   <define name="momentum_equation_options">
     <element name="spatial_discretisation">
       <a:documentation>Spatial discretisation options.</a:documentation>
-      <element name="continuous_galerkin">
-        <a:documentation>Continuous Galerkin discretisation.</a:documentation>
-        <element name="stabilisation">
-          <ref name="stabilisation_options"/>
+      <choice>
+        <element name="continuous_galerkin">
+          <a:documentation>Continuous Galerkin discretisation.</a:documentation>
+          <element name="stabilisation">
+            <ref name="stabilisation_options"/>
+          </element>
         </element>
-      </element>
+        <element name="discontinuous_galerkin">
+          <a:documentation>Discontinuous Galerkin discretisation.</a:documentation>
+          <empty/>
+        </element>
+      </choice>
     </element>
     <element name="mass_term">
       <a:documentation>Options for the mass term.</a:documentation>
