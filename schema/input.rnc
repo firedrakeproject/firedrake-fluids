@@ -4,23 +4,12 @@ input_choice_real =
       element constant {
          real
       }|
-      ## Python function prescribing real input. Functions should be of the form:
-      ##
-      ##  def val(x):
-      ##     # Function code
-      ##     return # Return value
-      ##
-      ## where x is a tuple of length geometry dimension.
-      element python {
-         python_code
-      }|
       ## Python function prescribing real input given as a C++ string. Functions should be of the form:
       ##
       ##  def val(t):
-      ##     # Function code
-      ##     return # String containing the input as C++ code.
-      ##
-      ## where X is a tuple of length geometry dimension.
+      ##     # String containing the input as C++ code.
+      ##     s = "C++ code here, e.g. sin(x[0])"
+      ##     return s
       element cpp {
          python_code
       }
@@ -32,23 +21,12 @@ input_choice_real_dim_vector =
       element constant {
          real_dim_vector
       }|
-      ## Python function prescribing real input. Functions should be of the form:
-      ##
-      ##  def val(X, t):
-      ##     # Function code
-      ##     return # Return value
-      ##
-      ## where X is a tuple of length geometry dimension.
-      element python {
-         python_code
-      }|
       ## Python function prescribing real input given as a C++ string. Functions should be of the form:
       ##
       ##  def val(t):
-      ##     # Function code
-      ##     return # String containing the input as C++ code.
-      ##
-      ## where X is a tuple of length geometry dimension.
+      ##     # String containing the input as C++ code.
+      ##     s = "C++ code here, e.g. sin(x[0])"
+      ##     return s
       element cpp {
          python_code
       }

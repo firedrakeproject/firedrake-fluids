@@ -6,24 +6,13 @@
         <a:documentation>Constant value</a:documentation>
         <ref name="real"/>
       </element>
-      <element name="python">
-        <a:documentation>Python function prescribing real input. Functions should be of the form:
-
- def val(x):
-    # Function code
-    return # Return value
-
-where x is a tuple of length geometry dimension.</a:documentation>
-        <ref name="python_code"/>
-      </element>
       <element name="cpp">
         <a:documentation>Python function prescribing real input given as a C++ string. Functions should be of the form:
 
  def val(t):
-    # Function code
-    return # String containing the input as C++ code.
-
-where X is a tuple of length geometry dimension.</a:documentation>
+    # String containing the input as C++ code.
+    s = "C++ code here, e.g. sin(x[0])"
+    return s</a:documentation>
         <ref name="python_code"/>
       </element>
     </choice>
@@ -34,24 +23,13 @@ where X is a tuple of length geometry dimension.</a:documentation>
         <a:documentation>Constant value</a:documentation>
         <ref name="real_dim_vector"/>
       </element>
-      <element name="python">
-        <a:documentation>Python function prescribing real input. Functions should be of the form:
-
- def val(X, t):
-    # Function code
-    return # Return value
-
-where X is a tuple of length geometry dimension.</a:documentation>
-        <ref name="python_code"/>
-      </element>
       <element name="cpp">
         <a:documentation>Python function prescribing real input given as a C++ string. Functions should be of the form:
 
  def val(t):
-    # Function code
-    return # String containing the input as C++ code.
-
-where X is a tuple of length geometry dimension.</a:documentation>
+    # String containing the input as C++ code.
+    s = "C++ code here, e.g. sin(x[0])"
+    return s</a:documentation>
         <ref name="python_code"/>
       </element>
     </choice>

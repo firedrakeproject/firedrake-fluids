@@ -7,23 +7,24 @@ include "les.rnc"
 
 start =
    (
-      ## The root node of the options dictionary.
+      ## The root node of the shallow water options dictionary.
       element shallow_water_options 
       {
          comment,
-         ## Model output files are named according to the simulation
-         ## name, e.g. [simulation_name]_0.vtu. Non-standard
-         ## characters in the simulation name should be avoided.
-         element simulation_name 
+         ## The name of the simulation. All output files will
+         ## have this prepended to their filenames, e.g.
+         ## [simulation_name]_0.vtu. The use of non-standard
+         ## characters should be avoided.
+         element simulation_name
          {
             anystring
          },
-         ## Options dealing with the specification of geometry
+         ## Geometry-related options.
          element geometry 
          {
-            ## Dimension of the problem.
-            ## <b>This can only be set once</b>
-            element dimension 
+            ## The dimension of the problem.
+            ## <b>This can only be set once.</b>
+            element dimension
             {
                element integer_value 
                {
@@ -50,7 +51,7 @@ start =
                         integer
                      }
                   }|
-                  ## Input mesh from a file.
+                  ## Input mesh from a file. Only Gmsh format is currently supported.
                   element from_file 
                   {
                      ## The path to the mesh file, relative to the directory where this simulation setup file is stored.
@@ -83,7 +84,7 @@ start =
          ## Input/output options
          element io 
          {
-            ## Format for dump files. Only vtk for now.
+            ## Format for dump files. Only vtk is currently supported.
             element dump_format 
             {
                element string_value 
@@ -111,31 +112,17 @@ start =
                      real
                   }
                }
-            )?,
-            ## Output field values at particular points in space at each timestep.
-            element detectors 
-            {
-               element locations_file 
-               {
-                  anystring
-               },
-               element values_file 
-               {
-                  anystring
-               }
-            }?
+            )?
          },
          ## Options concerning the time loop.
          element timestepping 
          {
-            ## Current simulation time. At the start of the simulation this
-            ## is the start time.
-            element current_time 
+            ## The time t at the start of the simulation. This is usually set to 0.
+            element current_time
             {
                real
             },
-            ## The time step size. If adaptive time stepping is used
-            ## then this is the initial time step size.
+            ## The time step size.
             element timestep 
             {
                real
@@ -342,7 +329,9 @@ momentum_equation_options =
       },
       ## Options for the stress term div(T) where T is the stress tensor, defined by
       ##
-      ## T = viscosity*( (grad(u) + grad(u)^T) - (2/3)*div(u) )
+      ## T = nu*( (grad(u) + grad(u)^T) - (2/3)*div(u)*I )
+      ##
+      ## where I is the identity tensor, u is the velocity field, and nu is the kinematic, isotropic viscosity.
       element stress_term
       {
          ## Isotropic viscosity.
@@ -359,7 +348,7 @@ momentum_equation_options =
       ## Options for the drag term.
       element drag_term
       {
-         ## The drag coefficient in the quadratic drag term.
+         ## The (non-dimensional) drag coefficient in the quadratic drag term.
          element scalar_field 
          {
             attribute name { "DragCoefficient" },

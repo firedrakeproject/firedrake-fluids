@@ -7,19 +7,20 @@
   <include href="les.rng"/>
   <start>
     <element name="shallow_water_options">
-      <a:documentation>The root node of the options dictionary.</a:documentation>
+      <a:documentation>The root node of the shallow water options dictionary.</a:documentation>
       <ref name="comment"/>
       <element name="simulation_name">
-        <a:documentation>Model output files are named according to the simulation
-name, e.g. [simulation_name]_0.vtu. Non-standard
-characters in the simulation name should be avoided.</a:documentation>
+        <a:documentation>The name of the simulation. All output files will
+have this prepended to their filenames, e.g.
+[simulation_name]_0.vtu. The use of non-standard
+characters should be avoided.</a:documentation>
         <ref name="anystring"/>
       </element>
       <element name="geometry">
-        <a:documentation>Options dealing with the specification of geometry</a:documentation>
+        <a:documentation>Geometry-related options.</a:documentation>
         <element name="dimension">
-          <a:documentation>Dimension of the problem.
-&lt;b&gt;This can only be set once&lt;/b&gt;</a:documentation>
+          <a:documentation>The dimension of the problem.
+&lt;b&gt;This can only be set once.&lt;/b&gt;</a:documentation>
           <element name="integer_value">
             <attribute name="rank">
               <value>0</value>
@@ -51,7 +52,7 @@ characters in the simulation name should be avoided.</a:documentation>
               </element>
             </element>
             <element name="from_file">
-              <a:documentation>Input mesh from a file.</a:documentation>
+              <a:documentation>Input mesh from a file. Only Gmsh format is currently supported.</a:documentation>
               <element name="relative_path">
                 <a:documentation>The path to the mesh file, relative to the directory where this simulation setup file is stored.</a:documentation>
                 <ref name="anystring"/>
@@ -82,7 +83,7 @@ that are solved for.</a:documentation>
       <element name="io">
         <a:documentation>Input/output options</a:documentation>
         <element name="dump_format">
-          <a:documentation>Format for dump files. Only vtk for now.</a:documentation>
+          <a:documentation>Format for dump files. Only vtk is currently supported.</a:documentation>
           <element name="string_value">
             <value>vtk</value>
           </element>
@@ -103,28 +104,15 @@ Setting this to zero will result in checkpoint dumps at every time-step.</a:docu
             </element>
           </element>
         </optional>
-        <optional>
-          <element name="detectors">
-            <a:documentation>Output field values at particular points in space at each timestep.</a:documentation>
-            <element name="locations_file">
-              <ref name="anystring"/>
-            </element>
-            <element name="values_file">
-              <ref name="anystring"/>
-            </element>
-          </element>
-        </optional>
       </element>
       <element name="timestepping">
         <a:documentation>Options concerning the time loop.</a:documentation>
         <element name="current_time">
-          <a:documentation>Current simulation time. At the start of the simulation this
-is the start time.</a:documentation>
+          <a:documentation>The time t at the start of the simulation. This is usually set to 0.</a:documentation>
           <ref name="real"/>
         </element>
         <element name="timestep">
-          <a:documentation>The time step size. If adaptive time stepping is used
-then this is the initial time step size.</a:documentation>
+          <a:documentation>The time step size.</a:documentation>
           <ref name="real"/>
         </element>
         <element name="finish_time">
@@ -314,7 +302,9 @@ This allows the imposition of weak boundary conditions for the Velocity field.</
       <element name="stress_term">
         <a:documentation>Options for the stress term div(T) where T is the stress tensor, defined by
 
-T = viscosity*( (grad(u) + grad(u)^T) - (2/3)*div(u) )</a:documentation>
+T = nu*( (grad(u) + grad(u)^T) - (2/3)*div(u)*I )
+
+where I is the identity tensor, u is the velocity field, and nu is the kinematic, isotropic viscosity.</a:documentation>
         <element name="scalar_field">
           <a:documentation>Isotropic viscosity.
 Note that this is the kinematic viscosity for shallow water simulations.</a:documentation>
@@ -331,7 +321,7 @@ Note that this is the kinematic viscosity for shallow water simulations.</a:docu
       <element name="drag_term">
         <a:documentation>Options for the drag term.</a:documentation>
         <element name="scalar_field">
-          <a:documentation>The drag coefficient in the quadratic drag term.</a:documentation>
+          <a:documentation>The (non-dimensional) drag coefficient in the quadratic drag term.</a:documentation>
           <attribute name="name">
             <value>DragCoefficient</value>
           </attribute>
