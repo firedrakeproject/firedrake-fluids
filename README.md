@@ -1,6 +1,6 @@
 # Firedrake-Fluids
 
-A collection of numerical models for fluid flow simulation using the [Firedrake](http://www.firedrakeproject.org) framework.
+A collection of numerical models for fluid flow simulation, using the [Firedrake](http://www.firedrakeproject.org) performance-portable automated solution framework.
 
 ## Dependencies
 
