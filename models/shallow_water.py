@@ -1,35 +1,27 @@
 # Copyright 2013 Imperial College London. All rights reserved.
 
 import sys, os
-import optparse
+import argparse
 import numpy
 
 import libspud
 from firedrake import *
 
+# Firedrake-Fluids modules
 import fields_calculations
 import diagnostics
-from stabilisation import *
-from les import *
+from stabilisation import Stabilisation
+from les import LES
 
 class ExpressionFromOptions(Expression):
    def __init__(self, path, t):
-      self.path = path
       if(libspud.have_option(path + "/constant")):
-         self.source_type = "constant"
          self.source_value = libspud.get_option(path + "/constant")
-         # FIXME: If the user provides a single constant value then libspud will convert it to a float.
-         # But the Expression class expects a string, so convert it here if necessary.
-         if(isinstance(self.source_value, float) or isinstance(self.source_value, int)):
-            Expression.__init__(self, code=str(self.source_value), t=t)
-         elif(isinstance(self.source_value, list) or isinstance(self.source_value, tuple)):
-            Expression.__init__(self, code=[str(self.source_value[dim]) for dim in range(len(self.source_value))], t=t)
-         else:
-            Expression.__init__(self, code=self.source_value, t=t)
+         Expression.__init__(self, code=self.source_value, t=t)
       elif(libspud.have_option(path + "/cpp")):
-         self.source_type = "cpp"
+         # For C++ expressions, normally used when the value is non-constant in space and/or time.
          self.source_value = libspud.get_option(path + "/cpp")
-         exec self.source_value
+         exec self.source_value # Make the 'val' function that the user has defined available for calling.
          Expression.__init__(self, code=val(t), t=t)
       else:
          print "No value specified"
@@ -54,6 +46,7 @@ class ShallowWater:
       # Read in the input mesh (or construct a unit mesh)
       dimension = self.options["dimension"]
       if(libspud.have_option("/geometry/mesh/unit_mesh")):
+         # Unit mesh whose vertex coordinates lie in the range [0, 1] along all axes.
          number_of_nodes = libspud.get_option("/geometry/mesh/unit_mesh/number_of_nodes")
          if(dimension == 1):
             self.mesh = UnitIntervalMesh(number_of_nodes[0])
@@ -65,10 +58,12 @@ class ShallowWater:
             print "Unsupported dimension."
             sys.exit(1)
       elif(libspud.have_option("/geometry/mesh/interval_mesh")):
+         # Interval mesh whose vertex coordinates lie in the range [0, L].
          L = libspud.get_option("/geometry/mesh/interval_mesh/length")
          n = libspud.get_option("/geometry/mesh/interval_mesh/number_of_cells")
          self.mesh = IntervalMesh(n, L)
       elif(libspud.have_option("/geometry/mesh/from_file")):
+         # A user-defined file (currently only supports Gmsh format).
          path_to_config = os.path.dirname(os.path.abspath(path))
          # This is the path relative to the directory where the configuration file is stored.
          path_to_mesh = libspud.get_option("/geometry/mesh/from_file/relative_path") 
@@ -79,28 +74,35 @@ class ShallowWater:
 
       # Create a dictionary containing all the function spaces
       self.function_spaces = {}
-      for i in range(0, libspud.option_count("/function_spaces/function_space")):
-         name = libspud.get_option("/function_spaces/function_space["+str(i)+"]/name")
-         family = libspud.get_option("/function_spaces/function_space["+str(i)+"]/family")
-         degree = libspud.get_option("/function_spaces/function_space["+str(i)+"]/degree")
-         print "Setting up a new %s function space of degree %d called %s" % (family, degree, name)
-         if(family == "Continuous Lagrange"):
-            if(name == "VelocityFunctionSpace"): # FIXME: Include a "scalar/vector/tensor" type for the function space in the schema.
-               self.function_spaces[name] = VectorFunctionSpace(self.mesh, "CG", degree)
-            else:
-               self.function_spaces[name] = FunctionSpace(self.mesh, "CG", degree)
-         elif(family == "Discontinuous Lagrange"):
-            if(name == "VelocityFunctionSpace"):
-               self.function_spaces[name] = VectorFunctionSpace(self.mesh, "DG", degree)
-            else:
-               self.function_spaces[name] = FunctionSpace(self.mesh, "DG", degree)
-         else:
-            print "Unknown element family: %s." % family
-            sys.exit(1)
-            
-      # Define the coordinate function space as P1.
-      self.function_spaces["CoordinateFunctionSpace"] = FunctionSpace(self.mesh, "CG", 1)
-                
+                      
+      # The Velocity field's function space
+      name = "VelocityFunctionSpace"
+      path = "/function_spaces/function_space::%s" % name
+      family = libspud.get_option(path+"/family")
+      degree = libspud.get_option(path+"/degree")
+      print "Setting up a new %s function space of degree %d called VelocityFunctionSpace" % (family, degree)
+      if(family == "Continuous Lagrange"):
+         self.function_spaces[name] = VectorFunctionSpace(self.mesh, "CG", degree)
+      elif(family == "Discontinuous Lagrange"):
+         self.function_spaces[name] = VectorFunctionSpace(self.mesh, "DG", degree)
+      else:
+         print "Unknown element family: %s." % family
+         sys.exit(1)
+         
+      # The FreeSurfacePerturbation field's function space
+      name = "FreeSurfaceFunctionSpace"
+      path = "/function_spaces/function_space::%s" % name
+      family = libspud.get_option(path+"/family")
+      degree = libspud.get_option(path+"/degree")
+      print "Setting up a new %s function space of degree %d called FreeSurfaceFunctionSpace" % (family, degree)
+      if(family == "Continuous Lagrange"):
+         self.function_spaces[name] = FunctionSpace(self.mesh, "CG", degree)
+      elif(family == "Discontinuous Lagrange"):
+         self.function_spaces[name] = FunctionSpace(self.mesh, "DG", degree)
+      else:
+         print "Unknown element family: %s." % family
+         sys.exit(1)
+
       # Define the mixed function space
       U = self.function_spaces["VelocityFunctionSpace"]
       H = self.function_spaces["FreeSurfaceFunctionSpace"]
@@ -235,8 +237,8 @@ class ShallowWater:
       # The total height of the free surface.
       H = self.h_mean + self.h
       
-      # Coordinate mesh
-      P1 = self.function_spaces["CoordinateFunctionSpace"]
+      # Simple P1 function space, to be used in the stabilisation routines (if applicable).
+      P1 = FunctionSpace(self.mesh, "CG", 1)
       cellsize = CellSize(self.mesh)
 
       # The collection of all the individual terms in their weak form.
@@ -586,20 +588,19 @@ class ShallowWater:
 
 if(__name__ == "__main__"):
    # Parse options and arguments from the command line
-   parser = optparse.OptionParser()
-   parser.add_option("-c", "--checkpoint", action="store", default=None, help="Initialise field values from a specified checkpoint file.")
-   (options, args) = parser.parse_args()
-   
-   try:
-      path = args[0]
-   except IndexError:
-      print "Please provide the path to the simulation configuration file."
+   usage = "Usage: python /path/to/shallow_water.py [options] path/to/simulation_setup_file.swml"
+   parser = argparse.ArgumentParser(description="The shallow water model in the Firedrake-Fluids CFD code.")
+   parser.add_argument("-c", "--checkpoint", action="store", default=None, type=str, help="Initialise field values from a specified checkpoint file.", metavar="CHECKPOINT_FILE")
+   parser.add_argument("path", help="The path to the simulation configuration file (with a .swml extension).", action="store", type=str)
+   args = parser.parse_args()
+      
+   if(os.path.exists(args.path)):
+      # Set up a shallow water simulation.
+      sw = ShallowWater(path=args.path, checkpoint=args.checkpoint)
+      
+      # Solve the shallow water equations!
+      sw.run()
+   else:
+      print "The path to the simulation setup file does not exist."
       sys.exit(1)
-      
-   # Set up a shallow water simulation.
-   sw = ShallowWater(path, checkpoint=options.checkpoint)
-      
-   # Solve the shallow water equations!
-   sw.run()
    
-
