@@ -259,7 +259,9 @@ class ShallowWater:
 
             A_momentum = -inner(dot(self.u, grad(self.w)), self.u)*dx - inner(dot(self.u, grad(self.u)), self.w)*dx
             A_momentum += inner(self.w, outflow*self.u)*ds
-            A_momentum += dot(outflow('+')*self.u('+') - outflow('-')*self.u('-'), jump(self.w))*dS
+            if(dg):
+               # Only add interior facet integrals if we are dealing with a discontinous Galerkin discretisation.
+               A_momentum += dot(outflow('+')*self.u('+') - outflow('-')*self.u('-'), jump(self.w))*dS
 
          else:
             A_momentum = inner(dot(grad(self.u), self.u), self.w)*dx
@@ -300,7 +302,7 @@ class ShallowWater:
             K_momentum += viscosity*(2.0/3.0)*inner(div(self.u)*Identity(dimension), grad(self.w))*dx
          else:
             # Interior penalty method
-            cellsize = Constant(0.2) #CellSize(self.mesh)
+            cellsize = Constant(0.2) # In general, we should use CellSize(self.mesh) instead.
             alpha = 1/cellsize # Penalty parameter.
             
             K_momentum = -viscosity('+')*inner(grad(self.u), grad(self.w))*dx
