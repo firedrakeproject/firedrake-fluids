@@ -21,7 +21,7 @@ export PYTHONPATH=$PYTHONPATH:/home/christian/firedrake-fluids/models
 * Run the tests (which are located in the `tests` directory) using
 
 ```
-make tests
+make test
 ```
 
 from the Firedrake-Fluids base directory, to ensure that Firedrake-Fluids is working properly.
