@@ -7,6 +7,9 @@ A collection of numerical models for fluid flow simulation using the [Firedrake]
 Firedrake-Fluids depends on:
 * [Firedrake](http://firedrakeproject.org)
 * [libspud](https://launchpad.net/spud)
+* [pytest](http://pytest.org) (optional, but required to run `make tests`)
+* [gmsh](http://geuz.org/gmsh/) (optional, but required to run some tests)
+* pdfLaTeX (optional, but required to build the user manual from source)
 
 ## Quick start
 * Append the Firedrake-Fluids `models` directory to your `PYTHONPATH` environment variable using, for example,
