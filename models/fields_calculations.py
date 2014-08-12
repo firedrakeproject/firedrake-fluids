@@ -5,7 +5,6 @@ from firedrake import *
 def magnitude_vector(mesh, u, function_space):
    """ Calculate the magnitude of a given vector 'u'. """
 
-#   function_space = u[0].function_space() # Assumes all components of velocity live in the same function space
    w = TestFunction(function_space)
    magnitude = TrialFunction(function_space)
    solution = Function(function_space)
