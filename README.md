@@ -26,7 +26,7 @@ make test
 
 from the Firedrake-Fluids base directory, to ensure that Firedrake-Fluids is working properly.
 
-* You can setup a new shallow water simulation using Diamond, which comes with the libspud install.
+* You can setup a new shallow water simulation using Diamond, which comes with the libspud dependency.
 
 ```
 diamond -s schemas/shallow_water.rng my_new_simulation_setup_file.swml
