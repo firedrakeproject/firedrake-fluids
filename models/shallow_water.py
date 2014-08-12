@@ -12,13 +12,6 @@ import diagnostics
 from stabilisation import *
 from les import *
 
-# FIXME: the detectors module currently relies on vtktools.
-# Temporarily wrap this in a try-except block in case vtktools doesn't exist.
-try:
-   import detectors
-except:
-   print "Could not import the detectors module"
-
 class ExpressionFromOptions(Expression):
    def __init__(self, path, t):
       self.path = path
@@ -161,13 +154,6 @@ class ShallowWater:
       self.output_function[1].assign(self.solution_old.split()[1])
       self.output_file[1] << self.output_function[1]
     
-      # Initialise detectors
-      if(self.options["have_detectors"]):
-         self.detectors = detectors.Detectors(locations_file_name = "detectors.xy", 
-                                              values_file_name = "detectors.dat", 
-                                              fields = ["FreeSurfacePerturbation", "Velocity_0", "Velocity_1"])
-         self.detectors.write(self.options["simulation_name"], 0.0, self.options["dt"])
-         
       return
       
    def populate_options(self):
@@ -230,9 +216,6 @@ class ShallowWater:
       # Integration by parts
       self.options["integrate_continuity_equation_by_parts"] = libspud.have_option("/system/equations/continuity_equation/integrate_by_parts")
       self.options["integrate_advection_term_by_parts"] = libspud.have_option("/system/equations/momentum_equation/advection_term/integrate_by_parts")
-      
-      # Detectors
-      self.options["have_detectors"] = libspud.have_option("/io/detectors/")
       
       return
       
@@ -585,10 +568,6 @@ class ShallowWater:
          if(global_max_difference_h <= self.options["steady_state_tolerance"] and (numpy.array(global_max_difference_u) <= self.options["steady_state_tolerance"]).all()):
             print "Steady-state attained. Exiting the time-stepping loop..."
             break
-
-         # Write detector values to file
-         if(self.options["have_detectors"]):
-            self.detectors.write(self.options["simulation_name"], t, dt)
             
          # Move to next time step    
          self.solution_old.assign(self.solution)    
@@ -602,10 +581,6 @@ class ShallowWater:
       average /= ((t-dt)/dt)
       f = File("average.pvd")
       f << average
-         
-      # Any final steps (e.g. closing files)
-      if(self.options["have_detectors"]):
-         self.detectors.finalise()
   
       return
 
