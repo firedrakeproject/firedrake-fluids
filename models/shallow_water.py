@@ -496,8 +496,6 @@ class ShallowWater:
       iterations_since_dump = 1
       iterations_since_checkpoint = 1
       
-      average = Function(self.W.sub(0))
-      
       # The time-stepping loop
       EPSILON = 1.0e-14
       while t <= T + EPSILON: # A small value EPSILON is added here in case of round-off error.
@@ -557,11 +555,6 @@ class ShallowWater:
             # Reset the counter.
             iterations_since_checkpoint = 0
             
-            
-            
-         
-         average += self.solution.split()[0]
-            
          # Check whether a steady-state has been reached.
          # Take the maximum difference across all processes.
          global_max_difference_h = max(abs(self.solution.split()[1].vector().gather() - self.solution_old.split()[1].vector().gather()))
@@ -579,10 +572,6 @@ class ShallowWater:
          print "Moving to next time level..."      
       
       print "Out of the time-stepping loop."
-      
-      average /= ((t-dt)/dt)
-      f = File("average.pvd")
-      f << average
   
       return
 
