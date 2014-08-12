@@ -52,3 +52,7 @@ from the Firedrake-Fluids base directory.
 
 If you have any questions about Firedrake-Fluids, please send an email to <c.jacobs10@imperial.ac.uk>.
 
+## License
+
+Firedrake-Fluids is released under the GNU General Public License. Please see the file called COPYING for more information.
+
