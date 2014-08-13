@@ -34,6 +34,9 @@
 \setlength{\parskip}{0.3cm}
 \setlength{\parindent}{0cm}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%% Introduction %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Introduction}
 \section{Overview}
 Firedrake-Fluids is a collection of finite element-based numerical models for the study of fluid dynamical systems. It uses the Firedrake framework \citep{ImperialCollegeLondon_2013, Rathgeber_Submitted} to automate the solution of the governing equations written in their weak form using the Unified Form Language (UFL) \citep{Alnaes_etal_2014}.
@@ -64,7 +67,9 @@ Before running the models in Firedrake-Fluids, please ensure that all the depend
 
 Firedrake-Fluids comprises a collection of Python files containing the implementation of the different models; a set of schema files used to define the different options a simulation configuration file can take; and a set of test cases to help ensure the correctness of the models.
 
-
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%% Shallow water model %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Shallow water model}
 The shallow water model solves the non-linear, non-rotational shallow water equations which describe the dynamics of a free surface and a depth-averaged velocity field. For modelling purposes, the free surface is split up into a mean component $H$ (i.e. the hydrostatic depth to the seabed) and a perturbation component $h$ (see Figure \ref{fig:shallow_water_setup}).
 
@@ -123,8 +128,9 @@ where $\mathbf{M}$, $\mathbf{A}$, $\mathbf{K}$, $\mathbf{C}$ and $\mathbf{D}$ ar
 
 The time-derivative is discretised using the implicit backward Euler method, yielding a fully discrete system of equations:
 \begin{eqnarray}
-   \mathbf{M}\frac{\mathbf{u}^{n+1} - \mathbf{u}^{n}}{\Delta t} + \mathbf{A}(\mathbf{u}^{n+1})\mathbf{u}^{n+1} + \mathbf{K}\mathbf{u}^{n+1} = -\mathbf{C}h^{n+1} + \mathbf{D}(\mathbf{u}^{n+1}, h^{n+1})\mathbf{u}^{n+1}.
+   \mathbf{M}\frac{\mathbf{u}^{n+1} - \mathbf{u}^{n}}{\Delta t} + \mathbf{A}(\mathbf{u}^{n+1})\mathbf{u}^{n+1} + \mathbf{K}\mathbf{u}^{n+1} = -\mathbf{C}h^{n+1} + \mathbf{D}(\mathbf{u}^{n+1}, h^{n+1})\mathbf{u}^{n+1},
 \end{eqnarray}
+where $\Delta t$ is the time-step.
 
 The finite element method is also applied to the continuity equation, which must be solved along with the momentum equation, yielding a block-coupled system. In Firedrake-Fluids, this system is preconditioned using a fieldsplit preconditioner \citep{Brown_etal_2012} and solved with the GMRES linear solver \citep{SaadSchultz_1986}.
 
@@ -155,15 +161,20 @@ The \texttt{/geometry} section of the setup file concerns the dimension of the p
 The dimension should be one of the first options to be set. Be careful here; this option can only be set once because other options further down the list rely on it.
 
 \subsection{Function spaces}
+Since two fields, velocity $\mathbf{u}$ and free surface perturbation $h$, have to be solved for in the shallow water model, two function spaces may be specified. In Firedrake-Fluids, the function spaces are assumed to be composed of Lagrange polynomial basis functions. The order of these polynomials can be specified in the \texttt{degree} sub-option of each \texttt{function\_space}. The \texttt{family} refers to whether the basis functions are continuous or discontinous across the cells/elements of the mesh.
 
 \subsection{Input/output (I/O)}
 Solution files may be dumped at specific intervals, specified in time units. Setting the \texttt{io/dump\_period} option to zero will result in dumps at every time-step. Note that solution files can currently only be written in VTU format (see \texttt{www.vtk.org} for more information).
 
-Users can also enable checkpointing which allows them to resume the simulation at a later time. The time interval between checkpoint dumps can be specified under \texttt{io/checkpoint/dump\_period}. However, this option will only work with the \texttt{-c} flag when executing the shallow water model.
+Users can also enable checkpointing which allows them to resume the simulation at a later time. The time interval between checkpoint dumps can be specified under \texttt{io/checkpoint/dump\_period}. However, this option will only work when executing the shallow water model with the \texttt{-c} flag.
 
 \subsection{Timestepping}
+The time-step $\Delta t$ and finish time $T$ are specified under \texttt{timestepping/timestep} and \texttt{timestepping/finish\_time}, respectively. The \texttt{timestepping/start\_time} (i.e. the initial value of $t$) is usually set to zero.
+
+For simulations which are known to converge to a steady-state, Firedrake-Fluids can stop the simulation when the maximum difference of all solution fields (i.e. $\mathbf{u}$ and $h$) between time $n$ and $n+1$ becomes less than a user-defined tolerance; this is specified in \texttt{timestepping/steady\_state/tolerance}.
 
 \subsection{Physical parameters}
+The only physical parameter applicable to the equation set solved in the Firedrake-Fluids shallow water model is the acceleration due to gravity. This is approximately 9.8 ms$^{-2}$ on Earth.
 
 \subsection{System: Core fields}
 The model requires three fields to be set up under the \texttt{/system/core\_fields} section of the setup file. These are the key fields used in shallow water simulations, and are named
@@ -204,6 +215,10 @@ To include the quadratic drag term in the momentum equation, the \texttt{drag\_t
    \item When using a discontinuous Galerkin discretisation, the interior penalty method is the only method available for determining the value of $\nabla\mathbf{u}$ at the discontinuous interior element boundaries. Similarly, only a simple upwinding method can be used to determine $\mathbf{u}$ at along interior element boundaries.
 \end{itemize}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%%% Stabilisation methods %%%%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Stabilisation methods}\label{chap:stabilisation}
 
 \section{Streamline upwind}
