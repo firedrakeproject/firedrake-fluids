@@ -11,6 +11,8 @@ Firedrake-Fluids depends on:
 * [gmsh](http://geuz.org/gmsh/) (optional, but required to run some tests)
 * pdfLaTeX (optional, but required to build the user manual from source)
 
+Note that the codebase is designed to run on the Linux operating system. All development and testing of Firedrake-Fluids is done on the Ubuntu Linux distribution.
+
 ## Quick start
 * Append the Firedrake-Fluids `models` directory to your `PYTHONPATH` environment variable using, for example,
 
