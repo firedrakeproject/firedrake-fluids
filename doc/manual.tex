@@ -17,11 +17,11 @@
 
 \documentclass[a4paper,11pt]{report}
 \usepackage[top=3cm, bottom=3cm, left=3cm, right=3cm]{geometry}
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage{lmodern}
 \usepackage{tikz}
 \usepackage{amsmath, amssymb}
+\usepackage{hyperref}
+\usepackage{natbib}
+\bibpunct{(}{)}{;}{a}{,}{,}
 
 \title{Firedrake-Fluids User Manual}
 \author{Imperial College London}
@@ -36,9 +36,32 @@
 
 \chapter{Introduction}
 \section{Overview}
-Firedrake-Fluids is a collection of numerical models for the study of fluid dynamical systems. It uses the Firedrake framework (\texttt{http://firedrakeproject.org/}) to automate the solution of the governing equations written in their weak form using the Unified Form Language (UFL).
+Firedrake-Fluids is a collection of finite element-based numerical models for the study of fluid dynamical systems. It uses the Firedrake framework (\texttt{http://firedrakeproject.org/}) \citep{ImperialCollegeLondon_2013, Rathgeber_Submitted} to automate the solution of the governing equations written in their weak form using the Unified Form Language (UFL) \citep{Alnaes_etal_2014}.
 
-\section{Setup and installation}
+\section{Automated solution technique}
+When a model in Firedrake-Fluids is executed by the Python interpreter, the model's UFL (along with the computational mesh used to discretise the domain) is first passed to the Firedrake framework. Within this framework, the UFL is converted to an abstract syntax tree (AST) by a modified version of the FEniCS Form Compiler (FFC). Additionally, the topology of the mesh is described by a PETSc DMPlex object to allow the efficient execution of the generated code over the whole mesh.
+
+ This AST is then passed to the PyOP2 library which, after being optimised by the COFFEE compiler and converted into low-level C kernels, targets and compiles the code towards a specific hardware architecture and executes it on that hardware.
+
+As an example, consider the UFL statement in Figure \ref{fig:ufl_expression}. This one single line of UFL is converted to a kernel comprising many lines of C code, which perform the evaluation of the expression, as shown in Figure \ref{fig:c_kernel}.
+
+\begin{figure}[!ht]
+   \centering
+   \includegraphics[width=1\columnwidth]{images/ufl_expression.png}
+   \caption{An example of a UFL expression.}
+   \label{fig:ufl_expression}
+\end{figure}
+
+\begin{figure}[!ht]
+   \centering
+   \includegraphics[width=1\columnwidth]{images/c_kernel.png}
+   \caption{An example of C code, generated automatically, for the purpose of evaluating an expression defined by a high-level, near-mathematical UFL statement.}
+   \label{fig:c_kernel}
+\end{figure}
+
+\section{Setup}
+Before running the models in Firedrake-Fluids, please ensure that all the dependencies specified in the README file are satisfied.
+
 Firedrake-Fluids comprises a collection of Python files containing the implementation of the different models; a set of schema files used to define the different options a simulation configuration file can take; and a set of test cases to help ensure the correctness of the models.
 
 
@@ -79,9 +102,9 @@ The momentum equation is solved in non-conservative form such that
 \end{equation}
 where $g$ is the acceleration due to gravity, $\mathbf{u}$ is the velocity, and $C_D$ is the non-dimensional drag coefficient. The stress tensor $\mathbb{T}$ is given by 
 \begin{equation}
-   \mathbb{T} = \nu\left(\nabla\mathbf{u} + \nabla\mathbf{u}^{\mathrm{T}}\right) - \frac{2}{3}\nu\nabla\cdot\mathbf{u},
+   \mathbb{T} = \nu\left(\nabla\mathbf{u} + \nabla\mathbf{u}^{\mathrm{T}}\right) - \frac{2}{3}\nu\nabla\cdot\mathbf{u}\mathbb{I},
 \end{equation}
-where $\nu$ is the isotropic kinematic viscosity.
+where $\nu$ is the isotropic kinematic viscosity, and $\mathbb{I}$ is the identity tensor.
 
 \subsection{Continuity equation}
 The continuity equation is given by
@@ -115,7 +138,7 @@ It is here that the initial and boundary conditions for the fields can be specif
 \begin{itemize}
    \item \textit{Dirichlet}: Strong Dirichlet boundary conditions can be enforced for both the FreeSurfacePerturbation and Velocity fields by selecting the \texttt{dirichlet} type.
    \item \textit{No-normal flow}: Imposing a no-normal flow condition for velocity can currently only be done weakly by integrating the continuity equation by parts and selecting the \texttt{no\_normal\_flow} boundary condition type in the configuration options.
-   \item \textit{Flather}: A \cite{Flather_1963} open boundary condition can be imposed weakly by integrating the continuity equation by parts and selecting the \texttt{flather} boundary condition type in the configuration options. This boundary condition enforces:
+   \item \textit{Flather}: A \cite{Flather_1976} open boundary condition can be imposed weakly by integrating the continuity equation by parts and selecting the \texttt{flather} boundary condition type in the configuration options. This boundary condition enforces:
    
    
    . Any difference between the exterior values and the simulated values along the boundary is allowed out of the domain in such a way that minimises spurious reflections.
@@ -161,7 +184,7 @@ This chapter describes the turbulence models that are available in Firedrake-Flu
 %%%%%%% Diagnostic fields %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Diagnostic fields}
-Some stand-alone functions are available in the \texttt{diagnostics.py} file for computing 
+Some stand-alone functions are available in the \texttt{diagnostics.py} file for computing flow diagnostics.
 
 \section{Courant number}
 The Courant number diagnostic computes the field defined by
@@ -177,5 +200,7 @@ This diagnostic field computes the divergence
 \end{equation}
 of a vector field $\mathbf{u}$.
 
+\bibliographystyle{plainnat}
+\bibliography{manual}
 
 \end{document}
