@@ -262,7 +262,7 @@ from the Firedrake-Fluids base directory. Available flags for the shallow water 
    \begin{equation}
       \mathbb{T} = \nu\nabla\mathbf{u}.
    \end{equation}
-   \item When using a discontinuous Galerkin discretisation, the interior penalty method \citep{Arnold_1982} is the only method available for determining the value of $\nabla\mathbf{u}$ at the discontinuous interior element boundaries. Similarly, only a simple upwinding method can be used to determine $\mathbf{u}$ along interior element boundaries.
+   \item When using a discontinuous Galerkin discretisation, the interior penalty method \citep{Arnold_etal_2002} is the only method available for determining the value of $\nabla\mathbf{u}$ at the discontinuous interior element boundaries. Similarly, only a simple upwinding method can be used to determine $\mathbf{u}$ along interior element boundaries.
 \end{itemize}
 
 
@@ -270,6 +270,9 @@ from the Firedrake-Fluids base directory. Available flags for the shallow water 
 %%%%%%% Stabilisation methods %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \chapter{Stabilisation methods}\label{chap:stabilisation}
+When using a continuous Galerkin discretisation in advection-dominated problems, it may be necessary to stabilise the advection term in the momentum equation.
+
+The implementation of the stabilisation methods can be found in the file \texttt{stabilisation.py}.
 
 \section{Streamline upwind}
 
@@ -284,15 +287,15 @@ This chapter describes the turbulence models that are available in Firedrake-Flu
 The UFL implementation of all LES models can be found in the file \texttt{models/les.py}.
 
 \subsection{Smagorinsky model}
-The \cite{Smagorinsky_1963} model calculates an eddy viscosity $\nu^\prime$ which is added to the background/physical viscosity of the fluid:
+The \cite{Smagorinsky_1963} model calculates an eddy viscosity $\nu^\prime$
 \begin{equation}
    \nu^\prime = \left(C_s\Delta_e\right)^2|\mathbb{S}|,
 \end{equation}
-where $C_s$ is the Smagorinsky coefficient which is typically between 0.1 and 0.2, and $\Delta_e$ is some measure of the element size. Here it is given by the square root of the element's area in 2D, or cube root of the element's volume in 3D. The term $|\mathbb{S}|$ is the modulus of the strain rate tensor $\mathbb{S}$:
+where $C_s$ is the Smagorinsky coefficient which is typically between 0.1 and 0.2 \citep{Deardorff_1971}, and $\Delta_e$ is some measure of the element size. Here it is given by the square root of the element's area in 2D, or cube root of the element's volume in 3D. The term $|\mathbb{S}|$ is the modulus of the strain rate tensor $\mathbb{S}$:
 \begin{equation}
  \mathbb{S} = \frac{1}{2}\left(\nabla\mathbf{u} + \nabla\mathbf{u}^{\mathrm{T}}\right).
 \end{equation}
-
+The eddy viscosity $\nu^\prime$ is added to the background/physical viscosity of the fluid, thereby contributing to the stress term in the momentum equation.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%% Diagnostic fields %%%%%%%
