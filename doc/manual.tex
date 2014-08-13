@@ -36,7 +36,7 @@
 
 \chapter{Introduction}
 \section{Overview}
-Firedrake-Fluids is a collection of finite element-based numerical models for the study of fluid dynamical systems. It uses the Firedrake framework (\texttt{http://firedrakeproject.org/}) \citep{ImperialCollegeLondon_2013, Rathgeber_Submitted} to automate the solution of the governing equations written in their weak form using the Unified Form Language (UFL) \citep{Alnaes_etal_2014}.
+Firedrake-Fluids is a collection of finite element-based numerical models for the study of fluid dynamical systems. It uses the Firedrake framework \citep{ImperialCollegeLondon_2013, Rathgeber_Submitted} to automate the solution of the governing equations written in their weak form using the Unified Form Language (UFL) \citep{Alnaes_etal_2014}.
 
 \section{Automated solution technique}
 When a model in Firedrake-Fluids is executed by the Python interpreter, the model's UFL (along with the computational mesh used to discretise the domain) is first passed to the Firedrake framework. Within this framework, the UFL is converted to an abstract syntax tree (AST) by a modified version of the FEniCS Form Compiler (FFC). Additionally, the topology of the mesh is described by a PETSc DMPlex object to allow the efficient execution of the generated code over the whole mesh.
@@ -102,7 +102,7 @@ The momentum equation is solved in non-conservative form such that
 \end{equation}
 where $g$ is the acceleration due to gravity, $\mathbf{u}$ is the velocity, and $C_D$ is the non-dimensional drag coefficient. The stress tensor $\mathbb{T}$ is given by 
 \begin{equation}
-   \mathbb{T} = \nu\left(\nabla\mathbf{u} + \nabla\mathbf{u}^{\mathrm{T}}\right) - \frac{2}{3}\nu\nabla\cdot\mathbf{u}\mathbb{I},
+   \mathbb{T} = \nu\left(\nabla\mathbf{u} + \nabla\mathbf{u}^{\mathrm{T}}\right) - \frac{2}{3}\nu\left(\nabla\cdot\mathbf{u}\right)\mathbb{I},
 \end{equation}
 where $\nu$ is the isotropic kinematic viscosity, and $\mathbb{I}$ is the identity tensor.
 
@@ -112,10 +112,29 @@ The continuity equation is given by
    \frac{\partial h}{\partial t} + \nabla\cdot\left(\left(H + h\right)\mathbf{u}\right) = 0.
 \end{equation}
 
-\section{Configuration}
+\section{Configuring a simulation}
+The configuration/setup of a shallow water simulation in Firedrake-Fluids is defined in a Shallow Water Markup Language (.swml) file. This is essentially an XML file that contains tags/elements which are specific to the context of a shallow water simulation. The full range of possible options that are available to the user are defined by a set of schema files in the \texttt{schemas} directory; these can be thought of as 'templates' from which an .swml setup file can be constructed.
+
+Creating a shallow water setup/configuration file is best done using the Diamond graphical user interface (GUI) \citep{Ham_etal_2009} that is supplied with the libspud dependency. At the command line, from the Firedrake-Fluids base directory, creating an .swml file called \texttt{example.swml} can be done using
+
+\texttt{diamond -s schemas/shallow\_water.rng example.swml}
+
+Note that the -s flag is used to specify the location of the schema file \texttt{shallow\_water.rng}, while the final command line argument is the name of the setup file we want to create. The Diamond GUI will look something like the one shown in Figure \ref{fig:diamond}.
+
+\begin{figure}[!ht]
+   \centering
+   \includegraphics[width=1\columnwidth]{images/diamond.png}
+   \caption{The Diamond \citep{Ham_etal_2009} graphical user interface. Notice that all the available options are currently in blue; this means that they still need to be specified the user, after which the font colour will turn black.}
+   \label{fig:diamond}
+\end{figure}
+
+Details of each of the options (and sub-options underneath, displayed by clicking the black arrows) are given in the following sub-sections.
+
 \subsection{Simulation name}
+All simulations must be given a name under \texttt{/simulation\_name}. This name is used when outputting solution files created during the simulation. Please use alpha-numeric characters and avoid using non-standard characters such as ampersands, commas, semi-colons, etc here.
 
 \subsection{Geometry}
+The \texttt{/geometry} section of the setup file concerns the dimension of the problem, and the location of the computational mesh used to discretise the domain.
 
 \subsection{Function spaces}
 
@@ -153,6 +172,7 @@ The spatial discretisation (continuous or discontinuous Galerkin) currently depe
 To include the quadratic drag term in the momentum equation, the \texttt{drag\_term} option must be enabled under \texttt{/system/equations/momentum\_equation/} and the non-dimensional drag coefficient $C_D$ should be specified.
 
  
+\section{Running a simulation}
 
 \section{Current limitations}
 \begin{itemize}
