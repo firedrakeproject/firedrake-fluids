@@ -6,7 +6,7 @@ input_choice_real =
       }|
       ## Python function prescribing real input given as a C++ string. Functions should be of the form:
       ##
-      ##  def val(t):
+      ## def val(t):
       ##     # String containing the input as C++ code.
       ##     s = "C++ code here, e.g. sin(x[0])"
       ##     return s
@@ -23,7 +23,7 @@ input_choice_real_dim_vector =
       }|
       ## Python function prescribing real input given as a C++ string. Functions should be of the form:
       ##
-      ##  def val(t):
+      ## def val(t):
       ##     # String containing the input as C++ code.
       ##     s = "C++ code here, e.g. sin(x[0])"
       ##     return s

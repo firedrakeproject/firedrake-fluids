@@ -160,6 +160,8 @@ The \texttt{/geometry} section of the setup file concerns the dimension of the p
 
 The dimension should be one of the first options to be set. Be careful here; this option can only be set once because other options further down the list rely on it.
 
+In the case of the mesh file location, note that only Gmsh \texttt{.msh} files are supported.
+
 \subsection{Function spaces}
 Since two fields, velocity $\mathbf{u}$ and free surface perturbation $h$, have to be solved for in the shallow water model, two function spaces may be specified. In Firedrake-Fluids, the function spaces are assumed to be composed of Lagrange polynomial basis functions. The order of these polynomials can be specified in the \texttt{degree} sub-option of each \texttt{function\_space}. The \texttt{family} refers to whether the basis functions are continuous or discontinous across the cells/elements of the mesh.
 
@@ -183,9 +185,12 @@ The model requires three fields to be set up under the \texttt{/system/core\_fie
    \item \textit{FreeSurfacePerturbation} (a prognostic field, corresponding to $h$)
    \item \textit{FreeSurfaceMean} (a prescribed field, corresponding to $H$)
 \end{itemize}
-It is here that the initial and boundary conditions for the fields can be specified.
+It is here that the initial and boundary conditions for the fields can be specified. These can either be constant values
 
 \subsubsection{Boundary conditions}
+A new boundary condition can be created for a given field by clicking the + button next to the gray \texttt{boundary\_condition} option. Each boundary condition must be given a unique name.
+
+The surfaces on which the boundary conditions need to be applied should be specified under \texttt{boundary\_condition/surface\_ids}; multiple surface IDs should be separated by a single space. The type of boundary condition should then be specified along with its value; the available types are (for velocity):
 \begin{itemize}
    \item \textit{Dirichlet}: Strong Dirichlet boundary conditions can be enforced for both the FreeSurfacePerturbation and Velocity fields by selecting the \texttt{dirichlet} type.
    \item \textit{No-normal flow}: Imposing a no-normal flow condition for velocity can currently only be done weakly by integrating the continuity equation by parts and selecting the \texttt{no\_normal\_flow} boundary condition type in the configuration options.
@@ -194,6 +199,8 @@ It is here that the initial and boundary conditions for the fields can be specif
    
    . Any difference between the exterior values and the simulated values along the boundary is allowed out of the domain in such a way that minimises spurious reflections.
 \end{itemize}
+
+For the free surface field, only Dirichlet boundary conditions are available.
 
 \subsection{System: Equations}
 

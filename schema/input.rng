@@ -9,7 +9,7 @@
       <element name="cpp">
         <a:documentation>Python function prescribing real input given as a C++ string. Functions should be of the form:
 
- def val(t):
+def val(t):
     # String containing the input as C++ code.
     s = "C++ code here, e.g. sin(x[0])"
     return s</a:documentation>
@@ -26,7 +26,7 @@
       <element name="cpp">
         <a:documentation>Python function prescribing real input given as a C++ string. Functions should be of the form:
 
- def val(t):
+def val(t):
     # String containing the input as C++ code.
     s = "C++ code here, e.g. sin(x[0])"
     return s</a:documentation>
