@@ -152,9 +152,14 @@ All simulations must be given a name under \texttt{/simulation\_name}. This name
 \subsection{Geometry}
 The \texttt{/geometry} section of the setup file concerns the dimension of the problem, and the location of the computational mesh used to discretise the domain.
 
+The dimension should be one of the first options to be set. Be careful here; this option can only be set once because other options further down the list rely on it.
+
 \subsection{Function spaces}
 
 \subsection{Input/output (I/O)}
+Solution files may be dumped at specific intervals, specified in time units. Setting the \texttt{io/dump\_period} option to zero will result in dumps at every time-step. Note that solution files can currently only be written in VTU format (see \texttt{www.vtk.org} for more information).
+
+Users can also enable checkpointing which allows them to resume the simulation at a later time. The time interval between checkpoint dumps can be specified under \texttt{io/checkpoint/dump\_period}. However, this option will only work with the \texttt{-c} flag when executing the shallow water model.
 
 \subsection{Timestepping}
 
