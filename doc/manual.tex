@@ -168,7 +168,7 @@ Since two fields, velocity $\mathbf{u}$ and free surface perturbation $h$, have 
 \subsection{Input/output (I/O)}
 Solution files may be dumped at specific intervals, specified in time units. Setting the \texttt{io/dump\_period} option to zero will result in dumps at every time-step. Note that solution files can currently only be written in VTU format (see \texttt{www.vtk.org} for more information).
 
-Users can also enable checkpointing which allows them to resume the simulation at a later time. The time interval between checkpoint dumps can be specified under \texttt{io/checkpoint/dump\_period}. However, this option will only work when executing the shallow water model with the \texttt{-c} flag.
+Users can also enable checkpointing which allows them to resume the simulation at a later time. The checkpoint data will be written to a file called \texttt{checkpoint.npz}. The time interval between checkpoint dumps can be specified under \texttt{io/checkpoint/dump\_period}. The simulation can be later resumed by specifying the location of this file with the \texttt{-c} flag (see Section \ref{sect:running_a_simulation} for more details).
 
 \subsection{Timestepping}
 The time-step $\Delta t$ and finish time $T$ are specified under \texttt{timestepping/timestep} and \texttt{timestepping/finish\_time}, respectively. The \texttt{timestepping/start\_time} (i.e. the initial value of $t$) is usually set to zero.
@@ -203,7 +203,7 @@ A new boundary condition can be created for a given field by clicking the \textt
 The surfaces on which the boundary conditions need to be applied should be specified under \texttt{boundary\_condition/surface\_ids}; multiple surface IDs should be separated by a single space. The type of boundary condition should then be specified along with its value; the available types are (for velocity):
 \begin{itemize}
    \item \textit{Dirichlet}: Strong Dirichlet boundary conditions can be enforced for both the FreeSurfacePerturbation and Velocity fields by selecting the \texttt{dirichlet} type.
-   \item \textit{No-normal flow}: Imposing a no-normal flow condition for velocity can currently only be done weakly by integrating the continuity equation by parts and selecting the \texttt{no\_normal\_flow} boundary condition type in the configuration options.
+   \item \textit{No-normal flow}: Imposing a no-normal flow condition for velocity (i.e. $\mathbf{u}\cdot\mathbf{n} = 0$) can currently only be done weakly by integrating the continuity equation by parts (by enabling the \texttt{/system/equations/continuity\_equation/integrate\_by\_parts} option) and selecting the \texttt{no\_normal\_flow} boundary condition type.
    \item \textit{Flather}: A \cite{Flather_1976} open boundary condition can be imposed weakly by integrating the continuity equation by parts and selecting the \texttt{flather} boundary condition type in the configuration options. This boundary condition enforces:
    \begin{equation}
       \mathbf{u} = \mathbf{u}_{\mathrm{exterior}} - \sqrt{\frac{g}{H}}\left(h - h_{\mathrm{exterior}}\right),
@@ -237,7 +237,17 @@ By default, the momentum equation does not account for turbulent Reynolds stress
 \subsubsection{Source term}
 An additional user-defined source term can be added to the right-hand side of the equation under consideration via the \texttt{source\_term} sub-option.
 
-\section{Running a simulation}
+\section{Running a simulation}\label{sect:running_a_simulation}
+A shallow water simulation can be run by executing the \texttt{shallow\_water.py} file with the Python interpreter, and providing the path to the .swml simulation configuration file. An example would be:
+
+\texttt{python models/shallow\_water.py example.swml}
+
+from the Firedrake-Fluids base directory. Available flags for the shallow water model are:
+
+\begin{itemize}
+   \item \texttt{-c}: Initialise a simulation from a specified checkpoint file.
+   \item \texttt{-h}: Display a help message.
+\end{itemize}
 
 \section{Current limitations}
 \begin{itemize}
@@ -245,7 +255,7 @@ An additional user-defined source term can be added to the right-hand side of th
    \begin{equation}
       \mathbb{T} = \nu\nabla\mathbf{u}.
    \end{equation}
-   \item When using a discontinuous Galerkin discretisation, the interior penalty method is the only method available for determining the value of $\nabla\mathbf{u}$ at the discontinuous interior element boundaries. Similarly, only a simple upwinding method can be used to determine $\mathbf{u}$ at along interior element boundaries.
+   \item When using a discontinuous Galerkin discretisation, the interior penalty method \citep{Arnold_1982} is the only method available for determining the value of $\nabla\mathbf{u}$ at the discontinuous interior element boundaries. Similarly, only a simple upwinding method can be used to determine $\mathbf{u}$ along interior element boundaries.
 \end{itemize}
 
 
@@ -264,9 +274,15 @@ An additional user-defined source term can be added to the right-hand side of th
 This chapter describes the turbulence models that are available in Firedrake-Fluids.
 
 \section{Large Eddy Simulation (LES)}
-
 \subsection{Smagorinsky model}
-
+The \cite{Smagorinsky_1963} model calculates an eddy viscosity $\nu^\prime$ which is added to the background/physical viscosity of the fluid:
+\begin{equation}
+   \nu^\prime = \left(C_s\Delta_e\right)^2|\mathbb{S}|,
+\end{equation}
+where $C_s$ is the Smagorinsky coefficient which is typically between 0.1 and 0.2, and $\Delta_e$ is some measure of the element size. Here it is given by the square root of the element's area in 2D, or cube root of the element's volume in 3D. The term $|\mathbb{S}|$ is the modulus of the strain rate tensor $\mathbb{S}$:
+\begin{equation}
+ \mathbb{S} = \frac{1}{2}\left(\nabla\mathbf{u} + \nabla\mathbf{u}^{\mathrm{T}}\right).
+\end{equation}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
