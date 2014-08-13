@@ -185,7 +185,18 @@ The model requires three fields to be set up under the \texttt{/system/core\_fie
    \item \textit{FreeSurfacePerturbation} (a prognostic field, corresponding to $h$)
    \item \textit{FreeSurfaceMean} (a prescribed field, corresponding to $H$)
 \end{itemize}
-It is here that the initial and boundary conditions for the fields can be specified. These can either be constant values
+It is here that the initial and boundary conditions for the fields can be specified. These can either be constant values, or values defined by a C++ expression.
+
+\subsubsection{C++ expressions}
+Non-constant values for initial and boundary conditions can be specified under the \texttt{cpp} option; here, a Python function needs to be written which returns a string containing a C++ expression. An example is given in Figure \ref{fig:cpp_expression}.
+
+\begin{figure}[!ht]
+   \centering
+   \includegraphics[width=0.5\columnwidth]{images/cpp_expression.png}
+   \caption{An example of a Python function returning a string containing a C++ expression. This C++ expression is used to define the non-constant values of a boundary condition. The function must be called \texttt{val} and have the argument \texttt{t}, which is the current simulation time that may be included in the C++ expression. The variable \texttt{x} contains the coordinates of the domain (i.e. \texttt{x[0]}, \texttt{x[1]} and \texttt{x[2]} are the $x$, $y$, and $z$ coordinates, respectively).}
+   \label{fig:cpp_expression}
+\end{figure}
+
 
 \subsubsection{Boundary conditions}
 A new boundary condition can be created for a given field by clicking the + button next to the gray \texttt{boundary\_condition} option. Each boundary condition must be given a unique name.

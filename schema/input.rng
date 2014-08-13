@@ -11,6 +11,8 @@
 
 def val(t):
     # String containing the input as C++ code.
+    # The argument 't' is the current simulation time and may also be used in the expression,
+    # along with x[0], x[1] and x[2], the x, y and z coordinates of the mesh.
     s = "C++ code here, e.g. sin(x[0])"
     return s</a:documentation>
         <ref name="python_code"/>
@@ -28,6 +30,8 @@ def val(t):
 
 def val(t):
     # String containing the input as C++ code.
+    # The argument 't' is the current simulation time and may also be used in the expression,
+    # along with x[0], x[1] and x[2], the x, y and z coordinates of the mesh.
     s = "C++ code here, e.g. sin(x[0])"
     return s</a:documentation>
         <ref name="python_code"/>

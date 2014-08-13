@@ -8,6 +8,8 @@ input_choice_real =
       ##
       ## def val(t):
       ##     # String containing the input as C++ code.
+      ##     # The argument 't' is the current simulation time and may also be used in the expression,
+      ##     # along with x[0], x[1] and x[2], the x, y and z coordinates of the mesh.
       ##     s = "C++ code here, e.g. sin(x[0])"
       ##     return s
       element cpp {
@@ -25,6 +27,8 @@ input_choice_real_dim_vector =
       ##
       ## def val(t):
       ##     # String containing the input as C++ code.
+      ##     # The argument 't' is the current simulation time and may also be used in the expression,
+      ##     # along with x[0], x[1] and x[2], the x, y and z coordinates of the mesh.
       ##     s = "C++ code here, e.g. sin(x[0])"
       ##     return s
       element cpp {
