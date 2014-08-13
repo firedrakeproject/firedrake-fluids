@@ -93,7 +93,7 @@ The shallow water model solves the non-linear, non-rotational shallow water equa
 
 
 \section{Model equations}
-The shallow water equation set comprises a momentum equation and a continuity equation, each of which are defined below.
+The shallow water equation set comprises a momentum equation and a continuity equation, each of which are defined below. These are defined on a domain $\Omega$ and for a time $t \in [0, T]$.
 
 \subsection{Momentum equation}
 The momentum equation is solved in non-conservative form such that
@@ -112,8 +112,41 @@ The continuity equation is given by
    \frac{\partial h}{\partial t} + \nabla\cdot\left(\left(H + h\right)\mathbf{u}\right) = 0.
 \end{equation}
 
+\subsection{Discretisation}
+The model equations are discretised using a Galerkin finite element method. Essentially, this begins by deriving the weak form of the equations by multiplying through by a test function $\mathbf{w} \in H^1(\Omega)^3$ (where $H^1(\Omega)^3$ is the first Hilbertian Sobolev space \citep{Elman_etal_2005}) and integrating over $\Omega$. In the case of the momentum equation, this becomes
+\begin{eqnarray}
+   \nonumber\int_{\Omega}\mathbf{w}\cdot\frac{\partial \mathbf{u}}{\partial t}\ \mathrm{dV} + \int_{\Omega}\mathbf{w}\cdot(\mathbf{u}\cdot\nabla\mathbf{u}) \ \mathrm{dV} = -\int_{\Omega}g\mathbf{w}\cdot\nabla h \ \mathrm{dV} + \int_{\Omega}\nabla\mathbf{w}\cdot \mathbb{T} \ \mathrm{dV} \\- \int_{\Omega}C_D\mathbf{w}\cdot\frac{||\mathbf{u}||\mathbf{u}}{(H + h)} \ \mathrm{dV}.
+\end{eqnarray}
+A solution $\mathbf{u} \in H^1(\Omega)^3$ is sought such that it is valid $\forall \mathbf{w} \in H^1(\Omega)^3$.
+
+The solution fields $\mathbf{u}$ and $h$ are each represented by a set of interpolating basis functions, such that
+\begin{equation}
+   \mathbf{w} = \sum_{i=1}^{N_\mathrm{u\_nodes}} \phi_i\mathbf{w}_i,
+\end{equation}
+\begin{equation}
+   \mathbf{u} = \sum_{i=1}^{N_\mathrm{u\_nodes}} \phi_i\mathbf{u}_i,
+\end{equation}
+and
+\begin{equation}
+   h = \sum_{i=1}^{N_\mathrm{h\_nodes}} \psi_ih_i,
+\end{equation}
+where $\phi_i$ and $\psi_i$ are the basis functions representing the velocity and free surface perturbation fields, respectively; $N_\mathrm{u\_nodes}$ and $N_\mathrm{h\_nodes}$ are the number of velocity and free surface solution nodes, respectively; and the coefficients $\mathbf{u}_i$ and $h_i$ are to be found by a solution method. If the basis functions $\phi_i$ are continuous across each cell/element in the mesh, then the method is known as a \textit{continuous} Galerkin (CG) method, whereas if the basis functions are discontinuous, then the method is known as a \textit{discontinuous} Galerkin (DG) method.
+
+The momentum equation, discretised in space, then becomes a matrix system:
+\begin{equation}
+   \mathbf{M}\frac{\partial\mathbf{u}}{\partial t} + \mathbf{A}(\mathbf{u})\mathbf{u} + \mathbf{K}\mathbf{u} = -\mathbf{C}h + \mathbf{D}(\mathbf{u}, h)\mathbf{u},
+\end{equation}
+where $\mathbf{M}$, $\mathbf{A}$, $\mathbf{K}$, $\mathbf{C}$ and $\mathbf{D}$ are the mass, advection, stress, gradient and drag matrices, respectively.
+
+The time-derivative is discretised using the implicit backward Euler method, yielding a fully discrete system of equations:
+\begin{eqnarray}
+   \mathbf{M}\frac{\mathbf{u}^{n+1} - \mathbf{u}^{n}}{\Delta t} + \mathbf{A}(\mathbf{u}^{n+1})\mathbf{u}^{n+1} + \mathbf{K}\mathbf{u}^{n+1} = -\mathbf{C}h^{n+1} + \mathbf{D}(\mathbf{u}^{n+1}, h^{n+1})\mathbf{u}^{n+1}.
+\end{eqnarray}
+
+The finite element method is also applied to the continuity equation, which must be solved along with the momentum equation, yielding a block-coupled system. In Firedrake-Fluids, this system is preconditioned using a fieldsplit preconditioner \citep{Brown_etal_2012} and solved with the GMRES linear solver \citep{SaadSchultz_1986}.
+
 \section{Configuring a simulation}
-The configuration/setup of a shallow water simulation in Firedrake-Fluids is defined in a Shallow Water Markup Language (.swml) file. This is essentially an XML file that contains tags/elements which are specific to the context of a shallow water simulation. The full range of possible options that are available to the user are defined by a set of schema files in the \texttt{schemas} directory; these can be thought of as 'templates' from which an .swml setup file can be constructed.
+The configuration/setup of a shallow water simulation in Firedrake-Fluids is defined in a Shallow Water Markup Language (.swml) file. This is essentially an XML file that contains tags/elements which are specific to the context of a shallow water simulation. The full range of possible options that are available to the user are defined by a set of schema files in the \texttt{schemas} directory; these can be thought of as `templates' from which an .swml setup file can be constructed.
 
 Creating a shallow water setup/configuration file is best done using the Diamond graphical user interface (GUI) \citep{Ham_etal_2009} that is supplied with the libspud dependency. At the command line, from the Firedrake-Fluids base directory, creating an .swml file called \texttt{example.swml} can be done using
 
