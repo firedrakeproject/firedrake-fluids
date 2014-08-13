@@ -95,12 +95,12 @@ The continuity equation is given by
    \frac{\partial h}{\partial t} + \nabla\cdot\left(\left(H + h\right)\mathbf{u}\right) = 0.
 \end{equation}
 
-\subsection{Discretisation}
+\subsection{Discretisation and solving}
 The model equations are discretised using a Galerkin finite element method. Essentially, this begins by deriving the weak form of the equations by multiplying through by a test function $\mathbf{w} \in H^1(\Omega)^3$ (where $H^1(\Omega)^3$ is the first Hilbertian Sobolev space \citep{Elman_etal_2005}) and integrating over $\Omega$. In the case of the momentum equation, this becomes
 \begin{eqnarray}
    \nonumber\int_{\Omega}\mathbf{w}\cdot\frac{\partial \mathbf{u}}{\partial t}\ \mathrm{dV} + \int_{\Omega}\mathbf{w}\cdot(\mathbf{u}\cdot\nabla\mathbf{u}) \ \mathrm{dV} = -\int_{\Omega}g\mathbf{w}\cdot\nabla h \ \mathrm{dV} + \int_{\Omega}\nabla\mathbf{w}\cdot \mathbb{T} \ \mathrm{dV} \\- \int_{\Omega}C_D\mathbf{w}\cdot\frac{||\mathbf{u}||\mathbf{u}}{(H + h)} \ \mathrm{dV}.
 \end{eqnarray}
-A solution $\mathbf{u} \in H^1(\Omega)^3$ is sought such that it is valid $\forall \mathbf{w} \in H^1(\Omega)^3$.
+A solution $\mathbf{u} \in H^1(\Omega)^3$ is sought such that it is valid $\forall \mathbf{w}$.
 
 The solution fields $\mathbf{u}$ and $h$ are each represented by a set of interpolating basis functions, such that
 \begin{equation}
