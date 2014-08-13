@@ -42,9 +42,9 @@
 Firedrake-Fluids is a collection of finite element-based numerical models for the study of fluid dynamical systems. It uses the Firedrake framework \citep{ImperialCollegeLondon_2013, Rathgeber_Submitted} to automate the solution of the governing equations written in their weak form using the Unified Form Language (UFL) \citep{Alnaes_etal_2014}.
 
 \section{Automated solution technique}
-When a model in Firedrake-Fluids is executed by the Python interpreter, the model's UFL (along with the computational mesh used to discretise the domain) is first passed to the Firedrake framework. Within this framework, the UFL is converted to an abstract syntax tree (AST) by a modified version of the FEniCS Form Compiler (FFC). Additionally, the topology of the mesh is described by a PETSc DMPlex object to allow the efficient execution of the generated code over the whole mesh.
+When a model in Firedrake-Fluids is executed by the Python interpreter, the model's UFL (along with the computational mesh used to discretise the domain) is first passed to the Firedrake framework. Within this framework, the UFL is converted to an abstract syntax tree (AST) by a modified version of the FEniCS Form Compiler (FFC). Additionally, the topology of the mesh is described by a PETSc DMPlex object (\url{http://www.mcs.anl.gov/petsc/petsc-current/docs/manualpages/DM/DMPLEX.html}) to allow the efficient execution of the generated code over the whole mesh.
 
- This AST is then passed to the PyOP2 library which, after being optimised by the COFFEE compiler and converted into low-level C kernels, targets and compiles the code towards a specific hardware architecture and executes it on that hardware.
+ This AST is then passed to the PyOP2 library \citep{Rathgeber_etal_2012, Markall_etal_2013} which, after being optimised by the COFFEE compiler and converted into low-level C kernels, targets and compiles the code towards a specific hardware architecture and executes it on that hardware.
 
 As an example, consider the UFL statement in Figure \ref{fig:ufl_expression}. This one single line of UFL is converted to a kernel comprising many lines of C code, which perform the evaluation of the expression, as shown in Figure \ref{fig:c_kernel}.
 
