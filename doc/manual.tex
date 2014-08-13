@@ -80,7 +80,7 @@ The shallow water model solves the non-linear, non-rotational shallow water equa
    \label{fig:shallow_water_setup}
 \end{figure}
 
-\section{Model equations}
+\section{Model equations}\label{sect:model_equations}
 The shallow water equation set comprises a momentum equation and a continuity equation, each of which are defined below. These are defined on a domain $\Omega$ and for a time $t \in [0, T]$.
 
 \subsection{Momentum equation}
@@ -188,7 +188,7 @@ The model requires three fields to be set up under the \texttt{/system/core\_fie
 It is here that the initial and boundary conditions for the fields can be specified. These can either be constant values, or values defined by a C++ expression.
 
 \subsubsection{C++ expressions}
-Non-constant values for initial and boundary conditions can be specified under the \texttt{cpp} option; here, a Python function needs to be written which returns a string containing a C++ expression. An example is given in Figure \ref{fig:cpp_expression}.
+Non-constant values for initial and boundary conditions can be specified under the \texttt{cpp} sub-option; here, a Python function needs to be written which returns a string containing a C++ expression. An example is given in Figure \ref{fig:cpp_expression}.
 
 \begin{figure}[!ht]
    \centering
@@ -197,31 +197,46 @@ Non-constant values for initial and boundary conditions can be specified under t
    \label{fig:cpp_expression}
 \end{figure}
 
-
 \subsubsection{Boundary conditions}
-A new boundary condition can be created for a given field by clicking the + button next to the gray \texttt{boundary\_condition} option. Each boundary condition must be given a unique name.
+A new boundary condition can be created for a given field by clicking the \texttt{+} button next to the gray \texttt{boundary\_condition} option. Each boundary condition must be given a unique name.
 
 The surfaces on which the boundary conditions need to be applied should be specified under \texttt{boundary\_condition/surface\_ids}; multiple surface IDs should be separated by a single space. The type of boundary condition should then be specified along with its value; the available types are (for velocity):
 \begin{itemize}
    \item \textit{Dirichlet}: Strong Dirichlet boundary conditions can be enforced for both the FreeSurfacePerturbation and Velocity fields by selecting the \texttt{dirichlet} type.
    \item \textit{No-normal flow}: Imposing a no-normal flow condition for velocity can currently only be done weakly by integrating the continuity equation by parts and selecting the \texttt{no\_normal\_flow} boundary condition type in the configuration options.
    \item \textit{Flather}: A \cite{Flather_1976} open boundary condition can be imposed weakly by integrating the continuity equation by parts and selecting the \texttt{flather} boundary condition type in the configuration options. This boundary condition enforces:
-   
-   
-   . Any difference between the exterior values and the simulated values along the boundary is allowed out of the domain in such a way that minimises spurious reflections.
+   \begin{equation}
+      \mathbf{u} = \mathbf{u}_{\mathrm{exterior}} - \sqrt{\frac{g}{H}}\left(h - h_{\mathrm{exterior}}\right),
+   \end{equation}
+   where $\mathbf{u}_{\mathrm{exterior}}$ and $h_{\mathrm{exterior}}$ are the known/expected values for velocity and the free surface perturbation. Any difference between the exterior values and the simulated values along the boundary is allowed out of the domain in such a way that minimises spurious reflections.
 \end{itemize}
 
 For the free surface perturbation field $h$, only Dirichlet boundary conditions are available.
 
 \subsection{System: Equations}
+As already described in Section \ref{sect:model_equations}, there are two equations which make up the shallow water model: the momentum equation and the continuity equation. Options for both of these fields, concerning their discretisation and parameters (e.g. for $C_D$ and $\nu$), can be found under \texttt{/system/equations/momentum\_equation} and \texttt{/system/equations/continuity\_equation}.
 
 \subsubsection{Spatial discretisation}
 The spatial discretisation (continuous or discontinuous Galerkin) currently depends on the continuity of the function spaces in use, rather than on the choices made in this option. However, if \texttt{continuous\_galerkin} is selected, there are stabilisation-related sub-options available to stabilise the advection term when using CG. See Chapter \ref{chap:stabilisation} for more information on the stabilisation schemes available.
 
-\subsubsection{Drag}
+\subsubsection{Mass term}
+An option is available to exclude the mass term in the momentum (or continuity) equation, under \texttt{../mass\_term/exclude\_mass\_term}.
+
+\subsubsection{Advection term}
+An option is available to exclude the advection term in the momentum (or continuity) equation, under \texttt{../advection\_term/exclude\_advection\_term}. The advection term may also be integrated by parts by enabling the \texttt{../advection\_term/integrate\_by\_parts} option; this is required for the imposition of weak velocity boundary conditions.
+
+\subsubsection{Drag term}
 To include the quadratic drag term in the momentum equation, the \texttt{drag\_term} option must be enabled under \texttt{/system/equations/momentum\_equation/} and the non-dimensional drag coefficient $C_D$ should be specified.
 
- 
+\subsubsection{Stress term}
+To include the stress term in the momentum equation, the \texttt{stress\_term} option must be enabled and the isotropic, kinematic physical viscosity of the fluid $\nu$ must be specified.
+
+\subsubsection{Turbulence parameterisation}
+By default, the momentum equation does not account for turbulent Reynolds stresses. However, if the \texttt{turbulence\_parameterisation} option is enabled, then the Reynolds stresses can be parameterised through the calculation of an eddy viscosity, which models the effects of sub-grid-scale eddies on the large-scale flow turbulence. This eddy viscosity is added to the background viscosity $\nu$ in the stress term. More information can be found in Chapter \ref{chap:turbulence_parameterisation}.
+
+\subsubsection{Source term}
+An additional user-defined source term can be added to the right-hand side of the equation under consideration via the \texttt{source\_term} sub-option.
+
 \section{Running a simulation}
 
 \section{Current limitations}
@@ -245,7 +260,7 @@ To include the quadratic drag term in the momentum equation, the \texttt{drag\_t
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%% Turbulence parameterisation %%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\chapter{Turbulence parameterisation}
+\chapter{Turbulence parameterisation}\label{chap:turbulence_parameterisation}
 This chapter describes the turbulence models that are available in Firedrake-Fluids.
 
 \section{Large Eddy Simulation (LES)}
