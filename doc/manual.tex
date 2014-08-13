@@ -63,7 +63,14 @@ As an example, consider the UFL statement in Figure \ref{fig:ufl_expression}. Th
 \end{figure}
 
 \section{Setup}
-Before running the models in Firedrake-Fluids, please ensure that all the dependencies specified in the README file are satisfied.
+Before running the models in Firedrake-Fluids, please ensure that all the dependencies specified in the README file are satisfied. Installations for Firedrake (and its dependencies) can be found here: \url{http://www.firedrakeproject.org/download.html}. Firedrake-Fluids also relies on the libspud library (and the Python bindings) to retrieve simulation-related options (e.g. the time-step size and initial conditions) from a configuration/setup file. Following the steps below at the command line will download and build libspud, and install the Python bindings:
+
+\texttt{bzr checkout lp:~spud/spud/trunk libspud}\\
+\texttt{cd libspud}\\
+\texttt{./configure}\\
+\texttt{make}\\
+\texttt{cd python}\\
+\texttt{sudo python setup.py install}
 
 Firedrake-Fluids comprises a collection of Python files containing the implementation of the different models; a set of schema files used to define the different options a simulation configuration file can take; and a set of test cases to help ensure the correctness of the models.
 
@@ -166,7 +173,7 @@ In the case of the mesh file location, note that only Gmsh \texttt{.msh} files \
 Since two fields, velocity $\mathbf{u}$ and free surface perturbation $h$, have to be solved for in the shallow water model, two function spaces may be specified. In Firedrake-Fluids, the function spaces are assumed to be composed of Lagrange polynomial basis functions. The order of these polynomials can be specified in the \texttt{degree} sub-option of each \texttt{function\_space}. The \texttt{family} refers to whether the basis functions are continuous or discontinous across the cells/elements of the mesh.
 
 \subsection{Input/output (I/O)}
-Solution files may be dumped at specific intervals, specified in time units. Setting the \texttt{io/dump\_period} option to zero will result in dumps at every time-step. Note that solution files can currently only be written in VTU format (see \texttt{www.vtk.org} for more information).
+Solution files may be dumped at specific intervals, specified in time units. Setting the \texttt{io/dump\_period} option to zero will result in dumps at every time-step. Note that solution files can currently only be written in VTU format (see \url{http://www.vtk.org} for more information).
 
 Users can also enable checkpointing which allows them to resume the simulation at a later time. The checkpoint data will be written to a file called \texttt{checkpoint.npz}. The time interval between checkpoint dumps can be specified under \texttt{io/checkpoint/dump\_period}. The simulation can be later resumed by specifying the location of this file with the \texttt{-c} flag (see Section \ref{sect:running_a_simulation} for more details).
 
@@ -232,7 +239,7 @@ To include the quadratic drag term in the momentum equation, the \texttt{drag\_t
 To include the stress term in the momentum equation, the \texttt{stress\_term} option must be enabled and the isotropic, kinematic physical viscosity of the fluid $\nu$ must be specified.
 
 \subsubsection{Turbulence parameterisation}
-By default, the momentum equation does not account for turbulent Reynolds stresses. However, if the \texttt{turbulence\_parameterisation} option is enabled, then the Reynolds stresses can be parameterised through the calculation of an eddy viscosity, which models the effects of sub-grid-scale eddies on the large-scale flow turbulence. This eddy viscosity is added to the background viscosity $\nu$ in the stress term. More information can be found in Chapter \ref{chap:turbulence_parameterisation}.
+By default, the momentum equation does not account for turbulent Reynolds stresses. However, if the \texttt{turbulence\_parameterisation} option is enabled, then the Reynolds stresses can be parameterised through the calculation of an eddy viscosity, which models the effects of small-scale eddies on the large-scale flow turbulence. This eddy viscosity is added to the background viscosity $\nu$ in the stress term. More information can be found in Chapter \ref{chap:turbulence_parameterisation}.
 
 \subsubsection{Source term}
 An additional user-defined source term can be added to the right-hand side of the equation under consideration via the \texttt{source\_term} sub-option.
@@ -274,6 +281,8 @@ from the Firedrake-Fluids base directory. Available flags for the shallow water 
 This chapter describes the turbulence models that are available in Firedrake-Fluids.
 
 \section{Large Eddy Simulation (LES)}
+The UFL implementation of all LES models can be found in the file \texttt{models/les.py}.
+
 \subsection{Smagorinsky model}
 The \cite{Smagorinsky_1963} model calculates an eddy viscosity $\nu^\prime$ which is added to the background/physical viscosity of the fluid:
 \begin{equation}
