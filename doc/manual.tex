@@ -17,7 +17,7 @@
 
 \documentclass[a4paper,11pt]{report}
 \usepackage[top=3cm, bottom=3cm, left=3cm, right=3cm]{geometry}
-\usepackage{tikz}
+\usepackage{graphicx}
 \usepackage{amsmath, amssymb}
 \usepackage{hyperref}
 \usepackage{natbib}
@@ -45,16 +45,16 @@ When a model in Firedrake-Fluids is executed by the Python interpreter, the mode
 
 As an example, consider the UFL statement in Figure \ref{fig:ufl_expression}. This one single line of UFL is converted to a kernel comprising many lines of C code, which perform the evaluation of the expression, as shown in Figure \ref{fig:c_kernel}.
 
-\begin{figure}[!ht]
+\begin{figure}
    \centering
-   \includegraphics[width=1\columnwidth]{images/ufl_expression.png}
+   \includegraphics[width=0.75\columnwidth]{images/ufl_expression.png}
    \caption{An example of a UFL expression.}
    \label{fig:ufl_expression}
 \end{figure}
 
-\begin{figure}[!ht]
+\begin{figure}
    \centering
-   \includegraphics[width=1\columnwidth]{images/c_kernel.png}
+   \includegraphics[width=0.75\columnwidth]{images/c_kernel.png}
    \caption{An example of C code, generated automatically, for the purpose of evaluating an expression defined by a high-level, near-mathematical UFL statement.}
    \label{fig:c_kernel}
 \end{figure}
@@ -70,27 +70,10 @@ The shallow water model solves the non-linear, non-rotational shallow water equa
 
 \begin{figure}
    \centering
-   \begin{tikzpicture}
-      % Draw the main box     
-      \draw[style={thick}] (0, 0) -- (0, 5) -- (10, 5) -- (10, 0) -- cycle;
-         
-      % Draw the sine curves
-      \draw[x=0.5cm,y=1cm, thick, blue] 
-        (0,4) sin (1,4.5) cos (2,4) sin (3,3.5) cos (4,4) sin (5,4.5) cos (6,4) sin (7,3.5) cos (8,4)
-              sin (9,4.5) cos (10,4) sin (11,3.5) cos (12,4) sin (13,4.5) cos (14,4) sin (15,3.5) cos (16,4) sin (17,4.5) cos (18,4) sin (19,3.5) cos (20,4);
-
-      \draw[style={dashed, ultra thick}] (0, 4) -- (10, 4);
-
-      \draw[arrows=<->, style={ultra thick}] (2.5, 0) -- (2.5, 4);
-      \draw (2.7, 2) node{\footnotesize $H$};
-      \draw[arrows=<->, style={ultra thick}] (2.5, 4) -- (2.5, 4.5);
-      \draw (2.7, 4.25) node{\footnotesize $h$};
-      
-      \end{tikzpicture}
-      \caption{Single-layer shallow water set-up.}
-      \label{fig:shallow_water_setup}
-   \end{figure}
-
+   \includegraphics[width=0.6\columnwidth]{images/shallow_water_h_H.png}
+   \caption{Single-layer shallow water set-up.}
+   \label{fig:shallow_water_setup}
+\end{figure}
 
 \section{Model equations}
 The shallow water equation set comprises a momentum equation and a continuity equation, each of which are defined below. These are defined on a domain $\Omega$ and for a time $t \in [0, T]$.
