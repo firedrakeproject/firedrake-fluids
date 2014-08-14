@@ -2,13 +2,17 @@ import os, sys
 import subprocess
 import pytest
 
-cwd = os.path.dirname(os.path.abspath(__file__))
-print cwd
-
 def manual():
    process = subprocess.Popen("make manual", shell=True, stdout=subprocess.PIPE, stderr=sys.stdout.fileno())
-   log = process.stdout.read()
    exit_code = process.wait()
+   
+   try:
+      f = open("./doc/manual.log", "r")
+      log = f.read()
+      f.close()
+   except IOError:
+      log = None
+   
    return log, exit_code
 
 def test_manual():
