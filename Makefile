@@ -12,5 +12,5 @@ test:
 	
 clean:
 	@echo **********Cleaning doc directory
-	cd doc; rm -rf *.log *.aux *.dvi *.pdf *.ps *.toc *.out *.bbl *.fdb_latexmk; cd ..
+	cd doc; rm -rf *.log *.aux *.dvi *.pdf *.ps *.toc *.out *.bbl *.fls *.bak *.blg *.fdb_latexmk; cd ..
 
