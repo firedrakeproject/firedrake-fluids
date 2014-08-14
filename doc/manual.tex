@@ -338,6 +338,17 @@ The Courant number diagnostic computes the field defined by
 \end{equation}
 where $\Delta t$ is the time-step size and $\Delta x$ is the element size (more specifically, it is twice the element's circumradius).
 
+\section{Grid Reynolds number}
+The Reynolds number (whose length scale is relative to the element size $\Delta x$) is defined by
+\begin{equation}
+   \mathrm{Re} = \frac{\rho||\mathbf{u}||\Delta x}{\mu},
+\end{equation}
+where $\rho$ is the fluid density, $\mu$ is the dynamic viscosity, and $||\mathbf{u}||$ is the magnitude to the velocity field. Alternatively,
+\begin{equation}
+   \mathrm{Re} = \frac{||\mathbf{u}||\Delta x}{\nu},
+\end{equation}
+where $\nu$ is the kinematic viscosity.
+
 \section{Divergence}
 This diagnostic field computes the divergence
 \begin{equation}
