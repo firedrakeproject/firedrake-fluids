@@ -51,9 +51,14 @@ make html
 from the Firedrake-Fluids `doc` directory.
 
 ## Citing
+
 To cite Firedrake-Fluids, please use:
 
 **C. T. Jacobs and M. D. Piggott (2014)**. *Firedrake-Fluids v0.1: numerical modelling of shallow water flows using a performance-portable automated solution framework*, Geosci. Model Dev. Discuss., 7, 5699-5738, [doi:10.5194/gmdd-7-5699-2014](http://dx.doi.org/10.5194/gmdd-7-5699-2014).
+
+## Build status
+
+[Buildbot](http://buildbot.net/) is used to perform automated testing of Firedrake-Fluids each time a change is made to the codebase. The current status of the `master` branch can be found [here](http://buildbot-ocean.ese.ic.ac.uk:8080/builders/firedrake-fluids).
 
 ## Contact
 
