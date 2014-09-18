@@ -19,6 +19,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath('../firedrake_fluids'))
 sys.path.insert(0, os.path.abspath('./firedrake_fluids'))
 sys.path.insert(0, os.path.abspath('../../firedrake_fluids'))
+print sys.path
 
 # -- General configuration -----------------------------------------------------
 

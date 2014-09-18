@@ -3,6 +3,11 @@ import subprocess
 import pytest
 
 def doc_build():
+   sys.path.insert(0, os.path.abspath('../firedrake_fluids'))
+   sys.path.insert(0, os.path.abspath('./firedrake_fluids'))
+   sys.path.insert(0, os.path.abspath('../../firedrake_fluids'))
+   print sys.path
+
    with open("doc_build.log", "w") as out:
       process = subprocess.Popen("cd doc; make clean; make html; cd ../", shell=True, stdout=out, stderr=sys.stdout.fileno())
       exit_code = process.wait()
@@ -19,7 +24,7 @@ def test_doc_build():
    print exit_code
    
    assert (exit_code == 0)
-   assert ("build succeeded." in log)
+   assert ("build succeeded." in log) # Note that the full stop is needed here, otherwise warning messages will not be noticed.
    
 if __name__ == '__main__':
    pytest.main(os.path.abspath(__file__))
