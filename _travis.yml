@@ -1,0 +1,6 @@
+language: python
+python: "2.7"
+script:
+  - export PYTHONPATH=`pwd`/models:$PYTHONPATH
+  - make
+  - py.test
