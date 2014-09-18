@@ -3,21 +3,24 @@ Shallow water model
 
 The shallow water model solves the non-linear, non-rotational shallow
 water equations which describe the dynamics of a free surface and a
-depth-averaged velocity field . For modelling purposes, the free surface
+depth-averaged velocity field. For modelling purposes, the free surface
 is split up into a mean component :math:`H` (i.e. the hydrostatic depth
 to the seabed) and a perturbation component :math:`h` (see Figure
-[fig:shallow\ :sub:`w`\ ater\ :sub:`s`\ etup]).
+shallow_water_setup_).
 
-|image2| Single-layer shallow water set-up.
-[fig:shallow\ :sub:`w`\ ater\ :sub:`s`\ etup]
+.. _shallow_water_setup:
+.. figure::  images/shallow_water_h_H.png
+   :scale: 50 %
+   :align:   center
+
+   Single-layer shallow water set-up.
 
 Model equations
 ---------------
 
-[sect:model\ :sub:`e`\ quations] The shallow water equation set
-comprises a momentum equation and a continuity equation, each of which
+The shallow water equation set comprises a momentum equation and a continuity equation, each of which
 are defined below. These are defined on a domain :math:`\Omega` and for
-a time :math:`t \in [0, T]`\ .
+a time :math:`t \in [0, T]`\.
 
 Momentum equation
 ~~~~~~~~~~~~~~~~~
@@ -49,16 +52,13 @@ The model equations are discretised using a Galerkin finite element
 method. Essentially, this begins by deriving the weak form of the
 equations by multiplying through by a test function
 :math:`\mathbf{w} \in H^1(\Omega)^3` (where :math:`H^1(\Omega)^3` is the
-first Hilbertian Sobolev space ) and integrating over :math:`\Omega`\ .
+first Hilbertian Sobolev space ) and integrating over :math:`\Omega`\.
 In the case of the momentum equation, this becomes
 
-.. math::
-
-   \begin{aligned*}
-      \nonumber\int_{\Omega}\mathbf{w}\cdot\frac{\partial \mathbf{u}}{\partial t}\ \mathrm{dV} + \int_{\Omega}\mathbf{w}\cdot(\mathbf{u}\cdot\nabla\mathbf{u}) \ \mathrm{dV} = -\int_{\Omega}g\mathbf{w}\cdot\nabla h \ \mathrm{dV} + \int_{\Omega}\nabla\mathbf{w}\cdot \mathbb{T} \ \mathrm{dV} \\- \int_{\Omega}C_D\mathbf{w}\cdot\frac{||\mathbf{u}||\mathbf{u}}{(H + h)} \ \mathrm{dV}.\end{aligned*}
+.. math:: \int_{\Omega}\mathbf{w}\cdot\frac{\partial \mathbf{u}}{\partial t}\ \mathrm{dV} + \int_{\Omega}\mathbf{w}\cdot(\mathbf{u}\cdot\nabla\mathbf{u}) \ \mathrm{dV} = -\int_{\Omega}g\mathbf{w}\cdot\nabla h \ \mathrm{dV} + \int_{\Omega}\nabla\mathbf{w}\cdot \mathbb{T} \ \mathrm{dV} - \int_{\Omega}C_D\mathbf{w}\cdot\frac{||\mathbf{u}||\mathbf{u}}{(H + h)} \ \mathrm{dV}.
 
 A solution :math:`\mathbf{u} \in H^1(\Omega)^3` is sought such that it
-is valid :math:`\forall \mathbf{w}`\ .
+is valid :math:`\forall \mathbf{w}`\.
 
 The solution fields :math:`\mathbf{u}` and :math:`h` are each
 represented by a set of interpolating basis functions, such that
@@ -94,10 +94,7 @@ stress, gradient and drag matrices, respectively.
 The time-derivative is discretised using the implicit backward Euler
 method, yielding a fully discrete system of equations:
 
-.. math::
-
-   \begin{aligned*}
-      \mathbf{M}\frac{\mathbf{u}^{n+1} - \mathbf{u}^{n}}{\Delta t} + \mathbf{A}(\mathbf{u}^{n+1})\mathbf{u}^{n+1} + \mathbf{K}\mathbf{u}^{n+1} = -\mathbf{C}h^{n+1} + \mathbf{D}(\mathbf{u}^{n+1}, h^{n+1})\mathbf{u}^{n+1},\end{aligned*}
+.. math:: \mathbf{M}\frac{\mathbf{u}^{n+1} - \mathbf{u}^{n}}{\Delta t} + \mathbf{A}(\mathbf{u}^{n+1})\mathbf{u}^{n+1} + \mathbf{K}\mathbf{u}^{n+1} = -\mathbf{C}h^{n+1} + \mathbf{D}(\mathbf{u}^{n+1}, h^{n+1})\mathbf{u}^{n+1},
 
 where :math:`\Delta t` is the time-step.
 
@@ -105,7 +102,7 @@ The finite element method is also applied to the continuity equation,
 which must be solved along with the momentum equation, yielding a
 block-coupled system. In Firedrake-Fluids, this system is preconditioned
 using a fieldsplit preconditioner and solved with the GMRES linear
-solver .
+solver.
 
 Configuring a simulation
 ------------------------
@@ -130,12 +127,15 @@ using
 Note that the -s flag is used to specify the location of the schema file
 ``shallow_water.rng``, while the final command line argument is the name
 of the setup file we want to create. The Diamond GUI will look something
-like the one shown in Figure [fig:diamond].
+like the one shown in Figure diamond_.
 
-[!ht] |image3| The Diamond graphical user interface. Notice that all the
-available options are currently in blue; this means that they still need
-to be specified the user, after which the font colour will turn black.
-[fig:diamond]
+.. _diamond:
+.. figure::  images/diamond.png
+   :align:   center
+
+   The Diamond graphical user interface. Notice that all the
+   available options are currently in blue; this means that they still need
+   to be specified the user, after which the font colour will turn black.  
 
 Details of each of the options (and sub-options underneath, displayed by
 clicking the black arrows) are given in the following sub-sections.
@@ -236,16 +236,20 @@ C++ expressions
 Non-constant values for initial and boundary conditions can be specified
 under the ``cpp`` sub-option; here, a Python function needs to be
 written which returns a string containing a C++ expression. An example
-is given in Figure [fig:cpp\ :sub:`e`\ xpression].
+is given in Figure cpp_expression_.
 
-[!ht] |image4| An example of a Python function returning a string
-containing a C++ expression. This C++ expression is used to define the
-non-constant values of a boundary condition. The function must be called
-``val`` and have the argument ``t``, which is the current simulation
-time that may be included in the C++ expression. The variable ``x``
-contains the coordinates of the domain (i.e. ``x[0]``, ``x[1]`` and
-``x[2]`` are the :math:`x`\ , :math:`y`\ , and :math:`z` coordinates,
-respectively). [fig:cpp\ :sub:`e`\ xpression]
+.. _cpp_expression:
+.. figure::  images/cpp_expression.png
+   :align:   center
+
+   An example of a Python function returning a string
+   containing a C++ expression. This C++ expression is used to define the
+   non-constant values of a boundary condition. The function must be called
+   ``val`` and have the argument ``t``, which is the current simulation
+   time that may be included in the C++ expression. The variable ``x``
+   contains the coordinates of the domain (i.e. ``x[0]``, ``x[1]`` and
+   ``x[2]`` are the :math:`x`\ , :math:`y`\ , and :math:`z` coordinates,
+   respectively).
 
 Boundary conditions
 ^^^^^^^^^^^^^^^^^^^
@@ -294,7 +298,7 @@ boundary conditions are available.
 System: Equations
 ~~~~~~~~~~~~~~~~~
 
-As already described in Section [sect:model\ :sub:`e`\ quations], there
+As already described in `Model equations`_, there
 are two equations which make up the shallow water model: the momentum
 equation and the continuity equation. Options for both of these fields,
 concerning their discretisation and parameters (e.g. for :math:`C_D` and
@@ -310,7 +314,7 @@ currently depends on the continuity of the function spaces in use,
 rather than on the choices made in this option. However, if
 ``continuous_galerkin`` is selected, there are stabilisation-related
 sub-options available to stabilise the advection term when using CG. See
-Chapter [chap:stabilisation] for more information on the stabilisation
+`Stabilisation methods <stabilisation_methods.html>`_ for more information on the stabilisation
 schemes available.
 
 Mass term
