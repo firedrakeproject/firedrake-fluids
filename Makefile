@@ -1,5 +1,7 @@
 #!/bin/sh
 
+.PHONY: doc
+
 input: 	clean doc
 
 doc:
