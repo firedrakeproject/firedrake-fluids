@@ -2,4 +2,8 @@
 *.vtu
 *.pvd
 *.pvtu
+*.log
 nohup.out
+build
+doc/build
+doc/apidoc
