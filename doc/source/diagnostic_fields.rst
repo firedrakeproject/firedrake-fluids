@@ -40,8 +40,3 @@ This diagnostic field computes the divergence
 
 of a vector field :math:`\mathbf{u}`\ .
 
-.. |image| image:: images/ufl_expression.png
-.. |image1| image:: images/c_kernel.png
-.. |image2| image:: images/shallow_water_h_H.png
-.. |image3| image:: images/diamond.png
-.. |image4| image:: images/cpp_expression.png

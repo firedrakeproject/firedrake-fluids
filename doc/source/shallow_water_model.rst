@@ -107,7 +107,7 @@ solver.
 Configuring a simulation
 ------------------------
 
-[sect:configuring\ :sub:`as`\ imulation] The configuration/setup of a
+The configuration/setup of a
 shallow water simulation in Firedrake-Fluids is defined in a Shallow
 Water Markup Language (.swml) file. This is essentially an XML file that
 contains tags/elements which are specific to the context of a shallow
@@ -120,9 +120,9 @@ Creating a shallow water setup/configuration file is best done using the
 Diamond graphical user interface (GUI) that is supplied with the libspud
 dependency. At the command line, from the Firedrake-Fluids base
 directory, creating an .swml file called ``example.swml`` can be done
-using
+using::
 
-``diamond -s schemas/shallow_water.rng example.swml``
+   diamond -s schemas/shallow_water.rng example.swml
 
 Note that the -s flag is used to specify the location of the schema file
 ``shallow_water.rng``, while the final command line argument is the name
@@ -188,8 +188,7 @@ simulation at a later time. The checkpoint data will be written to a
 file called ``checkpoint.npz``. The time interval between checkpoint
 dumps can be specified under ``io/checkpoint/dump_period``. The
 simulation can be later resumed by specifying the location of this file
-with the ``-c`` flag (see Section [sect:running\ :sub:`as`\ imulation]
-for more details).
+with the ``-c`` flag (see `Running a simulation`_ for more details).
 
 Timestepping
 ~~~~~~~~~~~~
@@ -210,7 +209,7 @@ Physical parameters
 
 The only physical parameter applicable to the equation set solved in the
 Firedrake-Fluids shallow water model is the acceleration due to gravity.
-This is approximately 9.8 ms:math:`^{-2}` on Earth.
+This is approximately 9.8 :math:`\mathrm{ms}^{-2}` on Earth.
 
 System: Core fields
 ~~~~~~~~~~~~~~~~~~~
@@ -370,12 +369,12 @@ sub-option.
 Running a simulation
 --------------------
 
-[sect:running\ :sub:`as`\ imulation] A shallow water simulation can be
+A shallow water simulation can be
 run by executing the ``shallow_water.py`` file with the Python
 interpreter, and providing the path to the .swml simulation
-configuration file. An example would be:
+configuration file. An example would be::
 
-``python models/shallow_water.py example.swml``
+   python models/shallow_water.py example.swml
 
 from the Firedrake-Fluids base directory. Available flags for the
 shallow water model are:

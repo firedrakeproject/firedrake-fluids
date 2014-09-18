@@ -101,7 +101,7 @@ relies on the `libspud <https://launchpad.net/spud>`_ library (and the Python bi
 simulation-related options (e.g. the time-step size and initial
 conditions) from a configuration/setup file. Following the steps below
 at the command line will download and build libspud, and install the
-Python bindings:
+Python bindings::
 
 1. ``bzr checkout lp:~spud/spud/trunk libspud``
 2. ``cd libspud``
@@ -115,9 +115,9 @@ Setting the PYTHONPATH
 
 The Firedrake-Fluids ``models`` directory must be added to the
 ``PYTHONPATH`` environment variable. This can be done at the command
-line, e.g.:
+line, e.g.::
 
-``export PYTHONPATH=$PYTHONPATH:/home/christian/firedrake-fluids/models``
+   export PYTHONPATH=$PYTHONPATH:/home/christian/firedrake-fluids/models
 
 Following this, it is recommended that you run ``make test`` (from the
 Firedrake-Fluids base directory) to ensure that the setup and models are
