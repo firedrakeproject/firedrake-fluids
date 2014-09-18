@@ -1,10 +1,10 @@
 #!/bin/sh
 
-input: 	clean manual
+input: 	clean doc
 
-manual:
-	@echo **********Compiling the user manual
-	cd doc; pdflatex manual.tex; bibtex manual; pdflatex manual.tex; pdflatex manual.tex; cd ..
+doc:
+	@echo **********Compiling the user documentation
+	cd doc; make html; cd ..
 
 test:
 	@echo **********Running the tests
@@ -12,5 +12,5 @@ test:
 	
 clean:
 	@echo **********Cleaning doc directory
-	cd doc; rm -rf *.log *.aux *.dvi *.pdf *.ps *.toc *.out *.bbl *.fls *.bak *.blg *.fdb_latexmk; cd ..
+	cd doc; make clean; cd ..
 
