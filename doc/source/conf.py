@@ -41,7 +41,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Firedrake-Fluids'
-copyright = u'2014, Christian T. Jacobs, Matthew D. Piggott'
+copyright = u'2014, Imperial College London'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -184,7 +184,7 @@ latex_elements = {
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
   ('index', 'Firedrake-Fluids.tex', u'Firedrake-Fluids Documentation',
-   u'Christian T. Jacobs, Matthew D. Piggott', 'manual'),
+   u'Imperial College London', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -214,7 +214,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'firedrake-fluids', u'Firedrake-Fluids Documentation',
-     [u'Christian T. Jacobs, Matthew D. Piggott'], 1)
+     [u'Imperial College London'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -228,7 +228,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'Firedrake-Fluids', u'Firedrake-Fluids Documentation',
-   u'Christian T. Jacobs, Matthew D. Piggott', 'Firedrake-Fluids', 'One line description of project.',
+   u'Imperial College London', 'Firedrake-Fluids', 'One line description of project.',
    'Miscellaneous'),
 ]
 
