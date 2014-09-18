@@ -356,8 +356,7 @@ option is enabled, then the Reynolds stresses can be parameterised
 through the calculation of an eddy viscosity, which models the effects
 of small-scale eddies on the large-scale flow turbulence. This eddy
 viscosity is added to the background viscosity :math:`\nu` in the stress
-term. More information can be found in Chapter
-[chap:turbulence\ :sub:`p`\ arameterisation].
+term. More information can be found in `Turbulence parameterisation <turbulence_parameterisation.html>`_.
 
 Source term
 ^^^^^^^^^^^
