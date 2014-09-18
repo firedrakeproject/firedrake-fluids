@@ -373,7 +373,7 @@ run by executing the ``shallow_water.py`` file with the Python
 interpreter, and providing the path to the .swml simulation
 configuration file. An example would be::
 
-   python models/shallow_water.py example.swml
+   python firedrake_fluids/shallow_water.py example.swml
 
 from the Firedrake-Fluids base directory. Available flags for the
 shallow water model are:

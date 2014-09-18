@@ -7,7 +7,7 @@ Large Eddy Simulation (LES)
 ---------------------------
 
 The UFL implementation of all LES models can be found in the file
-``models/les.py``.
+``les.py``.
 
 Smagorinsky model
 ~~~~~~~~~~~~~~~~~

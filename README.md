@@ -43,7 +43,7 @@ diamond -s schemas/shallow_water.rng my_new_simulation_setup_file.swml
 * Run the simulation using
 
 ```
-python models/shallow_water.py my_new_simulation_setup_file.swml
+python firedrake_fluids/shallow_water.py my_new_simulation_setup_file.swml
 ```
 
 ## Documentation
