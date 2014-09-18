@@ -9,7 +9,7 @@ Firedrake-Fluids depends on:
 * [libspud](https://launchpad.net/spud)
 * [pytest](http://pytest.org) (optional, but required to run `make test`)
 * [gmsh](http://geuz.org/gmsh/) (optional, but required to run some tests)
-* pdfLaTeX (optional, but required to build the user manual from source)
+* [Sphinx](http://sphinx-doc.org/) (optional, but required to build the user manual from source)
 
 Note that the codebase is designed to run on the Linux operating system. All development and testing of Firedrake-Fluids is done on the Ubuntu Linux distribution.
 
@@ -42,13 +42,18 @@ python models/shallow_water.py my_new_simulation_setup_file.swml
 
 ## Documentation
 
-The Firedrake-Fluids user manual is written in LaTeX. The .tex source file can be compiled by running
+The Firedrake-Fluids documentation can be compiled using [Sphinx](http://sphinx-doc.org/) by running
 
 ```
-make manual
+make html
 ```
 
-from the Firedrake-Fluids base directory.
+from the Firedrake-Fluids `doc` directory.
+
+## Citing
+Please cite the Firedrake-Fluids model description paper:
+
+**C. T. Jacobs and M. D. Piggott (2014)**. *Firedrake-Fluids v0.1: numerical modelling of shallow water flows using a performance-portable automated solution framework*, Geosci. Model Dev. Discuss., 7, 5699-5738, [doi:10.5194/gmdd-7-5699-2014](http://dx.doi.org/10.5194/gmdd-7-5699-2014).
 
 ## Contact
 
