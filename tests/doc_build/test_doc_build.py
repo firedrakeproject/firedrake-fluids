@@ -3,9 +3,7 @@ import subprocess
 import pytest
 
 def doc_build():
-   sys.path.insert(0, os.path.abspath('../firedrake_fluids'))
-   sys.path.insert(0, os.path.abspath('./firedrake_fluids'))
-   sys.path.insert(0, os.path.abspath('../../firedrake_fluids'))
+   sys.path.insert(0, os.path.abspath('.'))
    print sys.path
 
    with open("doc_build.log", "w") as out:
