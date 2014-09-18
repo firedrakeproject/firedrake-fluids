@@ -77,8 +77,8 @@ The directory structure of the Firedrake-Fluids codebase is as follows:
 -  ``/doc``: Contains the source code and images for this
    documentation.
 
--  ``/models``: Comprises a collection of Python files containing the
-   implementation of the different models.
+-  ``/firedrake_fluids``: Comprises a collection of Python files containing the
+   implementation of the different models and auxiliary functionality.
 
 -  ``/schema``: Contains a set of schema files used to define the
    different options a simulation configuration file can take (see
@@ -110,14 +110,18 @@ Python bindings::
    5. ``cd python``
    6. ``sudo python setup.py install``
 
-Setting the PYTHONPATH
-~~~~~~~~~~~~~~~~~~~~~~
+Installation
+~~~~~~~~~~~~
 
-The Firedrake-Fluids ``models`` directory must be added to the
-``PYTHONPATH`` environment variable. This can be done at the command
+The Firedrake-Fluids Python module can be installed with::
+
+   sudo python setup.py install
+   
+Alternatively, the ``firedrake_fluids`` directory may be added to the
+``PYTHONPATH`` environment variable in order to use the module. This can be done at the command
 line, e.g.::
 
-   export PYTHONPATH=$PYTHONPATH:/home/christian/firedrake-fluids/models
+   export PYTHONPATH=$PYTHONPATH:/home/christian/firedrake-fluids/firedrake_fluids
 
 Following this, it is recommended that you run ``make test`` (from the
 Firedrake-Fluids base directory) to ensure that the setup and models are

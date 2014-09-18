@@ -14,10 +14,16 @@ Firedrake-Fluids depends on:
 Note that the codebase is designed to run on the Linux operating system. All development and testing of Firedrake-Fluids is done on the Ubuntu Linux distribution.
 
 ## Quick start
-* Append the Firedrake-Fluids `models` directory to your `PYTHONPATH` environment variable using, for example,
+* Install the Firedrake-Fluids Python module using
 
 ```
-export PYTHONPATH=$PYTHONPATH:/home/christian/firedrake-fluids/models
+sudo python setup.py install
+```
+
+Alternatively, append the `firedrake_fluids` directory to your `PYTHONPATH` environment variable using e.g.:
+
+```
+export PYTHONPATH=$PYTHONPATH:/home/christian/firedrake-fluids/firedrake_fluids
 ```
 
 * Run the tests (which are located in the `tests` directory) using
