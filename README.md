@@ -51,7 +51,7 @@ make html
 from the Firedrake-Fluids `doc` directory.
 
 ## Citing
-Please cite the Firedrake-Fluids model description paper:
+To cite Firedrake-Fluids, please use:
 
 **C. T. Jacobs and M. D. Piggott (2014)**. *Firedrake-Fluids v0.1: numerical modelling of shallow water flows using a performance-portable automated solution framework*, Geosci. Model Dev. Discuss., 7, 5699-5738, [doi:10.5194/gmdd-7-5699-2014](http://dx.doi.org/10.5194/gmdd-7-5699-2014).
 
