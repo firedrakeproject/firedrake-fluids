@@ -29,6 +29,7 @@ from firedrake_fluids.stabilisation import Stabilisation
 from firedrake_fluids.les import LES
 
 class ExpressionFromOptions(Expression):
+   """ A sub-class of Expression in which the Expression values are obtained from libspud. """
    def __init__(self, path, t):
       if(libspud.have_option(path + "/constant")):
          self.source_value = libspud.get_option(path + "/constant")
@@ -43,6 +44,7 @@ class ExpressionFromOptions(Expression):
          sys.exit(1)
 
 class ShallowWater:
+   """ A class for setting up and running a non-linear shallow water simulation. """
    
    def __init__(self, path, checkpoint=None):
       """ Initialise a new shallow water simulation using an options file stored at the location given by 'path'. """
