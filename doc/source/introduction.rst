@@ -103,12 +103,12 @@ conditions) from a configuration/setup file. Following the steps below
 at the command line will download and build libspud, and install the
 Python bindings::
 
-1. ``bzr checkout lp:~spud/spud/trunk libspud``
-2. ``cd libspud``
-3. ``./configure``
-4. ``make``
-5. ``cd python``
-6. ``sudo python setup.py install``
+   1. ``bzr checkout lp:~spud/spud/trunk libspud``
+   2. ``cd libspud``
+   3. ``./configure``
+   4. ``make``
+   5. ``cd python``
+   6. ``sudo python setup.py install``
 
 Setting the PYTHONPATH
 ~~~~~~~~~~~~~~~~~~~~~~
