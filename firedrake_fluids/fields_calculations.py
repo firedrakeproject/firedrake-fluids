@@ -32,7 +32,7 @@ def magnitude_vector(mesh, u, function_space):
 
 def grid_peclet_number(mesh, diffusivity, magnitude, function_space, cellsize):
    """ Calculate the grid Peclet number, given by
-       grid_pe = (|u|*cellsize)/(2*diffusivity) """
+       grid_pe = (\|u\|*cellsize)/(2*diffusivity) """
 
    w = TestFunction(function_space)
    grid_pe = TrialFunction(function_space)
