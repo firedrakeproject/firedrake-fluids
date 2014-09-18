@@ -607,11 +607,13 @@ if(__name__ == "__main__"):
    args = parser.parse_args()
 
    if(args.log):
+      # Write to a log file.
       filename = "debug.log"
    else:
       # Write to stdout.
       filename = None
 
+   # Enable logging.
    logging.basicConfig(level=logging.DEBUG, filename=filename, 
                        format="%(asctime)s %(levelname)s: %(message)s", 
                        datefmt="%Y-%m-%d %H:%M:%S")
