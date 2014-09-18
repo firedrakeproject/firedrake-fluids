@@ -16,3 +16,13 @@ Contents:
    stabilisation_methods
    turbulence_parameterisation
    diagnostic_fields
+   
+.. only:: html 
+
+Indices and Tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+

@@ -1,7 +1,7 @@
 Stabilisation methods
 =====================
 
-[chap:stabilisation] When using a continuous Galerkin discretisation in
+When using a continuous Galerkin discretisation in
 advection-dominated problems, it may be necessary to stabilise the
 advection term in the momentum equation.
 

@@ -5,10 +5,10 @@ Overview
 --------
 
 Firedrake-Fluids is a collection of finite element-based numerical
-models for the study of fluid dynamical systems. It uses the Firedrake
+models for the study of fluid dynamical systems. It uses the `Firedrake <http://firedrakeproject.org>`_
 framework to automate the solution of the governing equations written in
 their weak form using the high-level, compact, near-mathematical Unified
-Form Language (UFL) . The complexity of writing a numerical model is
+Form Language (UFL). The complexity of writing a numerical model is
 hidden through abstraction, and model developers do not need to concern
 themselves with hand-writing the low-level (e.g. C or Fortran) code
 required to solve the equations; this is all derived and optimised
@@ -17,8 +17,8 @@ developers do not need to be experts in parallel programming to enable
 their code to be performance-portable across different hardware
 architectures (e.g. a cluster of multi-core CPUs, or a single GPU); the
 generated code is targetted, compiled and executed automatically on a
-desired architecture using the PyOP2 library with which Firedrake is
-coupled .
+desired architecture using the `PyOP2 <https://github.com/OP2/PyOP2>`_ 
+library with which Firedrake is coupled.
 
 Some information briefly outlining Firedrake’s automated solution
 technique and the setup of Firedrake-Fluids can be found in the sections
@@ -62,8 +62,8 @@ evaluation of the expression, as shown in Figure c_kernel_.
    :align:   center
 
    An example of C code, generated automatically, for the purpose
-of evaluating an expression defined by a high-level, near-mathematical
-UFL statement.
+   of evaluating an expression defined by a high-level, near-mathematical
+   UFL statement.
 
 Directory structure
 -------------------
@@ -97,7 +97,7 @@ Before running the models in Firedrake-Fluids, please ensure that all
 the dependencies specified in the README file are satisfied.
 Installations for Firedrake (and its dependencies) can be found `here <http://www.firedrakeproject.org/download.html>`_.
 Firedrake-Fluids also
-relies on the libspud library (and the Python bindings) to retrieve
+relies on the `libspud <https://launchpad.net/spud>`_ library (and the Python bindings) to retrieve
 simulation-related options (e.g. the time-step size and initial
 conditions) from a configuration/setup file. Following the steps below
 at the command line will download and build libspud, and install the

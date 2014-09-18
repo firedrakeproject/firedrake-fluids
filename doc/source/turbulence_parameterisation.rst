@@ -1,8 +1,7 @@
 Turbulence parameterisation
 ===========================
 
-[chap:turbulence\ :sub:`p`\ arameterisation] This chapter describes the
-turbulence models that are available in Firedrake-Fluids.
+This chapter describes the turbulence models that are available in Firedrake-Fluids.
 
 Large Eddy Simulation (LES)
 ---------------------------
