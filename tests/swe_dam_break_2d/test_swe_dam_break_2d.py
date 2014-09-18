@@ -3,7 +3,7 @@ import pytest
 import numpy
 from firedrake import *
 
-import shallow_water
+from firedrake_fluids.shallow_water import *
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
@@ -12,7 +12,7 @@ def input():
    os.system("make -C " + cwd)
 
 def swe_dam_break_2d():
-   sw = shallow_water.ShallowWater(path=os.path.join(cwd, "swe_dam_break_2d.swml"))
+   sw = ShallowWater(path=os.path.join(cwd, "swe_dam_break_2d.swml"))
    sw.run()
    
    fs = FunctionSpace(sw.mesh, "CG", 1)

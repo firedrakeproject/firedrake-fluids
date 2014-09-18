@@ -3,7 +3,7 @@ import pytest
 import numpy
 from firedrake import *
 
-from stabilisation import *
+from firedrake_fluids.stabilisation import *
 
 def su_stabilisation_k_bar():
    errors = []

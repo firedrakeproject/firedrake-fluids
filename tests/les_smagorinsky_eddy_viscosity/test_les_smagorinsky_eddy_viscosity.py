@@ -3,7 +3,7 @@ import pytest
 import numpy
 from firedrake import *
 
-from les import *
+from firedrake_fluids.les import *
 
 def les_smagorinsky_eddy_viscosity():
    errors = []

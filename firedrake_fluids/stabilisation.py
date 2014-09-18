@@ -16,38 +16,26 @@
 #    along with Firedrake-Fluids.  If not, see <http://www.gnu.org/licenses/>.
 
 from firedrake import *
-from random import random
 
-class LES:
+class Stabilisation:
 
-   def __init__(self, mesh, function_space):
+   def __init__(self, mesh, function_space, cellsize):
       self.mesh = mesh
       self.function_space = function_space
-      return
-      
-   def strain_rate_tensor(self, u):
-      S = 0.5*(grad(u) + grad(u).T)
-      return S
+      self.cellsize = cellsize
 
-   def eddy_viscosity(self, u, density, smagorinsky_coefficient):
+   def streamline_upwind(self, w, u, magnitude, grid_pe):
 
       dimension = len(u)
-      w = TestFunction(self.function_space)
-      eddy_viscosity = TrialFunction(self.function_space)
 
-      filter_width = CellVolume(self.mesh)**(1.0/dimension)
+      scaling_factor = 0.5
+      k_bar = self.k_bar(magnitude, grid_pe)
 
-      S = self.strain_rate_tensor(u)
-      second_invariant = 0.0
-      for i in range(0, dimension):
-         for j in range(0, dimension):
-            second_invariant += 2.0*(S[i,j]**2)
-            
-      second_invariant = sqrt(second_invariant)
-      rhs = density*(smagorinsky_coefficient*filter_width)**2*second_invariant
+      F = scaling_factor*(k_bar/(magnitude**2))*inner(dot(grad(w), u), dot(grad(u), u))*dx
 
-      lhs = inner(w, eddy_viscosity)*dx
-      rhs = inner(w, rhs)*dx
+      return F
+
+   def k_bar(self, magnitude, grid_pe):
+
+      return ( (1.0/tanh(grid_pe)) - (1.0/grid_pe) ) * self.cellsize * magnitude
       
-      return lhs, rhs
-

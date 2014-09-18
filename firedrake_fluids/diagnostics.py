@@ -17,7 +17,7 @@
 
 from firedrake import *
 
-import fields_calculations
+import firedrake_fluids.fields_calculations as fields_calculations
 
 class Diagnostics:
 

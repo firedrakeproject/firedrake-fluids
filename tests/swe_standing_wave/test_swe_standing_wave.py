@@ -3,7 +3,7 @@ import pytest
 import numpy
 from firedrake import *
 
-import shallow_water
+from firedrake_fluids.shallow_water import *
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
@@ -12,7 +12,7 @@ def input():
    os.system("make -C " + cwd)
 
 def swe_standing_wave():
-   sw = shallow_water.ShallowWater(path=os.path.join(cwd, "swe_standing_wave.swml"))
+   sw = ShallowWater(path=os.path.join(cwd, "swe_standing_wave.swml"))
    sw.run()
    h_old = sw.solution_old.split()[-1]
    

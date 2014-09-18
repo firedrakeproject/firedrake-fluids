@@ -23,10 +23,10 @@ import libspud
 from firedrake import *
 
 # Firedrake-Fluids modules
-import fields_calculations
-import diagnostics
-from stabilisation import Stabilisation
-from les import LES
+import firedrake_fluids.fields_calculations as fields_calculations
+import firedrake_fluids.diagnostics as diagnostics
+from firedrake_fluids.stabilisation import Stabilisation
+from firedrake_fluids.les import LES
 
 class ExpressionFromOptions(Expression):
    def __init__(self, path, t):

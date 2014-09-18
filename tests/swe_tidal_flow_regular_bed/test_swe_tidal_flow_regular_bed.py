@@ -9,12 +9,12 @@ import numpy
 import pylab
 from firedrake import *
 
-import shallow_water
+from firedrake_fluids.shallow_water import *
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
 def swe_tidal_flow_regular_bed():
-   sw = shallow_water.ShallowWater(path=os.path.join(cwd, "swe_tidal_flow_regular_bed.swml"))
+   sw = ShallowWater(path=os.path.join(cwd, "swe_tidal_flow_regular_bed.swml"))
    sw.run()
    
    mesh = sw.mesh

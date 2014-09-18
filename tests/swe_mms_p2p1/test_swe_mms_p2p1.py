@@ -3,7 +3,7 @@ import pytest
 import numpy
 from firedrake import *
 
-import shallow_water
+from firedrake_fluids.shallow_water import *
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
@@ -18,7 +18,7 @@ def swe_mms_p2p1():
    h_norms = []
    
    for c in configs:
-      sw = shallow_water.ShallowWater(path=os.path.join(cwd, c + ".swml"))
+      sw = ShallowWater(path=os.path.join(cwd, c + ".swml"))
       sw.run()
       ux_old = sw.solution_old.split()[0][0]
       uy_old = sw.solution_old.split()[0][1]

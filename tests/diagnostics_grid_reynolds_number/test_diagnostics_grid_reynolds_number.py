@@ -3,7 +3,7 @@ import pytest
 import numpy
 from firedrake import *
 
-from diagnostics import *
+from firedrake_fluids.diagnostics import *
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
