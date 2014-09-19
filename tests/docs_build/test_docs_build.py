@@ -2,21 +2,21 @@ import os, sys
 import subprocess
 import pytest
 
-def doc_build():
+def docs_build():
    sys.path.insert(0, os.path.abspath('.'))
    print sys.path
 
-   with open("doc_build.log", "w") as out:
-      process = subprocess.Popen("cd doc; make clean; make html; cd ../", shell=True, stdout=out, stderr=sys.stdout.fileno())
+   with open("docs_build.log", "w") as out:
+      process = subprocess.Popen("cd docs; make clean; make html; cd ../", shell=True, stdout=out, stderr=sys.stdout.fileno())
       exit_code = process.wait()
    
-   with open("doc_build.log", "r") as f:
+   with open("docs_build.log", "r") as f:
       log = f.read()
    
    return log, exit_code
 
-def test_doc_build():
-   log, exit_code = doc_build()
+def test_docs_build():
+   log, exit_code = docs_build()
    
    print log
    print exit_code

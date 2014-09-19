@@ -74,7 +74,7 @@ The directory structure of the Firedrake-Fluids codebase is as follows:
    information in the README file, information about the license in the
    COPYING file, and a full list of authors in the AUTHORS file.
 
--  ``/doc``: Contains the source code and images for this
+-  ``/docs``: Contains the source code and images for this
    documentation.
 
 -  ``/firedrake_fluids``: Comprises a collection of Python files containing the

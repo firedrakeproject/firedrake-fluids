@@ -2,6 +2,8 @@
 
 A collection of numerical models for fluid flow simulation, using the [Firedrake](http://www.firedrakeproject.org) performance-portable automated solution framework.
 
+[![Documentation Status](https://readthedocs.org/projects/firedrake-fluids/badge/?version=latest)](https://readthedocs.org/projects/firedrake-fluids/?badge=latest)
+
 ## Dependencies
 
 Firedrake-Fluids depends on:
@@ -9,7 +11,7 @@ Firedrake-Fluids depends on:
 * [libspud](https://launchpad.net/spud)
 * [pytest](http://pytest.org) (optional, but required to run `make test`)
 * [gmsh](http://geuz.org/gmsh/) (optional, but required to run some tests)
-* [Sphinx](http://sphinx-doc.org/) (optional, but required to build the user manual from source)
+* [Sphinx](http://sphinx-doc.org/) (optional, but required to build the documentation from source)
 
 Note that the codebase is designed to run on the Linux operating system. All development and testing of Firedrake-Fluids is done on the Ubuntu Linux distribution.
 
@@ -54,7 +56,7 @@ The Firedrake-Fluids documentation can be compiled using [Sphinx](http://sphinx-
 make html
 ```
 
-from the Firedrake-Fluids `doc` directory.
+from the Firedrake-Fluids `docs` directory. Alternatively, the latest version of the documentation can be viewed [here](http://firedrake-fluids.readthedocs.org/en/latest/).
 
 ## Citing
 

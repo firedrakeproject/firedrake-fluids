@@ -1,18 +1,18 @@
 #!/bin/sh
 
-.PHONY: doc
+.PHONY: docs
 
-input: 	clean doc
+input: 	clean docs
 
-doc:
-	@echo ***Compiling the user documentation
-	cd doc; make html; cd ..
+docs:
+	@echo ***Compiling the documentation
+	cd docs; make html; cd ..
 
 test:
 	@echo ***Running the tests
 	python -m pytest
 	
 clean:
-	@echo ***Cleaning doc directory
-	cd doc; make clean; cd ..
+	@echo ***Cleaning the docs directory
+	cd docs; make clean; cd ..
 
