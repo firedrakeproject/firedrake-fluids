@@ -145,7 +145,7 @@
           </scalar_field>
         </stress_term>
         <drag_term>
-          <scalar_field name="DragCoefficient">
+          <scalar_field name="BottomDragCoefficient">
             <value>
               <constant>
                 <real_value rank="0">0.0025</real_value>
