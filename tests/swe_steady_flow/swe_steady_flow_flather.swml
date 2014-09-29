@@ -131,11 +131,7 @@
       </continuity_equation>
       <momentum_equation>
         <spatial_discretisation>
-          <continuous_galerkin>
-            <stabilisation>
-              <no_stabilisation/>
-            </stabilisation>
-          </continuous_galerkin>
+          <continuous_galerkin/>
         </spatial_discretisation>
         <mass_term/>
         <advection_term/>

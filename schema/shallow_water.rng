@@ -264,9 +264,11 @@ This allows the imposition of weak boundary conditions for the Velocity field.</
       <choice>
         <element name="continuous_galerkin">
           <a:documentation>Continuous Galerkin discretisation.</a:documentation>
-          <element name="stabilisation">
-            <ref name="stabilisation_options"/>
-          </element>
+          <optional>
+            <element name="stabilisation">
+              <ref name="stabilisation_options"/>
+            </element>
+          </optional>
         </element>
         <element name="discontinuous_galerkin">
           <a:documentation>Discontinuous Galerkin discretisation.</a:documentation>
@@ -397,16 +399,11 @@ Note: This is a weak boundary condition. It is only applied if the divergence te
     </choice>
   </define>
   <define name="stabilisation_options">
-    <choice>
-      <element name="no_stabilisation">
-        <empty/>
-      </element>
-      <element name="streamline_upwind_stabilisation">
-        <a:documentation>Add a streamline upwind stabilisation term
+    <element name="streamline_upwind_stabilisation">
+      <a:documentation>Add a streamline upwind stabilisation term
 (given by equation 2.52 in Donea &amp; Huerta (2003))
 to the advection term.</a:documentation>
-        <ref name="comment"/>
-      </element>
-    </choice>
+      <ref name="comment"/>
+    </element>
   </define>
 </grammar>

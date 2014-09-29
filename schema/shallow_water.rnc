@@ -296,7 +296,7 @@ momentum_equation_options =
             element stabilisation
             {
                stabilisation_options
-            }
+            }?
          }|
          ## Discontinuous Galerkin discretisation.
          element discontinuous_galerkin 
@@ -422,10 +422,6 @@ velocity_boundary_condition =
 
 stabilisation_options = 
 (
-   element no_stabilisation
-   {
-      empty
-   }|
    ## Add a streamline upwind stabilisation term
    ## (given by equation 2.52 in Donea & Huerta (2003))
    ## to the advection term.
