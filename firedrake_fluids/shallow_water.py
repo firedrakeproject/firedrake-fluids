@@ -165,16 +165,20 @@ class ShallowWater:
       self.h_mean.interpolate(ExpressionFromOptions(path = "/system/core_fields/scalar_field::FreeSurfaceMean/value", t=self.options["t"]))
 
       # Set up the functions used to write fields to file.
-      self.output_function = [Function(self.W.sub(0), name="Velocity"), Function(self.W.sub(1), name="FreeSurfacePerturbation")]
+      self.output_functions = {}
+      self.output_functions["Velocity"] = Function(self.W.sub(0), name="Velocity")
+      self.output_functions["FreeSurfacePerturbation"] = Function(self.W.sub(1), name="FreeSurfacePerturbation")
       
       # Set up the output stream
-      self.output_file = [File("%s_Velocity.pvd" % self.options["simulation_name"]), File("%s_FreeSurfacePerturbation.pvd" % self.options["simulation_name"])]
+      self.output_files = {}
+      for field in self.output_functions.keys():
+         self.output_files[field] = File("%s_%s.pvd" % (self.options["simulation_name"], field))
       
       # Write initial conditions to file
-      self.output_function[0].assign(self.solution_old.split()[0])
-      self.output_file[0] << self.output_function[0]
-      self.output_function[1].assign(self.solution_old.split()[1])
-      self.output_file[1] << self.output_function[1]
+      self.output_functions["Velocity"].assign(self.solution_old.split()[0])
+      self.output_files["Velocity"] << self.output_functions["Velocity"]
+      self.output_functions["FreeSurfacePerturbation"].assign(self.solution_old.split()[1])
+      self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
     
       return
       
@@ -239,8 +243,8 @@ class ShallowWater:
       self.options["integrate_continuity_equation_by_parts"] = libspud.have_option("/system/equations/continuity_equation/integrate_by_parts")
       self.options["integrate_advection_term_by_parts"] = libspud.have_option("/system/equations/momentum_equation/advection_term/integrate_by_parts")
       
-      return
-      
+      return         
+         
    def run(self):
       """ Execute the time-stepping loop. """
    
@@ -445,7 +449,7 @@ class ShallowWater:
          logging.debug("Adding continuity source...")
          continuity_source = ExpressionFromOptions(path = "/system/equations/continuity_equation/source_term/scalar_field::Source/value", t=t)
          F -= inner(self.v, Function(self.W.sub(1)).interpolate(continuity_source))*dx
-
+         
       # Add in any SU stabilisation
       if(self.options["have_su_stabilisation"]):
          logging.debug("Adding momentum SU stabilisation...")
@@ -569,10 +573,10 @@ class ShallowWater:
          # Write the solution to file.
          if((self.options["dump_period"] is not None) and (dt*iterations_since_dump >= self.options["dump_period"])):
             logging.debug("Writing data to file...")
-            self.output_function[0].assign(self.solution.split()[0])
-            self.output_file[0] << self.output_function[0]
-            self.output_function[1].assign(self.solution.split()[1])
-            self.output_file[1] << self.output_function[1]
+            self.output_functions["Velocity"].assign(self.solution.split()[0])
+            self.output_files["Velocity"] << self.output_functions["Velocity"]
+            self.output_functions["FreeSurfacePerturbation"].assign(self.solution.split()[1])
+            self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
             # Reset the counter.
             iterations_since_dump = 0
          
