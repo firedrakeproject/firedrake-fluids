@@ -319,16 +319,27 @@ Note that this is the kinematic viscosity for shallow water simulations.</a:docu
     </optional>
     <optional>
       <element name="drag_term">
-        <a:documentation>Options for the drag term.</a:documentation>
+        <a:documentation>Options for the quadratic drag term.</a:documentation>
         <element name="scalar_field">
-          <a:documentation>The (non-dimensional) drag coefficient in the quadratic drag term.</a:documentation>
+          <a:documentation>The (non-dimensional) bottom drag/friction coefficient.</a:documentation>
           <attribute name="name">
-            <value>DragCoefficient</value>
+            <value>BottomDragCoefficient</value>
           </attribute>
           <element name="value">
             <ref name="input_choice_real"/>
           </element>
         </element>
+        <optional>
+          <element name="scalar_field">
+            <a:documentation>The (non-dimensional) drag coefficient which parameterises tidal turbines.</a:documentation>
+            <attribute name="name">
+              <value>TurbineDragCoefficient</value>
+            </attribute>
+            <element name="value">
+              <ref name="input_choice_real"/>
+            </element>
+          </element>
+        </optional>
       </element>
     </optional>
     <optional>

@@ -345,18 +345,27 @@ momentum_equation_options =
             }
          }
       }?,
-      ## Options for the drag term.
+      ## Options for the quadratic drag term.
       element drag_term
       {
-         ## The (non-dimensional) drag coefficient in the quadratic drag term.
+         ## The (non-dimensional) bottom drag/friction coefficient.
          element scalar_field 
          {
-            attribute name { "DragCoefficient" },
+            attribute name { "BottomDragCoefficient" },
             element value 
             {
                input_choice_real
             }
-         }
+         },
+         ## The (non-dimensional) drag coefficient which parameterises tidal turbines.
+         element scalar_field 
+         {
+            attribute name { "TurbineDragCoefficient" },
+            element value 
+            {
+               input_choice_real
+            }
+         }?
       }?,
       ## Adds a source term to the RHS of the momentum equation.
       element source_term

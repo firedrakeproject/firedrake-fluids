@@ -22,6 +22,7 @@ import argparse
 import numpy
 
 import libspud
+from pyop2 import *
 from firedrake import *
 
 # Firedrake-Fluids modules
@@ -232,7 +233,7 @@ class ShallowWater:
       self.options["have_turbulence_parameterisation"] = libspud.have_option("/system/equations/momentum_equation/turbulence_parameterisation")
 
       # Drag parameterisation
-      self.options["have_bottom_drag"] = libspud.have_option("/system/equations/momentum_equation/drag_term")
+      self.options["have_drag"] = libspud.have_option("/system/equations/momentum_equation/drag_term")
          
       # Integration by parts
       self.options["integrate_continuity_equation_by_parts"] = libspud.have_option("/system/equations/continuity_equation/integrate_by_parts")
@@ -336,17 +337,23 @@ class ShallowWater:
       F -= C_momentum
 
       # Quadratic drag term in the momentum equation
-      if(self.options["have_bottom_drag"]):
-         logging.debug("Adding bottom drag...")
+      if(self.options["have_drag"]):
+         logging.debug("Adding drag term...")
          
-         # Get the drag coefficient C_D.
-         C_D = Function(self.W.sub(1)).interpolate(ExpressionFromOptions(path="/system/equations/momentum_equation/drag_term/scalar_field::DragCoefficient/value", t=t))
+         base_option_path = "/system/equations/momentum_equation/drag_term"
+         
+         # Get the bottom drag/friction coefficient.
+         drag_coefficient = Function(self.W.sub(1)).interpolate(ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=t))
+         
+         # Add on the turbine drag coefficient, if provided.
+         if(libspud.have_option(base_option_path + "/scalar_field::TurbineDragCoefficient")):
+            drag_coefficient += Function(self.W.sub(1)).interpolate(ExpressionFromOptions(path=base_option_path+"/scalar_field::TurbineDragCoefficient/value", t=t))
          
          # Magnitude of the velocity field
          magnitude = sqrt(dot(self.u, self.u))
          
          # Form the drag term
-         D_momentum = -inner(self.w, (C_D*magnitude/H)*self.u)*dx
+         D_momentum = -inner(self.w, (drag_coefficient*magnitude/H)*self.u)*dx
          F -= D_momentum
 
       # The mass term in the shallow water continuity equation 
@@ -438,7 +445,6 @@ class ShallowWater:
          logging.debug("Adding continuity source...")
          continuity_source = ExpressionFromOptions(path = "/system/equations/continuity_equation/source_term/scalar_field::Source/value", t=t)
          F -= inner(self.v, Function(self.W.sub(1)).interpolate(continuity_source))*dx
-         
 
       # Add in any SU stabilisation
       if(self.options["have_su_stabilisation"]):
