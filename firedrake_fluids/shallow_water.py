@@ -25,6 +25,8 @@ import libspud
 from pyop2 import *
 from firedrake import *
 
+parameters['form_compiler']['quadrature_degree'] = 4
+
 # Firedrake-Fluids modules
 import firedrake_fluids.fields_calculations as fields_calculations
 import firedrake_fluids.diagnostics as diagnostics
