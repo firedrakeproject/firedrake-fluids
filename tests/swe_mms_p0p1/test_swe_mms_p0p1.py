@@ -27,9 +27,9 @@ def swe_mms_p0p1():
       fs_exact_dg = FunctionSpace(sw.mesh, "DG", 3)
       fs_exact_cg = FunctionSpace(sw.mesh, "CG", 3)
       
-      ux_exact = project(Expression("cos(x[0])*sin(x[1])"), fs_exact_dg)
-      uy_exact = project(Expression("sin(x[0]*x[0]) + cos(x[1])"), fs_exact_dg)
-      h_exact = project(Expression("sin(x[0])*sin(x[1])"), fs_exact_cg)
+      ux_exact = project(Expression("cos(x[0])*sin(x[1])"), fs_exact_dg, solver_parameters={'ksp_type': 'gmres', 'ksp_rtol': 1e-8, 'pc_type': 'sor'})
+      uy_exact = project(Expression("sin(x[0]*x[0]) + cos(x[1])"), fs_exact_dg, solver_parameters={'ksp_type': 'gmres', 'ksp_rtol': 1e-8, 'pc_type': 'sor'})
+      h_exact = project(Expression("sin(x[0])*sin(x[1])"), fs_exact_cg, solver_parameters={'ksp_type': 'gmres', 'ksp_rtol': 1e-8, 'pc_type': 'sor'})
       
       h_norms.append(sqrt(assemble(dot(h_old - h_exact, h_old - h_exact) * dx)))
       ux_norms.append(sqrt(assemble(dot(ux_old - ux_exact, ux_old - ux_exact) * dx)))
