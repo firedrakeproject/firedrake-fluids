@@ -6,9 +6,6 @@
     <element name="relative_error">
       <ref name="real"/>
     </element>
-    <element name="max_iterations">
-      <ref name="real"/>
-    </element>
   </define>
   <define name="iterative_methods">
     <choice>

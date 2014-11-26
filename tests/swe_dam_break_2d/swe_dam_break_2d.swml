@@ -140,9 +140,6 @@
       <relative_error>
         <real_value rank="0">1e-7</real_value>
       </relative_error>
-      <max_iterations>
-        <real_value rank="0">1000</real_value>
-      </max_iterations>
     </solver>
   </system>
 </shallow_water_options>

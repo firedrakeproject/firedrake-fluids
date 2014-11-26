@@ -148,7 +148,7 @@
           <scalar_field name="TurbineDragCoefficient">
             <value>
               <cpp>
-                <string_value type="code" lines="20" language="python">def val(t):
+                <string_value lines="20" type="code" language="python">def val(t):
   C_D = "x[0] &gt;= 1500 &amp;&amp; x[0] &lt;= 1505 &amp;&amp; x[1] &gt;= 490 &amp;&amp; x[1] &lt;= 510 ? 12 : 0"
   return C_D</string_value>
               </cpp>
@@ -157,5 +157,28 @@
         </drag_term>
       </momentum_equation>
     </equations>
+    <solver>
+      <iterative_method name="gmres"/>
+      <preconditioner name="fieldsplit">
+        <type name="schur">
+          <fact_type name="FULL"/>
+        </type>
+        <block_0_ksp_type>
+          <iterative_method name="preonly"/>
+        </block_0_ksp_type>
+        <block_0_pc_type>
+          <preconditioner name="lu"/>
+        </block_0_pc_type>
+        <block_1_ksp_type>
+          <iterative_method name="preonly"/>
+        </block_1_ksp_type>
+        <block_1_pc_type>
+          <preconditioner name="lu"/>
+        </block_1_pc_type>
+      </preconditioner>
+      <relative_error>
+        <real_value rank="0">1e-7</real_value>
+      </relative_error>
+    </solver>
   </system>
 </shallow_water_options>
