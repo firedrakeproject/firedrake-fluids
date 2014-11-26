@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0">
+  <define name="solvers">
+    <ref name="iterative_methods"/>
+    <ref name="preconditioners"/>
+    <element name="relative_error">
+      <ref name="real"/>
+    </element>
+    <element name="max_iterations">
+      <ref name="real"/>
+    </element>
+  </define>
+  <define name="iterative_methods">
+    <choice>
+      <element name="iterative_method">
+        <attribute name="name">
+          <value>preonly</value>
+        </attribute>
+      </element>
+      <element name="iterative_method">
+        <attribute name="name">
+          <value>gmres</value>
+        </attribute>
+        <optional>
+          <element name="restart">
+            <ref name="real"/>
+          </element>
+        </optional>
+      </element>
+    </choice>
+  </define>
+  <define name="preconditioners">
+    <choice>
+      <element name="preconditioner">
+        <attribute name="name">
+          <value>lu</value>
+        </attribute>
+      </element>
+      <element name="preconditioner">
+        <attribute name="name">
+          <value>sor</value>
+        </attribute>
+      </element>
+      <element name="preconditioner">
+        <attribute name="name">
+          <value>fieldsplit</value>
+        </attribute>
+        <ref name="fieldsplit"/>
+      </element>
+    </choice>
+  </define>
+  <define name="fieldsplit">
+    <element name="type">
+      <attribute name="name">
+        <value>schur</value>
+      </attribute>
+      <element name="fact_type">
+        <a:documentation>Factorisation type.</a:documentation>
+        <attribute name="name">
+          <value>FULL</value>
+        </attribute>
+      </element>
+    </element>
+    <element name="block_0_ksp_type">
+      <ref name="iterative_methods"/>
+    </element>
+    <element name="block_0_pc_type">
+      <ref name="preconditioners"/>
+    </element>
+    <element name="block_1_ksp_type">
+      <ref name="iterative_methods"/>
+    </element>
+    <element name="block_1_pc_type">
+      <ref name="preconditioners"/>
+    </element>
+  </define>
+</grammar>

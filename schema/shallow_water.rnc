@@ -4,6 +4,7 @@ include "input.rnc"
 include "boundary_conditions.rnc"
 include "turbulence_parameterisation.rnc"
 include "les.rnc"
+include "solvers.rnc"
 
 start =
    (
@@ -164,6 +165,10 @@ start =
             element equations
             {
                equations
+            },
+            element solver
+            {
+               solvers
             }
          }
       }

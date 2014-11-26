@@ -5,6 +5,7 @@
   <include href="boundary_conditions.rng"/>
   <include href="turbulence_parameterisation.rng"/>
   <include href="les.rng"/>
+  <include href="solvers.rng"/>
   <start>
     <element name="shallow_water_options">
       <a:documentation>The root node of the shallow water options dictionary.</a:documentation>
@@ -145,6 +146,9 @@ Setting this to zero will result in checkpoint dumps at every time-step.</a:docu
         <element name="equations">
           <a:documentation>The options available for the governing equations of the shallow water model.</a:documentation>
           <ref name="equations"/>
+        </element>
+        <element name="solver">
+          <ref name="solvers"/>
         </element>
       </element>
     </element>

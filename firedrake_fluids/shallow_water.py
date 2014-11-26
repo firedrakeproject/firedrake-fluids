@@ -510,21 +510,30 @@ class ShallowWater:
             bc = DirichletBC(self.W.sub(1), expr, surface_ids, method=method)
             bcs.append(bc)
             bc_expressions.append(expr)
+            
+      # Prepare solver_parameters dictionary
+      solver_parameters = {'ksp_monitor': True, 'ksp_view': False, 'pc_view': False, 'snes_type': 'ksponly'} # NOTE: use 'snes_type': 'newtonls' for production runs.
+      
+      # KSP (iterative solver) options
+      solver_parameters["ksp_type"] = libspud.get_option("/system/solver/iterative_method/name")
+      solver_parameters["ksp_rtol"] = libspud.get_option("/system/solver/relative_error")
+      
+      # Preconditioner options
+      solver_parameters["pc_type"] = libspud.get_option("/system/solver/preconditioner/name")
+      # Fieldsplit sub-options
+      if(solver_parameters["pc_type"] == "fieldsplit"):
+         print "Setting up fieldsplit preconditioner..."
+         solver_parameters["pc_fieldsplit_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/type/name")
+         if(solver_parameters["pc_fieldsplit_type"] == "schur"):
+            solver_parameters["pc_fieldsplit_schur_fact_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/type::schur/fact_type/name")
+         solver_parameters["fieldsplit_0_ksp_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_0_ksp_type/iterative_method/name")
+         solver_parameters["fieldsplit_1_ksp_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_1_ksp_type/iterative_method/name")
+         solver_parameters["fieldsplit_0_pc_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_0_pc_type/preconditioner/name")
+         solver_parameters["fieldsplit_1_pc_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_1_pc_type/preconditioner/name")
 
       # Construct the solver objects
       problem = NonlinearVariationalProblem(F, self.solution, bcs=bcs)
-      solver = NonlinearVariationalSolver(problem, solver_parameters={'ksp_monitor': True, 
-                                                                  'ksp_view': False, 
-                                                                  'pc_view': False, 
-                                                                  'pc_type': 'fieldsplit',
-                                                                  'pc_fieldsplit_type': 'schur',
-                                                                  'ksp_type': 'gmres',
-                                                                  'pc_fieldsplit_schur_fact_type': 'FULL',
-                                                                  'fieldsplit_0_ksp_type': 'preonly',
-                                                                  'fieldsplit_1_ksp_type': 'preonly',
-                                                                  'ksp_rtol': 1.0e-7,
-                                                                  'snes_type':'ksponly'}) 
-                                                                  # NOTE: use 'snes_type': 'newtonls' for production runs.
+      solver = NonlinearVariationalSolver(problem, solver_parameters=solver_parameters)
       
       t += dt
       iterations_since_dump = 1

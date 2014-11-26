@@ -1,0 +1,78 @@
+solvers =
+   (
+      iterative_methods,
+      preconditioners,
+      element relative_error
+      {
+         real
+      },
+      element max_iterations
+      {
+         real
+      }
+   )
+
+
+iterative_methods =
+   (
+      element iterative_method 
+      {
+         attribute name { "preonly" }
+      }|
+      element iterative_method 
+      {
+         attribute name { "gmres" },
+         element restart
+         {
+            real
+         }?
+      }
+   )
+   
+
+preconditioners =
+   (
+      element preconditioner
+      {
+         attribute name { "lu" }
+      }|
+      element preconditioner
+      {
+         attribute name { "sor" }
+      }|
+      element preconditioner
+      {
+         attribute name { "fieldsplit" },
+         fieldsplit
+      }
+   )
+   
+fieldsplit = 
+   (
+      element type
+      {
+         attribute name { "schur" },
+         ## Factorisation type.
+         element fact_type
+         {
+            attribute name { "FULL" }
+         }
+      },
+      element block_0_ksp_type
+      {
+         iterative_methods
+      },
+      element block_0_pc_type
+      {
+         preconditioners
+      },
+      element block_1_ksp_type
+      {
+         iterative_methods
+      },
+      element block_1_pc_type
+      {
+         preconditioners
+      }
+   )
+   
