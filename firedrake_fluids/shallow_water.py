@@ -530,7 +530,10 @@ class ShallowWater:
          solver_parameters["fieldsplit_1_ksp_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_1_ksp_type/iterative_method/name")
          solver_parameters["fieldsplit_0_pc_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_0_pc_type/preconditioner/name")
          solver_parameters["fieldsplit_1_pc_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_1_pc_type/preconditioner/name")
-
+         # Enable inner iteration monitors.
+         solver_parameters["fieldsplit_0_ksp_monitor"] = True
+         solver_parameters["fieldsplit_1_ksp_monitor"] = True
+         
       # Construct the solver objects
       problem = NonlinearVariationalProblem(F, self.solution, bcs=bcs)
       solver = NonlinearVariationalSolver(problem, solver_parameters=solver_parameters)
