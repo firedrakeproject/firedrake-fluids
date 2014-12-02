@@ -16,6 +16,15 @@
 #    along with Firedrake-Fluids.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys, os
+try:
+   if(os.environ["PETSC_OPTIONS"] == ""):
+      os.environ["PETSC_OPTIONS"] = "-log_summary"
+   else:
+      os.environ["PETSC_OPTIONS"] = os.environ["PETSC_OPTIONS"] + " -log_summary"
+except:
+   os.environ["PETSC_OPTIONS"] = "-log_summary"
+print "PETSC_OPTIONS set to: ", os.environ["PETSC_OPTIONS"]
+   
 import logging
 import signal
 import argparse
@@ -515,7 +524,7 @@ class ShallowWater:
             bc_expressions.append(expr)
             
       # Prepare solver_parameters dictionary
-      solver_parameters = {'ksp_monitor': True, 'ksp_view': False, 'pc_view': False, 'snes_type': 'newtonls'} # NOTE: use 'snes_type': 'newtonls' for production runs.
+      solver_parameters = {'ksp_monitor': True, 'ksp_view': False, 'pc_view': False, 'snes_type': 'ksponly'} # NOTE: use 'snes_type': 'newtonls' for production runs.
       
       # KSP (iterative solver) options
       solver_parameters["ksp_type"] = libspud.get_option("/system/solver/iterative_method/name")
