@@ -20,12 +20,15 @@ import logging
 import signal
 import argparse
 import numpy
+import mpi4py
 
 import libspud
 from pyop2 import *
 from firedrake import *
 
 parameters['form_compiler']['quadrature_degree'] = 4
+
+#op2.init(lazy_evaluation=False)
 
 # Firedrake-Fluids modules
 import firedrake_fluids.fields_calculations as fields_calculations
@@ -512,7 +515,7 @@ class ShallowWater:
             bc_expressions.append(expr)
             
       # Prepare solver_parameters dictionary
-      solver_parameters = {'ksp_monitor': True, 'ksp_view': False, 'pc_view': False, 'snes_type': 'ksponly'} # NOTE: use 'snes_type': 'newtonls' for production runs.
+      solver_parameters = {'ksp_monitor': True, 'ksp_view': False, 'pc_view': False, 'snes_type': 'newtonls'} # NOTE: use 'snes_type': 'newtonls' for production runs.
       
       # KSP (iterative solver) options
       solver_parameters["ksp_type"] = libspud.get_option("/system/solver/iterative_method/name")
@@ -541,6 +544,10 @@ class ShallowWater:
       t += dt
       iterations_since_dump = 1
       iterations_since_checkpoint = 1
+      
+      # PETSc solver run-times
+      from petsc4py import PETSc
+      main_solver_stage = PETSc.Log.Stage('Main block-coupled system solve')
       
       # The time-stepping loop
       EPSILON = 1.0e-14
@@ -582,7 +589,9 @@ class ShallowWater:
             expr.t = t
                    
          # Solve the system of equations!
+         main_solver_stage.push()
          solver.solve()
+         main_solver_stage.pop()
      
          # Write the solution to file.
          if((self.options["dump_period"] is not None) and (dt*iterations_since_dump >= self.options["dump_period"])):
@@ -618,7 +627,7 @@ class ShallowWater:
          logging.debug("Moving to next time level...")
       
       logging.debug("Out of the time-stepping loop.")
-  
+
       return
 
 if(__name__ == "__main__"):
@@ -645,8 +654,7 @@ if(__name__ == "__main__"):
    # Exit if SIGINT is detected.
    signal.signal(signal.SIGINT, signal.SIG_DFL)
    
-   import mpi4py
-   start_time = mpi4py.MPI.Wtime()
+   simulation_start_time = mpi4py.MPI.Wtime()
    
    if(os.path.exists(args.path)):
       # Set up a shallow water simulation.
@@ -658,7 +666,7 @@ if(__name__ == "__main__"):
       logging.critical("The path to the simulation setup file does not exist.")
       sys.exit(1)
    
-   end_time = mpi4py.MPI.Wtime()
+   simulation_end_time = mpi4py.MPI.Wtime()
    
-   logging.info("Total run-time = %.2f s" % (end_time - start_time))
+   logging.info("Total simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
    
