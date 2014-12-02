@@ -34,6 +34,10 @@ preconditioners =
       }|
       element preconditioner
       {
+         attribute name { "ilu" }
+      }|
+      element preconditioner
+      {
          attribute name { "sor" }
       }|
       element preconditioner

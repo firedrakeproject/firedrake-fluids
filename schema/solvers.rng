@@ -35,6 +35,11 @@
       </element>
       <element name="preconditioner">
         <attribute name="name">
+          <value>ilu</value>
+        </attribute>
+      </element>
+      <element name="preconditioner">
+        <attribute name="name">
           <value>sor</value>
         </attribute>
       </element>
