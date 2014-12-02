@@ -149,13 +149,13 @@
           <iterative_method name="preonly"/>
         </block_0_ksp_type>
         <block_0_pc_type>
-          <preconditioner name="lu"/>
+          <preconditioner name="ilu"/>
         </block_0_pc_type>
         <block_1_ksp_type>
           <iterative_method name="preonly"/>
         </block_1_ksp_type>
         <block_1_pc_type>
-          <preconditioner name="lu"/>
+          <preconditioner name="ilu"/>
         </block_1_pc_type>
       </preconditioner>
       <relative_error>
