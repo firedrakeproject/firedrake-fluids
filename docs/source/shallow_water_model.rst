@@ -55,7 +55,7 @@ equations by multiplying through by a test function
 first Hilbertian Sobolev space ) and integrating over :math:`\Omega`\.
 In the case of the momentum equation, this becomes
 
-.. math:: \int_{\Omega}\mathbf{w}\cdot\frac{\partial \mathbf{u}}{\partial t}\ \mathrm{dV} + \int_{\Omega}\mathbf{w}\cdot(\mathbf{u}\cdot\nabla\mathbf{u}) \ \mathrm{dV} = -\int_{\Omega}g\mathbf{w}\cdot\nabla h \ \mathrm{dV} + \int_{\Omega}\nabla\mathbf{w}\cdot \mathbb{T} \ \mathrm{dV} - \int_{\Omega}C_D\mathbf{w}\cdot\frac{||\mathbf{u}||\mathbf{u}}{(H + h)} \ \mathrm{dV}.
+.. math:: \int_{\Omega}\mathbf{w}\cdot\frac{\partial \mathbf{u}}{\partial t}\ \mathrm{dV} + \int_{\Omega}\mathbf{w}\cdot(\mathbf{u}\cdot\nabla\mathbf{u}) \ \mathrm{dV} = -\int_{\Omega}g\mathbf{w}\cdot\nabla h \ \mathrm{dV} - \int_{\Omega}\nabla\mathbf{w}\cdot \mathbb{T} \ \mathrm{dV} - \int_{\Omega}C_D\mathbf{w}\cdot\frac{||\mathbf{u}||\mathbf{u}}{(H + h)} \ \mathrm{dV}.
 
 A solution :math:`\mathbf{u} \in H^1(\Omega)^3` is sought such that it
 is valid :math:`\forall \mathbf{w}`\.
@@ -85,7 +85,7 @@ known as a *discontinuous* Galerkin (DG) method.
 The momentum equation, discretised in space, then becomes a matrix
 system:
 
-.. math:: \mathbf{M}\frac{\partial\mathbf{u}}{\partial t} + \mathbf{A}(\mathbf{u})\mathbf{u} + \mathbf{K}\mathbf{u} = -\mathbf{C}h + \mathbf{D}(\mathbf{u}, h)\mathbf{u},
+.. math:: \mathbf{M}\frac{\partial\mathbf{u}}{\partial t} + \mathbf{A}(\mathbf{u})\mathbf{u} = -\mathbf{C}h - \mathbf{K}\mathbf{u} - \mathbf{D}(\mathbf{u}, h)\mathbf{u},
 
 where :math:`\mathbf{M}`\ , :math:`\mathbf{A}`\ , :math:`\mathbf{K}`\ ,
 :math:`\mathbf{C}` and :math:`\mathbf{D}` are the mass, advection,
@@ -94,7 +94,7 @@ stress, gradient and drag matrices, respectively.
 The time-derivative is discretised using the implicit backward Euler
 method, yielding a fully discrete system of equations:
 
-.. math:: \mathbf{M}\frac{\mathbf{u}^{n+1} - \mathbf{u}^{n}}{\Delta t} + \mathbf{A}(\mathbf{u}^{n+1})\mathbf{u}^{n+1} + \mathbf{K}\mathbf{u}^{n+1} = -\mathbf{C}h^{n+1} + \mathbf{D}(\mathbf{u}^{n+1}, h^{n+1})\mathbf{u}^{n+1},
+.. math:: \mathbf{M}\frac{\mathbf{u}^{n+1} - \mathbf{u}^{n}}{\Delta t} + \mathbf{A}(\mathbf{u}^{n+1})\mathbf{u}^{n+1} = -\mathbf{C}h^{n+1} - \mathbf{K}\mathbf{u}^{n+1} - \mathbf{D}(\mathbf{u}^{n+1}, h^{n+1})\mathbf{u}^{n+1},
 
 where :math:`\Delta t` is the time-step.
 
