@@ -379,7 +379,7 @@ momentum_equation_options =
                python_code
             },
             (
-               ## The 'radius'
+               ## The turbine drag function type.
                element turbine_type
                {
                   attribute name { "bump" }
