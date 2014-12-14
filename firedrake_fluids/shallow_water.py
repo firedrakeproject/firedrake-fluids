@@ -363,9 +363,26 @@ class ShallowWater:
          # Get the bottom drag/friction coefficient.
          drag_coefficient = Function(self.W.sub(1)).interpolate(ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=t))
          
-         # Add on the turbine drag coefficient, if provided.
-         if(libspud.have_option(base_option_path + "/scalar_field::TurbineDragCoefficient")):
-            drag_coefficient += Function(self.W.sub(1)).interpolate(ExpressionFromOptions(path=base_option_path+"/scalar_field::TurbineDragCoefficient/value", t=t))
+         # Add on the turbine drag, if provided.
+         if(libspud.have_option(base_option_path + "/turbine_drag")):
+            from firedrake_fluids.turbines import *
+            
+            turbine_type = libspud.get_option(base_option_path + "/turbine_drag/turbine_type/name")
+            turbine_coords = eval(libspud.get_option(base_option_path + "/turbine_drag/turbine_coordinates"))
+            turbine_radius = eval(libspud.get_option(base_option_path + "/turbine_drag/turbine_radius"))
+            K = libspud.get_option(base_option_path + "/turbine_drag/scalar_field::TurbineDragCoefficient/value/constant")
+            
+            turbine_field = Function(self.W.sub(1)).interpolate(Expression("0"))
+            for coords in turbine_coords:
+               if(turbine_type == "bump"):
+                  turbine = BumpTurbine(K=K, coords=coords, r=turbine_radius)
+               elif(turbine_type == "tophat"):
+                  turbine = TopHatTurbine(K=K, coords=coords, r=turbine_radius)
+               else:
+                  _LOG.error("Unknown turbine type '%s'." % turbine_type)
+               turbine_field += Function(self.W.sub(1)).interpolate(turbine)
+
+            drag_coefficient += turbine_field
          
          # Magnitude of the velocity field
          magnitude = sqrt(dot(self.u, self.u))

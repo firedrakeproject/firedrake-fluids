@@ -362,15 +362,40 @@ momentum_equation_options =
                input_choice_real
             }
          },
-         ## The (non-dimensional) drag coefficient which parameterises tidal turbines.
-         element scalar_field 
+         element turbine_drag
          {
-            attribute name { "TurbineDragCoefficient" },
-            element value 
+            ## The (non-dimensional) drag coefficient which parameterises turbines.
+            element scalar_field 
             {
-               input_choice_real
+               attribute name { "TurbineDragCoefficient" },
+               element value 
+               {
+                  input_choice_real
+               }
+            },
+            ## The 'radius' of the turbine(s).
+            element turbine_radius
+            {
+               python_code
+            },
+            (
+               ## The 'radius'
+               element turbine_type
+               {
+                  attribute name { "bump" }
+               }|
+               element turbine_type
+               {
+                  attribute name { "tophat" }
+               }
+            ),
+            ## The coordinates of the turbine centres, as a list of tuples.
+            element turbine_coordinates
+            {
+               python_code
             }
          }?
+
       }?,
       ## Adds a source term to the RHS of the momentum equation.
       element source_term

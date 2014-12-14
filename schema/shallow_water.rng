@@ -336,14 +336,39 @@ Note that this is the kinematic viscosity for shallow water simulations.</a:docu
           </element>
         </element>
         <optional>
-          <element name="scalar_field">
-            <a:documentation>The (non-dimensional) drag coefficient which parameterises tidal turbines.</a:documentation>
-            <attribute name="name">
-              <value>TurbineDragCoefficient</value>
-            </attribute>
-            <element name="value">
-              <ref name="input_choice_real"/>
+          <element name="turbine_drag">
+            <element name="scalar_field">
+              <a:documentation>The (non-dimensional) drag coefficient which parameterises turbines.</a:documentation>
+              <attribute name="name">
+                <value>TurbineDragCoefficient</value>
+              </attribute>
+              <element name="value">
+                <ref name="input_choice_real"/>
+              </element>
             </element>
+            <element name="turbine_radius">
+              <a:documentation>The 'radius' of the turbine(s).</a:documentation>
+              <ref name="python_code"/>
+            </element>
+            <choice>
+              <element name="turbine_type">
+                <a:documentation>The 'radius'</a:documentation>
+                <attribute name="name">
+                  <value>bump</value>
+                </attribute>
+              </element>
+              <element name="turbine_type">
+                <attribute name="name">
+                  <value>tophat</value>
+                </attribute>
+              </element>
+            </choice>
+            <oneOrMore>
+              <element name="turbine_coordinates">
+                <a:documentation>The coordinates of the turbine centres, as a list of tuples.</a:documentation>
+                <ref name="python_code"/>
+              </element>
+            </oneOrMore>
           </element>
         </optional>
       </element>
