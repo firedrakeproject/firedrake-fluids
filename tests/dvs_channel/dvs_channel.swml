@@ -10,7 +10,7 @@
     <mesh>
       <from_file>
         <relative_path>
-          <string_value lines="1">src/dvs_channel.msh</string_value>
+          <string_value lines="1">src/channel.msh</string_value>
         </relative_path>
       </from_file>
     </mesh>

@@ -1,4 +1,7 @@
-input:	clean
+input:	clean preprocess
+
+preprocess:
+	gmsh -2 src/channel.geo -o src/channel.msh
 
 run:
 	python ../../firedrake_fluids/shallow_water.py dvs_channel.swml
