@@ -150,17 +150,20 @@ class ShallowWater:
       U = self.function_spaces["VelocityFunctionSpace"]
       H = self.function_spaces["FreeSurfaceFunctionSpace"]
       self.W = MixedFunctionSpace([U, H])
-     
-      # The solution field defined on the mixed function space
-      self.solution = Function(self.W)
-      # These are like the TrialFunctions, but are just regular Functions here because we want to solve a non-linear problem
-      functions = split(self.solution)
-      self.u = functions[0]; self.h = functions[1]
 
       # Get the test functions
       test_functions = TestFunctions(self.W)
       self.w = test_functions[0]; self.v = test_functions[1]
-
+      LOG.info("Test functions created.")
+      
+      # The solution field defined on the mixed function space
+      self.solution = Function(self.W)
+      
+      # These are like the TrialFunctions, but are just regular Functions here because we want to solve a non-linear problem
+      functions = split(self.solution)
+      self.u = functions[0]; self.h = functions[1]
+      LOG.info("Trial functions created.")
+      
       # Normal vector to each element facet
       self.n = FacetNormal(self.mesh)
       

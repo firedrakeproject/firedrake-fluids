@@ -18,6 +18,7 @@
 from firedrake import *
 
 class Stabilisation:
+   """ Module for advection stabilisation terms. """
 
    def __init__(self, mesh, function_space, cellsize):
       self.mesh = mesh

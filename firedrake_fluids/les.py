@@ -16,8 +16,10 @@
 #    along with Firedrake-Fluids.  If not, see <http://www.gnu.org/licenses/>.
 
 from firedrake import *
+from firedrake_fluids import LOG
 
 class LES:
+   """ Module containing models for Large Eddy Simulation (LES). """
 
    def __init__(self, mesh, function_space):
       self.mesh = mesh
@@ -25,11 +27,12 @@ class LES:
       return
       
    def strain_rate_tensor(self, u):
+      """ Returns the UFL of the strain rate tensor. """
       S = 0.5*(grad(u) + grad(u).T)
       return S
 
    def eddy_viscosity(self, u, density, smagorinsky_coefficient):
-
+      """ Defines the eddy viscosity in UFL, and returns the LHS and RHS of the form. """
       dimension = len(u)
       w = TestFunction(self.function_space)
       eddy_viscosity = TrialFunction(self.function_space)
