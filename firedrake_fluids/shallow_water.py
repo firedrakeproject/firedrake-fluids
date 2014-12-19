@@ -16,6 +16,9 @@
 #    along with Firedrake-Fluids.  If not, see <http://www.gnu.org/licenses/>.
 
 import sys, os
+from firedrake_fluids import LOG
+
+# PETSc environment variables
 try:
    if(os.environ["PETSC_OPTIONS"] == ""):
       os.environ["PETSC_OPTIONS"] = "-log_summary"
@@ -23,20 +26,21 @@ try:
       os.environ["PETSC_OPTIONS"] = os.environ["PETSC_OPTIONS"] + " -log_summary"
 except:
    os.environ["PETSC_OPTIONS"] = "-log_summary"
-print "PETSC_OPTIONS set to: ", os.environ["PETSC_OPTIONS"]
-   
-import logging
+LOG.debug("Environment variable PETSC_OPTIONS set to: %s" % (os.environ["PETSC_OPTIONS"]))
+
 import signal
 import argparse
 import numpy
 import mpi4py
 
 import libspud
-print "libspud imported"
+LOG.debug("libspud successfully imported")
 from pyop2 import *
-print "PyOP2 imported"
+LOG.debug("PyOP2 successfully imported")
 from firedrake import *
+LOG.debug("Firedrake successfully imported")
 
+# COFFEE, PyOP2 and FFC parameters
 op2.init(lazy_evaluation=False)
 parameters['form_compiler']['quadrature_degree'] = 4
 parameters["coffee"]["O2"] = False
@@ -46,8 +50,7 @@ import firedrake_fluids.fields_calculations as fields_calculations
 import firedrake_fluids.diagnostics as diagnostics
 from firedrake_fluids.stabilisation import Stabilisation
 from firedrake_fluids.les import LES
-
-from firedrake_fluids import log
+LOG.debug("Firedrake-Fluids sub-modules successfully imported.")
 
 class ExpressionFromOptions(Expression):
    """ A sub-class of Expression in which the Expression values are obtained from libspud. """
@@ -61,7 +64,7 @@ class ExpressionFromOptions(Expression):
          exec self.source_value # Make the 'val' function that the user has defined available for calling.
          Expression.__init__(self, code=val(t), t=t)
       else:
-         log.critical("No value specified")
+         LOG.critical("No value specified")
          sys.exit(1)
 
 class ShallowWater:
@@ -70,7 +73,7 @@ class ShallowWater:
    def __init__(self, path, checkpoint=None):
       """ Initialise a new shallow water simulation using an options file stored at the location given by 'path'. """
    
-      log.debug("Initialising simulation...")
+      LOG.info("Initialising simulation...")
       
       # Remove any stored options.
       libspud.clear_options()
@@ -82,6 +85,7 @@ class ShallowWater:
       self.populate_options()
         
       # Read in the input mesh (or construct a unit mesh)
+      LOG.info("Loading mesh...")
       dimension = self.options["dimension"]
       if(libspud.have_option("/geometry/mesh/unit_mesh")):
          # Unit mesh whose vertex coordinates lie in the range [0, 1] along all axes.
@@ -93,7 +97,7 @@ class ShallowWater:
          elif(dimension == 3):
             self.mesh = UnitCubeMesh(number_of_nodes[0], number_of_nodes[1], number_of_nodes[2])
          else:
-            log.critical("Unsupported dimension.")
+            LOG.critical("Unsupported dimension.")
             sys.exit(1)
       elif(libspud.have_option("/geometry/mesh/interval_mesh")):
          # Interval mesh whose vertex coordinates lie in the range [0, L].
@@ -107,10 +111,11 @@ class ShallowWater:
          path_to_mesh = libspud.get_option("/geometry/mesh/from_file/relative_path") 
          self.mesh = Mesh(os.path.join(path_to_config, path_to_mesh))
       else:
-         log.critical("Unsupported input mesh type.")
+         LOG.critical("Unsupported input mesh type.")
          sys.exit(1)
 
       # Create a dictionary containing all the function spaces
+      LOG.info("Creating function spaces...")
       self.function_spaces = {}
                       
       # The Velocity field's function space
@@ -118,29 +123,29 @@ class ShallowWater:
       path = "/function_spaces/function_space::%s" % name
       family = libspud.get_option(path+"/family")
       degree = libspud.get_option(path+"/degree")
-      log.debug("Setting up a new %s function space of degree %d called VelocityFunctionSpace" % (family, degree))
       if(family == "Continuous Lagrange"):
          self.function_spaces[name] = VectorFunctionSpace(self.mesh, "CG", degree)
       elif(family == "Discontinuous Lagrange"):
          self.function_spaces[name] = VectorFunctionSpace(self.mesh, "DG", degree)
       else:
-         log.critical("Unknown element family: %s." % family)
+         LOG.critical("Unknown element family: %s." % family)
          sys.exit(1)
-         
+      LOG.debug("Created a new %s function space of degree %d for Velocity" % (family, degree))
+      
       # The FreeSurfacePerturbation field's function space
       name = "FreeSurfaceFunctionSpace"
       path = "/function_spaces/function_space::%s" % name
       family = libspud.get_option(path+"/family")
       degree = libspud.get_option(path+"/degree")
-      log.debug("Setting up a new %s function space of degree %d called FreeSurfaceFunctionSpace" % (family, degree))
       if(family == "Continuous Lagrange"):
          self.function_spaces[name] = FunctionSpace(self.mesh, "CG", degree)
       elif(family == "Discontinuous Lagrange"):
          self.function_spaces[name] = FunctionSpace(self.mesh, "DG", degree)
       else:
-         log.critical("Unknown element family: %s." % family)
+         LOG.critical("Unknown element family: %s." % family)
          sys.exit(1)
-
+      LOG.debug("Created a new %s function space of degree %d for FreeSurfacePerturbation" % (family, degree))
+      
       # Define the mixed function space
       U = self.function_spaces["VelocityFunctionSpace"]
       H = self.function_spaces["FreeSurfaceFunctionSpace"]
@@ -160,6 +165,7 @@ class ShallowWater:
       self.n = FacetNormal(self.mesh)
       
       # Set up initial conditions
+      LOG.info("Setting initial conditions...")
       # FIXME: Subclassing of the Expression class needs to be DOLFIN compatible. The current method used here is a hack.
       h_initial = ExpressionFromOptions(path = "/system/core_fields/scalar_field::FreeSurfacePerturbation/initial_condition", t=self.options["t"])
       expr = ExpressionFromOptions(path = "/system/core_fields/vector_field::Velocity/initial_condition", t=self.options["t"])
@@ -174,7 +180,8 @@ class ShallowWater:
       # Load initial conditions from the specified checkpoint file if desired.
       if(checkpoint is not None):
          self.solution_old.dat.load(checkpoint)
-      
+         LOG.debug("Loaded initial condition from checkpoint file.")
+         
       # The solution should first hold the initial condition.
       self.solution.assign(self.solution_old)
       
@@ -188,6 +195,7 @@ class ShallowWater:
       self.output_functions["FreeSurfacePerturbation"] = Function(self.W.sub(1), name="FreeSurfacePerturbation")
       
       # Set up the output stream
+      LOG.info("Initialising output streams...")
       self.output_files = {}
       for field in self.output_functions.keys():
          self.output_files[field] = File("%s_%s.pvd" % (self.options["simulation_name"], field))
@@ -204,6 +212,8 @@ class ShallowWater:
       """ Add simulation options related to the shallow water model to a dictionary object. """
       # A dictionary storing all the options
       self.options = {}
+      
+      LOG.info("Populating options dictionary...")
       
       self.options["simulation_name"] = libspud.get_option("/simulation_name")
       self.options["dimension"] = libspud.get_option("/geometry/dimension")
@@ -288,13 +298,13 @@ class ShallowWater:
 
       # Mass term
       if(self.options["have_momentum_mass"]):
-         log.debug("Adding mass term...")
+         LOG.debug("Adding mass term...")
          M_momentum = (1.0/dt)*(inner(self.w, self.u) - inner(self.w, self.u_old))*dx
          F += M_momentum
       
       # Advection term
       if(self.options["have_momentum_advection"]):
-         log.debug("Adding advection term...")
+         LOG.debug("Adding advection term...")
 
          if(self.options["integrate_advection_term_by_parts"]):
             outflow = (dot(self.u, self.n) + abs(dot(self.u, self.n)))/2.0
@@ -311,7 +321,7 @@ class ShallowWater:
          
       # Viscous stress term. Note that the viscosity is kinematic (not dynamic).
       if(self.options["have_momentum_stress"]):
-         log.debug("Adding stress term...")
+         LOG.debug("Adding stress term...")
          
          viscosity = Function(self.W.sub(1))
          
@@ -321,7 +331,7 @@ class ShallowWater:
 
          # Eddy viscosity
          if(self.options["have_turbulence_parameterisation"]):
-            log.debug("Adding turbulence parameterisation...")
+            LOG.debug("Adding turbulence parameterisation...")
             base_option_path = "/system/equations/momentum_equation/turbulence_parameterisation"
             # Large eddy simulation (LES)
             if(libspud.have_option(base_option_path + "/les")):
@@ -360,7 +370,7 @@ class ShallowWater:
 
       # Quadratic drag term in the momentum equation
       if(self.options["have_drag"]):
-         log.debug("Adding drag term...")
+         LOG.debug("Adding drag term...")
          
          base_option_path = "/system/equations/momentum_equation/drag_term"
          
@@ -370,7 +380,7 @@ class ShallowWater:
          # Add on the turbine drag, if provided.
          if(libspud.have_option(base_option_path + "/turbine_drag")):
             from firedrake_fluids.turbines import *
-            log.debug("Adding turbine drag...")
+            LOG.debug("Adding turbine drag...")
             
             self.array = TurbineArray(base_option_path + "/turbine_drag", self.mesh)
             turbine_drag = project(self.array.turbine_drag, self.W.sub(1))
@@ -426,7 +436,7 @@ class ShallowWater:
                   
                # Apply the boundary condition...
                if(bc_type == "flather"):
-                  log.debug("Applying flather BC to surface ID %d..." % marker)
+                  LOG.debug("Applying flather BC to surface ID %d..." % marker)
                   
                   # The known exterior value for the Velocity.
                   u_ext = ExpressionFromOptions(path = (bc_path + "/type::flather/exterior_velocity"), t=t)
@@ -441,7 +451,7 @@ class ShallowWater:
                   weak_bc_expressions.append(h_ext)
                   
                elif(bc_type == "weak_dirichlet"):
-                  log.debug("Applying weak Dirichlet BC to surface ID %d..." % marker)
+                  LOG.debug("Applying weak Dirichlet BC to surface ID %d..." % marker)
                   u_bdy = ExpressionFromOptions(path = (bc_path + "/type::dirichlet"), t=t)
                   Ct_continuity += H*(dot(Function(self.W.sub(0)).interpolate(u_bdy), self.n))*self.v*ds(int(marker))
                   
@@ -451,10 +461,10 @@ class ShallowWater:
                   # Add in the surface integral as it is here. The BC will be applied strongly later using a DirichletBC object.
                   Ct_continuity += H * inner(self.u, self.n) * self.v * ds(int(marker))
                elif(bc_type == "no_normal_flow"):
-                  log.debug("Applying no normal flow BC to surface ID %d..." % marker)
+                  LOG.debug("Applying no normal flow BC to surface ID %d..." % marker)
                   # Do nothing here since dot(u, n) is zero.
                else:
-                  log.critical("Unknown boundary condition type!")
+                  LOG.critical("Unknown boundary condition type!")
                   sys.exit(0)
                   
             # If no boundary condition has been applied, include the surface integral as it is.
@@ -467,18 +477,18 @@ class ShallowWater:
 
       # Add in any source terms
       if(self.options["have_momentum_source"]):
-         log.debug("Adding momentum source...")
+         LOG.debug("Adding momentum source...")
          momentum_source = ExpressionFromOptions(path = "/system/equations/momentum_equation/source_term/vector_field::Source/value", t=t)
          F -= inner(self.w, Function(self.W.sub(0)).interpolate(momentum_source))*dx
 
       if(self.options["have_continuity_source"]):
-         log.debug("Adding continuity source...")
+         LOG.debug("Adding continuity source...")
          continuity_source = ExpressionFromOptions(path = "/system/equations/continuity_equation/source_term/scalar_field::Source/value", t=t)
          F -= inner(self.v, Function(self.W.sub(1)).interpolate(continuity_source))*dx
          
       # Add in any SU stabilisation
       if(self.options["have_su_stabilisation"]):
-         log.debug("Adding momentum SU stabilisation...")
+         LOG.debug("Adding momentum SU stabilisation...")
          stabilisation = Stabilisation(self.mesh, P1, cellsize)
          
          magnitude = fields_calculations.magnitude_vector(self.mesh, self.solution_old.split()[0], P1)
@@ -506,7 +516,7 @@ class ShallowWater:
          if(libspud.have_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i) and
             not libspud.have_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet/apply_weakly" % i)):
             # If it's not a weak BC, then it must be a strong one.
-            log.debug("Applying Velocity BC #%d" % i)
+            LOG.debug("Applying Velocity BC #%d" % i)
             expr = ExpressionFromOptions(path = ("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i), t=t)
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/surface_ids" % i)
@@ -523,7 +533,7 @@ class ShallowWater:
          if(libspud.have_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i) and
             not(libspud.have_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet/apply_weakly" % i))):
             # If it's not a weak BC, then it must be a strong one.
-            log.debug("Applying FreeSurfacePerturbation BC #%d" % i)
+            LOG.debug("Applying FreeSurfacePerturbation BC #%d" % i)
             expr = ExpressionFromOptions(path = ("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i), t=t)
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/surface_ids" % i)
@@ -572,14 +582,14 @@ class ShallowWater:
       
       # PETSc solver run-times
       from petsc4py import PETSc
-      main_solver_stage = PETSc.log.Stage('Main block-coupled system solve')
+      main_solver_stage = PETSc.Log.Stage('Main block-coupled system solve')
 
       total_solver_time = 0.0
       
       # The time-stepping loop
       EPSILON = 1.0e-14
       while t <= T + EPSILON: # A small value EPSILON is added here in case of round-off error.
-         log.info("\nt = %g" % t)
+         LOG.info("t = %g" % t)
 
          ## Update any time-dependent Functions and Expressions.
          
@@ -625,7 +635,7 @@ class ShallowWater:
 
          # Write the solution to file.
          if((self.options["dump_period"] is not None) and (dt*iterations_since_dump >= self.options["dump_period"])):
-            log.debug("Writing data to file...")
+            LOG.debug("Writing data to file...")
             self.output_functions["Velocity"].assign(self.solution.split()[0])
             self.output_files["Velocity"] << self.output_functions["Velocity"]
             self.output_functions["FreeSurfacePerturbation"].assign(self.solution.split()[1])
@@ -635,7 +645,7 @@ class ShallowWater:
          
          # Checkpointing
          if((self.options["checkpoint_period"] is not None) and (dt*iterations_since_checkpoint >= self.options["checkpoint_period"])):
-            log.debug("Writing checkpoint data to file...")
+            LOG.debug("Writing checkpoint data to file...")
             self.solution.dat.save("checkpoint")
             # Reset the counter.
             iterations_since_checkpoint = 0
@@ -646,29 +656,29 @@ class ShallowWater:
          global_max_difference_u = max(abs(self.solution.split()[0].vector().gather() - self.solution_old.split()[0].vector().gather()))
          # If the difference is less than a set tolerance, then break out of the time-stepping loop.
          if(global_max_difference_h <= self.options["steady_state_tolerance"] and (numpy.array(global_max_difference_u) <= self.options["steady_state_tolerance"]).all()):
-            log.info("Steady-state attained. Exiting the time-stepping loop...")
+            LOG.info("Steady-state attained. Exiting the time-stepping loop...")
             break
 
          if(self.options["have_drag"]):
             if(self.array is not None and mpi4py.MPI.COMM_WORLD.Get_rank() == 0):
-               log.info("Power = %f" % (assemble(1000.0*turbine_drag*sqrt(dot(self.u, self.u))**3*dx)))
+               LOG.info("Power = %f" % (assemble(1000.0*turbine_drag*sqrt(dot(self.u, self.u))**3*dx)))
    
          # Move to next time step    
          self.solution_old.assign(self.solution)    
          t += dt
          iterations_since_dump += 1
          iterations_since_checkpoint += 1
-         log.debug("Moving to next time level...")
+         LOG.debug("Moving to next time level...")
       
-      log.debug("Out of the time-stepping loop.")
+      LOG.info("Out of the time-stepping loop.")
 
-      log.info("Total solver time: %.2f" % (total_solver_time))
+      LOG.debug("Total solver time: %.2f" % (total_solver_time))
 
       return
 
 if(__name__ == "__main__"):
    # Parse options and arguments from the command line
-   log.info("Parsing command line arguments...")
+   LOG.info("Parsing command line arguments...")
    usage = "Usage: python /path/to/shallow_water.py [options] path/to/simulation_setup_file.swml"
    parser = argparse.ArgumentParser(description="The shallow water model in the Firedrake-Fluids CFD code.")
    parser.add_argument("-c", "--checkpoint", action="store", default=None, type=str, help="Initialise field values from a specified checkpoint file.", metavar="CHECKPOINT_FILE")
@@ -695,10 +705,10 @@ if(__name__ == "__main__"):
       # Solve the shallow water equations!
       sw.run()
    else:
-      log.critical("The path to the simulation setup file does not exist.")
+      LOG.critical("The path to the simulation setup file does not exist.")
       sys.exit(1)
    
    simulation_end_time = mpi4py.MPI.Wtime()
    
-   log.info("Total simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
+   LOG.info("Total simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
    

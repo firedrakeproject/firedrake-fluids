@@ -17,12 +17,14 @@
 
 from firedrake import *
 import libspud
-import logging
-log = logging.getLogger(__name__)
+
+from firedrake_fluids import LOG
       
 class TurbineArray:
 
    def __init__(self, base_option_path, mesh):
+      """ Create an array of turbines. """
+      
       fs = FunctionSpace(mesh, "CG", 2)
    
       turbine_type = libspud.get_option(base_option_path + "/turbine_type/name")
@@ -32,19 +34,29 @@ class TurbineArray:
       
       self.turbine_drag = Function(fs).interpolate(Expression("0"))
       for coords in turbine_coords:
-         if(turbine_type == "bump"):
-            turbine = BumpTurbine(K=K, coords=coords, r=turbine_radius)
-         elif(turbine_type == "tophat"):
-            turbine = TopHatTurbine(K=K, coords=coords, r=turbine_radius)
-         else:
-            log.error("Unknown turbine type '%s'." % turbine_type)
+         # For each coordinate tuple in the list, create a new turbine.
+         # FIXME: This assumes that all turbines are of the same type.
+         try:
+            if(turbine_type == "bump"):
+               turbine = BumpTurbine(K=K, coords=coords, r=turbine_radius)
+            elif(turbine_type == "tophat"):
+               turbine = TopHatTurbine(K=K, coords=coords, r=turbine_radius)
+            else:
+               raise ValueError
+         except ValueError:
+            LOG.error("Unknown turbine type '%s'." % turbine_type)
+            sys.exit(1)
+
          self.turbine_drag += Function(fs).interpolate(turbine)
-         
+         LOG.info("Added %s turbine at %s..." % (turbine_type, coords))
+
       return
       
    def write_turbine_drag(self, options):
-      log.info("Integral of the turbine drag field: %.2f" % (assemble(self.turbine_drag*dx)))
-      log.info("Writing turbine drag field...")
+      """ Write the turbine drag field to a file for visualisation. """
+      
+      LOG.debug("Integral of the turbine drag field: %.2f" % (assemble(self.turbine_drag*dx)))
+      LOG.debug("Writing turbine drag field...")
       f = File("%s_%s.pvd" % (options["simulation_name"], "TurbineDrag"))
       f << self.turbine_drag
       return
