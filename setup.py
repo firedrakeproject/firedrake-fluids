@@ -20,8 +20,8 @@
 from distutils.core import setup
 
 setup(name='Firedrake-Fluids',
-      version='0.1.1',
-      description='A collection of numerical models for fluid flow simulation, using the Firedrake performance-portable automated solution framework.',
+      version='0.2-dev',
+      description='A collection of numerical models for fluid flow simulation, using the Firedrake framework for the portable solution of the underlying model equations.',
       author='Imperial College London',
       url='https://github.com/firedrakeproject/firedrake-fluids',
       packages=['firedrake_fluids'],
