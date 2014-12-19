@@ -32,12 +32,14 @@ import numpy
 import mpi4py
 
 import libspud
+print "libspud imported"
 from pyop2 import *
+print "PyOP2 imported"
 from firedrake import *
 
 parameters['form_compiler']['quadrature_degree'] = 4
 
-#op2.init(lazy_evaluation=False)
+op2.init(lazy_evaluation=False)
 
 # Firedrake-Fluids modules
 import firedrake_fluids.fields_calculations as fields_calculations
@@ -384,6 +386,9 @@ class ShallowWater:
 
             drag_coefficient += turbine_field
          
+         else:
+            turbine_field = None
+         
          # Magnitude of the velocity field
          magnitude = sqrt(dot(self.u, self.u))
          
@@ -541,7 +546,7 @@ class ShallowWater:
             bc_expressions.append(expr)
             
       # Prepare solver_parameters dictionary
-      solver_parameters = {'ksp_monitor': True, 'ksp_view': False, 'pc_view': False, 'snes_type': 'ksponly'} # NOTE: use 'snes_type': 'newtonls' for production runs.
+      solver_parameters = {'ksp_monitor': True, 'ksp_view': False, 'pc_view': False, 'snes_type': 'ksponly', 'ksp_max_it':100000} # NOTE: use 'snes_type': 'newtonls' for production runs.
       
       # KSP (iterative solver) options
       solver_parameters["ksp_type"] = libspud.get_option("/system/solver/iterative_method/name")
@@ -557,11 +562,15 @@ class ShallowWater:
             solver_parameters["pc_fieldsplit_schur_fact_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/type::schur/fact_type/name")
          solver_parameters["fieldsplit_0_ksp_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_0_ksp_type/iterative_method/name")
          solver_parameters["fieldsplit_1_ksp_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_1_ksp_type/iterative_method/name")
-         solver_parameters["fieldsplit_0_pc_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_0_pc_type/preconditioner/name")
-         solver_parameters["fieldsplit_1_pc_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_1_pc_type/preconditioner/name")
+
+         if(libspud.get_option("/system/solver/preconditioner::fieldsplit/block_0_pc_type/preconditioner/name") != "ilu"):
+            solver_parameters["fieldsplit_0_pc_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_0_pc_type/preconditioner/name")
+            solver_parameters["fieldsplit_1_pc_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/block_1_pc_type/preconditioner/name")
          # Enable inner iteration monitors.
          solver_parameters["fieldsplit_0_ksp_monitor"] = True
          solver_parameters["fieldsplit_1_ksp_monitor"] = True
+         solver_parameters["fieldsplit_0_pc_factor_shift_type"] = 'INBLOCKS'
+         solver_parameters["fieldsplit_1_pc_factor_shift_type"] = 'INBLOCKS'
          
       # Construct the solver objects
       problem = NonlinearVariationalProblem(F, self.solution, bcs=bcs)
@@ -574,6 +583,8 @@ class ShallowWater:
       # PETSc solver run-times
       from petsc4py import PETSc
       main_solver_stage = PETSc.Log.Stage('Main block-coupled system solve')
+
+      total_solver_time = 0.0
       
       # The time-stepping loop
       EPSILON = 1.0e-14
@@ -615,10 +626,13 @@ class ShallowWater:
             expr.t = t
                    
          # Solve the system of equations!
+         start_solver_time = mpi4py.MPI.Wtime()
          main_solver_stage.push()
          solver.solve()
          main_solver_stage.pop()
-     
+         end_solver_time = mpi4py.MPI.Wtime()
+         total_solver_time += (end_solver_time - start_solver_time)     
+
          # Write the solution to file.
          if((self.options["dump_period"] is not None) and (dt*iterations_since_dump >= self.options["dump_period"])):
             logging.debug("Writing data to file...")
@@ -644,7 +658,10 @@ class ShallowWater:
          if(global_max_difference_h <= self.options["steady_state_tolerance"] and (numpy.array(global_max_difference_u) <= self.options["steady_state_tolerance"]).all()):
             logging.info("Steady-state attained. Exiting the time-stepping loop...")
             break
-            
+
+         if(turbine_drag is not None and mpi4py.MPI.COMM_WORLD.Get_rank() == 0):
+            print "Time = %f ; Power = %f" % (t, assemble(1000.0*turbine_field*sqrt(dot(self.u, self.u))**3*dx))
+   
          # Move to next time step    
          self.solution_old.assign(self.solution)    
          t += dt
@@ -654,10 +671,13 @@ class ShallowWater:
       
       logging.debug("Out of the time-stepping loop.")
 
+      logging.info("Total solver time: %.2f" % (total_solver_time))
+
       return
 
 if(__name__ == "__main__"):
    # Parse options and arguments from the command line
+   logging.info("Parsing command line arguments...")
    usage = "Usage: python /path/to/shallow_water.py [options] path/to/simulation_setup_file.swml"
    parser = argparse.ArgumentParser(description="The shallow water model in the Firedrake-Fluids CFD code.")
    parser.add_argument("-c", "--checkpoint", action="store", default=None, type=str, help="Initialise field values from a specified checkpoint file.", metavar="CHECKPOINT_FILE")
