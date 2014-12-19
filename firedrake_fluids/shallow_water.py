@@ -516,7 +516,7 @@ class ShallowWater:
          if(libspud.have_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i) and
             not libspud.have_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet/apply_weakly" % i)):
             # If it's not a weak BC, then it must be a strong one.
-            LOG.debug("Applying Velocity BC #%d" % i)
+            LOG.debug("Applying strong Velocity BC #%d" % i)
             expr = ExpressionFromOptions(path = ("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i), t=t)
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/surface_ids" % i)
@@ -533,7 +533,7 @@ class ShallowWater:
          if(libspud.have_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i) and
             not(libspud.have_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet/apply_weakly" % i))):
             # If it's not a weak BC, then it must be a strong one.
-            LOG.debug("Applying FreeSurfacePerturbation BC #%d" % i)
+            LOG.debug("Applying strong FreeSurfacePerturbation BC #%d" % i)
             expr = ExpressionFromOptions(path = ("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i), t=t)
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/surface_ids" % i)
@@ -546,6 +546,7 @@ class ShallowWater:
             bc_expressions.append(expr)
             
       # Prepare solver_parameters dictionary
+      LOG.debug("Defining solver_parameters dictionary...")
       solver_parameters = {'ksp_monitor': True, 'ksp_view': False, 'pc_view': False, 'snes_type': 'ksponly', 'ksp_max_it':100000} # NOTE: use 'snes_type': 'newtonls' for production runs.
       
       # KSP (iterative solver) options
@@ -556,7 +557,7 @@ class ShallowWater:
       solver_parameters["pc_type"] = libspud.get_option("/system/solver/preconditioner/name")
       # Fieldsplit sub-options
       if(solver_parameters["pc_type"] == "fieldsplit"):
-         print "Setting up fieldsplit preconditioner..."
+         LOG.debug("Setting up the fieldsplit preconditioner...")
          solver_parameters["pc_fieldsplit_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/type/name")
          if(solver_parameters["pc_fieldsplit_type"] == "schur"):
             solver_parameters["pc_fieldsplit_schur_fact_type"] = libspud.get_option("/system/solver/preconditioner::fieldsplit/type::schur/fact_type/name")
@@ -575,6 +576,7 @@ class ShallowWater:
       # Construct the solver objects
       problem = NonlinearVariationalProblem(F, self.solution, bcs=bcs)
       solver = NonlinearVariationalSolver(problem, solver_parameters=solver_parameters)
+      LOG.debug("Variational problem solver created.")
       
       t += dt
       iterations_since_dump = 1
@@ -628,6 +630,7 @@ class ShallowWater:
          # Solve the system of equations!
          start_solver_time = mpi4py.MPI.Wtime()
          main_solver_stage.push()
+         LOG.debug("Solving the system of equations...")
          solver.solve()
          main_solver_stage.pop()
          end_solver_time = mpi4py.MPI.Wtime()

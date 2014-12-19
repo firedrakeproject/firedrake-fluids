@@ -56,7 +56,7 @@ class TurbineArray:
       """ Write the turbine drag field to a file for visualisation. """
       
       LOG.debug("Integral of the turbine drag field: %.2f" % (assemble(self.turbine_drag*dx)))
-      LOG.debug("Writing turbine drag field...")
+      LOG.debug("Writing turbine drag field to file...")
       f = File("%s_%s.pvd" % (options["simulation_name"], "TurbineDrag"))
       f << self.turbine_drag
       return
