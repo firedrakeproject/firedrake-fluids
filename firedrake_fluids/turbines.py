@@ -16,7 +16,39 @@
 #    along with Firedrake-Fluids.  If not, see <http://www.gnu.org/licenses/>.
 
 from firedrake import *
+import libspud
+import logging
+log = logging.getLogger(__name__)
       
+class TurbineArray:
+
+   def __init__(self, base_option_path, mesh):
+      fs = FunctionSpace(mesh, "CG", 2)
+   
+      turbine_type = libspud.get_option(base_option_path + "/turbine_type/name")
+      turbine_coords = eval(libspud.get_option(base_option_path + "/turbine_coordinates"))
+      turbine_radius = eval(libspud.get_option(base_option_path + "/turbine_radius"))
+      K = libspud.get_option(base_option_path + "/scalar_field::TurbineDragCoefficient/value/constant")
+      
+      self.turbine_drag = Function(fs).interpolate(Expression("0"))
+      for coords in turbine_coords:
+         if(turbine_type == "bump"):
+            turbine = BumpTurbine(K=K, coords=coords, r=turbine_radius)
+         elif(turbine_type == "tophat"):
+            turbine = TopHatTurbine(K=K, coords=coords, r=turbine_radius)
+         else:
+            log.error("Unknown turbine type '%s'." % turbine_type)
+         self.turbine_drag += Function(fs).interpolate(turbine)
+         
+      return
+      
+   def write_turbine_drag(self, options):
+      log.info("Integral of the turbine drag field: %.2f" % (assemble(self.turbine_drag*dx)))
+      log.info("Writing turbine drag field...")
+      f = File("%s_%s.pvd" % (options["simulation_name"], "TurbineDrag"))
+      f << self.turbine_drag
+      return
+    
 class TopHatTurbine(Expression):
 
    def eval(self, value, X, K=None, coords=None, r=None):
