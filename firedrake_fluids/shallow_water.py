@@ -37,9 +37,9 @@ from pyop2 import *
 print "PyOP2 imported"
 from firedrake import *
 
-parameters['form_compiler']['quadrature_degree'] = 4
-
 op2.init(lazy_evaluation=False)
+parameters['form_compiler']['quadrature_degree'] = 4
+parameters["coffee"]["O2"] = False
 
 # Firedrake-Fluids modules
 import firedrake_fluids.fields_calculations as fields_calculations
@@ -659,8 +659,9 @@ class ShallowWater:
             logging.info("Steady-state attained. Exiting the time-stepping loop...")
             break
 
-         if(turbine_drag is not None and mpi4py.MPI.COMM_WORLD.Get_rank() == 0):
-            print "Time = %f ; Power = %f" % (t, assemble(1000.0*turbine_field*sqrt(dot(self.u, self.u))**3*dx))
+         if(self.options["have_drag"]):
+            if(turbine_field is not None and mpi4py.MPI.COMM_WORLD.Get_rank() == 0):
+               print "Time = %f ; Power = %f" % (t, assemble(1000.0*turbine_field*sqrt(dot(self.u, self.u))**3*dx))
    
          # Move to next time step    
          self.solution_old.assign(self.solution)    
