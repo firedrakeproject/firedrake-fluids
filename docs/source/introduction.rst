@@ -14,7 +14,7 @@ themselves with hand-writing the low-level (e.g. C or Fortran) code
 required to solve the equations; this is all derived and optimised
 automatically from a high-level specification. Furthermore, model
 developers do not need to be experts in parallel programming to enable
-their code to be performance-portable across different hardware
+their code to be portable across different hardware
 architectures (e.g. a cluster of multi-core CPUs, or a single GPU); the
 generated code is targetted, compiled and executed automatically on a
 desired architecture using the `PyOP2 <https://github.com/OP2/PyOP2>`_ 
