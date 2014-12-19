@@ -367,6 +367,12 @@ Note that this is the kinematic viscosity for shallow water simulations.</a:docu
               <a:documentation>The coordinates of the turbine centres, as a list of tuples.</a:documentation>
               <ref name="python_code"/>
             </element>
+            <optional>
+              <element name="write_turbine_drag">
+                <a:documentation>Output a VTU showing the turbine drag field.</a:documentation>
+                <empty/>
+              </element>
+            </optional>
           </element>
         </optional>
       </element>

@@ -393,7 +393,12 @@ momentum_equation_options =
             element turbine_coordinates
             {
                python_code
-            }
+            },
+            ## Output a VTU showing the turbine drag field.
+            element write_turbine_drag
+            {
+               empty
+            }?
          }?
 
       }?,
