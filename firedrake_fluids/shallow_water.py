@@ -43,7 +43,7 @@ LOG.debug("Firedrake successfully imported")
 # COFFEE, PyOP2 and FFC parameters
 op2.init(lazy_evaluation=False)
 parameters['form_compiler']['quadrature_degree'] = 4
-parameters["coffee"]["O2"] = False
+parameters["coffee"]["O2"] = False # FIXME: Remove this one this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
 
 # Firedrake-Fluids modules
 import firedrake_fluids.fields_calculations as fields_calculations

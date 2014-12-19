@@ -2,7 +2,6 @@ import os
 import pytest
 import numpy
 from firedrake import *
-
 from firedrake_fluids.shallow_water import *
 
 cwd = os.path.dirname(os.path.abspath(__file__))

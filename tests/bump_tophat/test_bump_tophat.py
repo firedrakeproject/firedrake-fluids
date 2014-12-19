@@ -6,6 +6,10 @@ from firedrake_fluids.shallow_water import *
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
+@pytest.fixture(scope='session')
+def input():
+   os.system("make -C " + cwd)
+   
 def bump_tophat():
 
    sw = ShallowWater(path=os.path.join(cwd, "bump.swml"))
@@ -18,9 +22,9 @@ def bump_tophat():
    
    return bump, tophat
 
-def test_les_smagorinsky_eddy_viscosity():
+def test_bump_tophat(input):
    bump, tophat = bump_tophat()
-   assert abs(tophat - bump) < 100.0
+   assert abs(tophat - bump) < 20.0
    
 if __name__ == '__main__':
    pytest.main(os.path.abspath(__file__))
