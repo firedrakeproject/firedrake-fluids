@@ -42,10 +42,10 @@ class TurbineArray:
             elif(turbine_type == "tophat"):
                turbine = TopHatTurbine(K=K, coords=coords, r=turbine_radius)
             else:
-               raise ValueError
-         except ValueError:
-            LOG.error("Unknown turbine type '%s'." % turbine_type)
-            sys.exit(1)
+               raise ValueError("Unknown turbine type '%s'." % turbine_type)
+         except ValueError as e:
+            LOG.exception(e)
+            sys.exit()
 
          self.turbine_drag += Function(fs).interpolate(turbine)
          LOG.info("Added %s turbine at %s..." % (turbine_type, coords))
