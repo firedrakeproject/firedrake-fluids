@@ -25,7 +25,7 @@ class TurbineArray:
    def __init__(self, base_option_path, mesh):
       """ Create an array of turbines. """
       
-      fs = FunctionSpace(mesh, "CG", 1)
+      fs = FunctionSpace(mesh, "CG", 2)
       
       turbine_type = libspud.get_option(base_option_path + "/turbine_type/name")
       turbine_coords = eval(libspud.get_option(base_option_path + "/turbine_coordinates"))
