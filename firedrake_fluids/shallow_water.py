@@ -60,8 +60,8 @@ class ExpressionFromOptions:
          self.val = libspud.get_option(path + "/constant")
          self.constant = True
             
-      elif(libspud.have_option(path + "/cpp")):
-         v = libspud.get_option(path + "/cpp")   
+      elif(libspud.have_option(path + "/python")):
+         v = libspud.get_option(path + "/python")   
          self.constant = False   
          exec v
          self.val = val

@@ -79,10 +79,10 @@
       </vector_field>
       <scalar_field name="FreeSurfacePerturbation">
         <initial_condition>
-          <cpp>
+          <python>
             <string_value lines="20" type="code" language="python">def val(t):
   return "x[0] &lt;= 1000 ? 5 : 0"</string_value>
-          </cpp>
+          </python>
         </initial_condition>
       </scalar_field>
       <scalar_field name="FreeSurfaceMean">

@@ -4,15 +4,14 @@ input_choice_real =
       element constant {
          real
       }|
-      ## Python function prescribing real input given as a C++ string. Functions should be of the form:
+      ## Python function prescribing real input given as a Python string. Functions should be of the form:
       ##
-      ## def val(t):
-      ##     # String containing the input as C++ code.
+      ## def val(x, t):
+      ##     # String containing the input as Python code.
       ##     # The argument 't' is the current simulation time and may also be used in the expression,
       ##     # along with x[0], x[1] and x[2], the x, y and z coordinates of the mesh.
-      ##     s = "C++ code here, e.g. sin(x[0])"
-      ##     return s
-      element cpp {
+      ##     return sin(x[0]*t)
+      element python {
          python_code
       }
    )
@@ -23,15 +22,15 @@ input_choice_real_dim_vector =
       element constant {
          real_dim_vector
       }|
-      ## Python function prescribing real input given as a C++ string. Functions should be of the form:
+      ## Python function prescribing real input given as a Python string. Functions should be of the form:
       ##
-      ## def val(t):
-      ##     # String containing the input as C++ code.
+      ## def val(x, t):
+      ##     # String containing the input as Python code.
       ##     # The argument 't' is the current simulation time and may also be used in the expression,
       ##     # along with x[0], x[1] and x[2], the x, y and z coordinates of the mesh.
-      ##     s = "C++ code here, e.g. sin(x[0])"
-      ##     return s
-      element cpp {
+      ##     # For vectors, the function should return a list or tuple of length equal to that of the problem's dimension.
+      ##     return [sin(x[0]*t), cos(x[1]*t)]
+      element python {
          python_code
       }
    )
