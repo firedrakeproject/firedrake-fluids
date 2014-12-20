@@ -24,8 +24,9 @@ def bump_tophat():
 
 def test_bump_tophat(input):
    bump, tophat = bump_tophat()
-   assert abs(tophat - 1250) < 50.0
-   assert abs(bump - 1250) < 50.0
+   expected_tophat_integral = 20.0*5.0*12.0
+   assert abs(tophat - expected_tophat_integral) <= 55.0
+   assert abs(bump - expected_tophat_integral) <= 55.0
    assert abs(tophat - bump) < 20.0
    
 if __name__ == '__main__':
