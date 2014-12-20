@@ -35,7 +35,7 @@ def grid_peclet_number(mesh, diffusivity, magnitude, function_space, cellsize):
    
        .. math:: \mathrm{Pe} = \frac{\|\mathbf{u}\|\Delta x}{2\kappa}
        
-       where :math:`\kappa` is the (isotropic) diffusivity, math:`\Delta x` is the element size, and math:`\mathbf{u}` is the velocity field.
+       where :math:`\kappa` is the (isotropic) diffusivity, :math:`\Delta x` is the element size, and :math:`\mathbf{u}` is the velocity field.
    """
 
    w = TestFunction(function_space)
