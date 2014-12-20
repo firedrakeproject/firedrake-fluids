@@ -432,7 +432,7 @@ Note: This is a weak boundary condition. It is only applied if the divergence te
     </choice>
   </define>
   <define name="stabilisation_options">
-    <element name="streamline_upwind_stabilisation">
+    <element name="streamline_upwind">
       <a:documentation>Add a streamline upwind stabilisation term
 (given by equation 2.52 in Donea &amp; Huerta (2003))
 to the advection term.</a:documentation>

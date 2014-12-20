@@ -173,7 +173,7 @@
         <spatial_discretisation>
           <continuous_galerkin>
             <stabilisation>
-              <streamline_upwind_stabilisation/>
+              <streamline_upwind/>
             </stabilisation>
           </continuous_galerkin>
         </spatial_discretisation>

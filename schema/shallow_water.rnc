@@ -460,7 +460,7 @@ stabilisation_options =
    ## Add a streamline upwind stabilisation term
    ## (given by equation 2.52 in Donea & Huerta (2003))
    ## to the advection term.
-   element streamline_upwind_stabilisation 
+   element streamline_upwind 
    {
       comment
    }
