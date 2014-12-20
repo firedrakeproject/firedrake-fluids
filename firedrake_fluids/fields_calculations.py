@@ -44,3 +44,13 @@ def grid_peclet_number(mesh, diffusivity, magnitude, function_space, cellsize):
 
    return solution
 
+def steady_state(f, f_old, tolerance=1e-7):
+   """ Return True if the field 'f' (which is a Function) has reached steady-state, given a steady-state tolerance. Return False otherwise. """
+   
+   # Take the maximum difference across all processes.
+   maximum_difference = max(abs(f.vector().gather() - f_old.vector().gather()))
+   if(maximum_difference <= tolerance):
+      return True
+   else:
+      return False
+
