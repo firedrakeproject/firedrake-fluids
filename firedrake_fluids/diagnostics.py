@@ -31,11 +31,11 @@ class Diagnostics:
       return
 
    def courant_number(self, u, dt):
-      ''' Compute the Courant number given by 
+      r''' Compute the Courant number given by 
       
-             (u*dt)/dx
+          .. math:: \frac{\|\mathbf{u}\|\Delta t}{\Delta x}
              
-          where u is the velocity, dt is the time-step, and dx is the characteristic element length.
+          where :math:`\mathbf{u}` is the velocity field, :math:`\Delta t` is the time-step, and :math:`\Delta x` is the element size.
       '''
       solution = Function(self.function_space)
       
@@ -49,12 +49,12 @@ class Diagnostics:
       return solution
    
    def grid_reynolds_number(self, rho, u, mu):
-      ''' Compute the grid Reynolds number given by 
+      r''' Compute the grid Reynolds number given by 
       
-             (rho*u*dx)/mu
+          .. math:: \frac{\rho\|\mathbf{u}\|\Delta x}{\mu}
              
-          where rho is the density, u is the velocity, 
-          dx is the characteristic element length, and mu is the viscosity.
+          where :math:`\rho` is the density, :math:`\mathbf{u}` is the velocity field, 
+          :math:`\Delta x` is the element size, and :math:`\mu` is the (isotropic) viscosity.
       '''
       solution = Function(self.function_space)
       
@@ -68,7 +68,11 @@ class Diagnostics:
       return solution
 
    def divergence(self, u):
-      ''' Compute the divergence of a vector field u. Returns a scalar quantity. '''
+      r''' For a given vector field :math:`\mathbf{u}`, return its divergence (a scalar field):
+      
+           .. math:: \nabla\cdot\mathbf{u}
+      
+      '''
       
       solution = Function(self.function_space)
       

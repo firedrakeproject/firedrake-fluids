@@ -193,7 +193,7 @@ class ShallowWater:
       if(libspud.have_option("/timestepping/steady_state")):
          self.options["steady_state_tolerance"] = libspud.get_option("/timestepping/steady_state/tolerance")
       else:
-         self.options["steady_state_tolerance"] = -1000.0
+         self.options["steady_state_tolerance"] = -1000
          
       # I/O parameters
       if(libspud.have_option("/io/dump_period")):
@@ -210,16 +210,8 @@ class ShallowWater:
       self.options["g_magnitude"] = libspud.get_option("/physical_parameters/gravity/magnitude")
       
       # Enable/disable terms in the shallow water equations
-      if(libspud.have_option("/system/equations/momentum_equation/mass_term/exclude_mass_term")):
-         self.options["have_momentum_mass"] = False
-      else:
-         self.options["have_momentum_mass"] = True
-         
-      if(libspud.have_option("/system/equations/momentum_equation/advection_term/exclude_advection_term")):
-         self.options["have_momentum_advection"] = False
-      else:
-         self.options["have_momentum_advection"] = True
-         
+      self.options["have_momentum_mass"] = (not libspud.have_option("/system/equations/momentum_equation/mass_term/exclude_mass_term"))
+      self.options["have_momentum_advection"] = (not libspud.have_option("/system/equations/momentum_equation/advection_term/exclude_advection_term"))
       self.options["have_momentum_stress"] = libspud.have_option("/system/equations/momentum_equation/stress_term")
          
       # Source terms for the momentum and continuity equations
@@ -227,7 +219,7 @@ class ShallowWater:
       self.options["have_continuity_source"] = libspud.have_option("/system/equations/continuity_equation/source_term")
 
       # Check for any SU stabilisation
-      self.options["have_su_stabilisation"] = libspud.have_option("/system/equations/momentum_equation/spatial_discretisation/continuous_galerkin/stabilisation/streamline_upwind_stabilisation")
+      self.options["have_su_stabilisation"] = libspud.have_option("/system/equations/momentum_equation/spatial_discretisation/continuous_galerkin/stabilisation/streamline_upwind")
       
       # Turbulence parameterisation
       self.options["have_turbulence_parameterisation"] = libspud.have_option("/system/equations/momentum_equation/turbulence_parameterisation")
@@ -312,13 +304,13 @@ class ShallowWater:
 
       # Mass term
       if(self.options["have_momentum_mass"]):
-         LOG.debug("Adding mass term...")
+         LOG.debug("Momentum equation: Adding mass term...")
          M_momentum = (1.0/dt)*(inner(self.w, self.u) - inner(self.w, self.u_old))*dx
          F += M_momentum
       
       # Advection term
       if(self.options["have_momentum_advection"]):
-         LOG.debug("Adding advection term...")
+         LOG.debug("Momentum equation: Adding advection term...")
 
          if(self.options["integrate_advection_term_by_parts"]):
             outflow = (dot(self.u, self.n) + abs(dot(self.u, self.n)))/2.0
@@ -335,7 +327,7 @@ class ShallowWater:
          
       # Viscous stress term. Note that the viscosity is kinematic (not dynamic).
       if(self.options["have_momentum_stress"]):
-         LOG.debug("Adding stress term...")
+         LOG.debug("Momentum equation: Adding stress term...")
          
          viscosity = Function(self.W.sub(1))
          
@@ -379,12 +371,13 @@ class ShallowWater:
          F -= K_momentum # Negative sign here because we are bringing the stress term over from the RHS.
 
       # The gradient of the height of the free surface, h
+      LOG.debug("Momentum equation: Adding gradient term...")
       C_momentum = -g_magnitude*inner(self.w, grad(self.h))*dx
       F -= C_momentum
 
       # Quadratic drag term in the momentum equation
       if(self.options["have_drag"]):
-         LOG.debug("Adding drag term...")
+         LOG.debug("Adding drag term (momentum equation)...")
          
          base_option_path = "/system/equations/momentum_equation/drag_term"
          
@@ -411,6 +404,7 @@ class ShallowWater:
 
       # The mass term in the shallow water continuity equation 
       # (i.e. an advection equation for the free surface height, h)
+      LOG.debug("Continuity equation: Adding mass term...")
       M_continuity = (1.0/dt)*(inner(self.v, self.h) - inner(self.v, self.h_old))*dx
       F += M_continuity
 
@@ -418,6 +412,7 @@ class ShallowWater:
       weak_bc_expressions = []
       
       # Divergence term in the shallow water continuity equation
+      LOG.debug("Continuity equation: Adding divergence term...")
       if(self.options["integrate_continuity_equation_by_parts"]):
 
          Ct_continuity = - H*inner(self.u, grad(self.v))*dx
@@ -491,18 +486,18 @@ class ShallowWater:
 
       # Add in any source terms
       if(self.options["have_momentum_source"]):
-         LOG.debug("Adding momentum source...")
+         LOG.debug("Momentum equation: Adding source term...")
          momentum_source = ExpressionFromOptions(path = "/system/equations/momentum_equation/source_term/vector_field::Source/value", t=t).get_expression()
          F -= inner(self.w, Function(self.W.sub(0)).interpolate(momentum_source))*dx
 
       if(self.options["have_continuity_source"]):
-         LOG.debug("Adding continuity source...")
+         LOG.debug("Continuity equation: Adding source term...")
          continuity_source = ExpressionFromOptions(path = "/system/equations/continuity_equation/source_term/scalar_field::Source/value", t=t).get_expression()
          F -= inner(self.v, Function(self.W.sub(1)).interpolate(continuity_source))*dx
          
       # Add in any SU stabilisation
       if(self.options["have_su_stabilisation"]):
-         LOG.debug("Adding momentum SU stabilisation...")
+         LOG.debug("Momentum equation: Adding streamline-upwind stabilisation term...")
          stabilisation = Stabilisation(self.mesh, P1, cellsize)
          
          magnitude = magnitude_vector(self.mesh, self.solution_old.split()[0], P1)
@@ -665,7 +660,7 @@ class ShallowWater:
             iterations_since_checkpoint = 0 # Reset the counter.
             
          # Check whether a steady-state has been reached.
-         if(steady_state(self.solution.split()[0], self.solution_old.split()[0], 1e-7) and steady_state(self.solution.split()[1], self.solution_old.split()[1], 1e-7)):
+         if(steady_state(self.solution.split()[0], self.solution_old.split()[0], self.options["steady_state_tolerance"]) and steady_state(self.solution.split()[1], self.solution_old.split()[1], self.options["steady_state_tolerance"])):
             LOG.info("Steady-state attained. Exiting the time-stepping loop...")
             break
 

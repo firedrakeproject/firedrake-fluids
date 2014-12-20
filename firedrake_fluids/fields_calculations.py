@@ -18,7 +18,7 @@
 from firedrake import *
 
 def magnitude_vector(mesh, u, function_space):
-   """ Calculate the magnitude of a given vector 'u'. """
+   r""" Calculate the Euclidean norm of a given vector-valued Function :math:`\mathbf{u}`. """
 
    w = TestFunction(function_space)
    magnitude = TrialFunction(function_space)
@@ -31,8 +31,12 @@ def magnitude_vector(mesh, u, function_space):
    return solution
 
 def grid_peclet_number(mesh, diffusivity, magnitude, function_space, cellsize):
-   """ Calculate the grid Peclet number, given by
-       grid_pe = (\|u\|*cellsize)/(2*diffusivity) """
+   r""" Calculate and return the grid Peclet number field, given by
+   
+       .. math:: \mathrm{Pe} = \frac{\|\mathbf{u}\|\Delta x}{2\kappa}
+       
+       where :math:`\kappa` is the (isotropic) diffusivity, math:`\Delta x` is the element size, and math:`\mathbf{u}` is the velocity field.
+   """
 
    w = TestFunction(function_space)
    grid_pe = TrialFunction(function_space)
