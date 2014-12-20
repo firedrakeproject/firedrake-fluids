@@ -47,7 +47,6 @@ parameters["coffee"]["O2"] = False # FIXME: Remove this one this issue has been 
 # Firedrake-Fluids modules
 from firedrake_fluids.utils import *
 from firedrake_fluids.fields_calculations import *
-import firedrake_fluids.diagnostics as diagnostics
 from firedrake_fluids.stabilisation import Stabilisation
 from firedrake_fluids.les import LES
 from firedrake_fluids.expression import ExpressionFromOptions

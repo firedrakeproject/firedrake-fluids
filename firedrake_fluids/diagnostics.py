@@ -32,8 +32,11 @@ class Diagnostics:
 
    def courant_number(self, u, dt):
       ''' Compute the Courant number given by 
+      
              (u*dt)/dx
-          where u is the velocity, dt is the time-step, and dx is the characteristic element length. '''
+             
+          where u is the velocity, dt is the time-step, and dx is the characteristic element length.
+      '''
       solution = Function(self.function_space)
       
       h = CellSize(self.mesh)
@@ -47,10 +50,12 @@ class Diagnostics:
    
    def grid_reynolds_number(self, rho, u, mu):
       ''' Compute the grid Reynolds number given by 
+      
              (rho*u*dx)/mu
+             
           where rho is the density, u is the velocity, 
-          dx is the characteristic element length, and mu is the viscosity. '''
-          
+          dx is the characteristic element length, and mu is the viscosity.
+      '''
       solution = Function(self.function_space)
       
       h = CellSize(self.mesh)
