@@ -267,13 +267,14 @@ class ShallowWater:
             
          # A user-defined mesh file (currently only supports Gmsh format).
          elif(libspud.have_option("/geometry/mesh/from_file")):
-            path_to_config = os.path.dirname(os.path.abspath(path))
+            absolute_path_to_config = os.path.dirname(os.path.abspath(path))
             # This is the path relative to the directory where the configuration file is stored.
-            path_to_mesh = libspud.get_option("/geometry/mesh/from_file/relative_path") 
-            if(not os.path.exists(path_to_mesh)):
-               raise ValueError("The path to the mesh file does not exist.")
+            relative_path_to_mesh = libspud.get_option("/geometry/mesh/from_file/relative_path") 
+            absolute_path_to_mesh = os.path.join(absolute_path_to_config, relative_path_to_mesh)
+            if(not os.path.exists(absolute_path_to_mesh)):
+               raise ValueError("The path to the mesh file '%s' does not exist." % absolute_path_to_mesh)
             else:
-               mesh = Mesh(os.path.join(path_to_config, path_to_mesh))
+               mesh = Mesh(absolute_path_to_mesh)
             
          # Unknown mesh format.
          else:
