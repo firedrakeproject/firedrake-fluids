@@ -50,6 +50,7 @@ import firedrake_fluids.diagnostics as diagnostics
 from firedrake_fluids.stabilisation import Stabilisation
 from firedrake_fluids.les import LES
 from firedrake_fluids.expression import ExpressionFromOptions
+from firedrake_fluids.turbines import TurbineArray
 LOG.debug("Firedrake-Fluids sub-modules successfully imported.")
 
 class ShallowWater:
@@ -392,7 +393,6 @@ class ShallowWater:
          
          # Add on the turbine drag, if provided.
          if(libspud.have_option(base_option_path + "/turbine_drag")):
-            from firedrake_fluids.turbines import *
             LOG.debug("Adding turbine drag...")
             
             self.array = TurbineArray(base_option_path + "/turbine_drag", self.mesh)
