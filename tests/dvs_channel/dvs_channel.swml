@@ -80,6 +80,7 @@
           <type name="dirichlet">
             <python>
               <string_value lines="20" type="code" language="python">def val(x, t):
+  from math import sin, pi
   period = 1.24 * 60 * 60 # 1.24 hours in seconds
   expr = 2.0*sin(2*pi*t/period)
   return [expr, 0.0]</string_value>
@@ -92,7 +93,8 @@
           </surface_ids>
           <type name="dirichlet">
             <python>
-              <string_value lines="20" type="code" language="python">def val(t):
+              <string_value lines="20" type="code" language="python">def val(x, t):
+  from math import sin, pi
   period = 1.24 * 60 * 60 # 1.24 hours in seconds
   expr = 2.0*sin(2*pi*t/period)
   return [expr, 0.0]</string_value>
