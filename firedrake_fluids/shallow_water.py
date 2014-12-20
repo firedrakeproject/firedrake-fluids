@@ -49,45 +49,8 @@ import firedrake_fluids.fields_calculations as fields_calculations
 import firedrake_fluids.diagnostics as diagnostics
 from firedrake_fluids.stabilisation import Stabilisation
 from firedrake_fluids.les import LES
+from firedrake_fluids.expression import ExpressionFromOptions
 LOG.debug("Firedrake-Fluids sub-modules successfully imported.")
-
-
-class ExpressionFromOptions:
-
-   def __init__(self, path, t=None):
-
-      if(libspud.have_option(path + "/constant")):
-         self.val = libspud.get_option(path + "/constant")
-         self.constant = True
-            
-      elif(libspud.have_option(path + "/python")):
-         v = libspud.get_option(path + "/python")   
-         self.constant = False   
-         exec v
-         self.val = val
-         self.t = t
-         
-      return 
-      
-   def get_expression(self):
-      if(self.constant):
-         return Expression(self.val)
-      else:
-         val = self.val
-         t = self.t
-         # Determine the value shape by plugging in some dummy coordinate and time.
-         s = val(x = [0,0,0], t = 0)
-         
-         class PythonExpression(Expression):
-            def eval(self, value, x):
-               value[:] = val(x, t)
-               
-            if(not isinstance(s, float)):
-               def value_shape(self):
-                  return (len(s),)
-
-         e = PythonExpression()
-         return e
 
 class ShallowWater:
    """ A class for setting up and running a non-linear shallow water simulation. """
