@@ -120,7 +120,7 @@
             <value>
               <python>
                 <string_value lines="20" type="code" language="python">def val(x, t):
-  return cos(x[0])**2*sin(x[1])**2 + (cos(x[1]) + sin(x[0]**2))*cos(x[1])*sin(x[0]) - (sin(x[0])*sin(x[1]) + 50.0)*sin(x[0])*sin(x[1]) - (sin(x[0])*sin(x[1]) + 50.0)*sin(x[1])</string_value>
+  return cos(x[0])**2*sin(x[1])**2 + (cos(x[1]) + sin(x[0]**2))*cos(x[1])*sin(x[0]) - (sin(x[0])*sin(x[1]) + 20.0)*sin(x[0])*sin(x[1]) - (sin(x[0])*sin(x[1]) + 20.0)*sin(x[1])</string_value>
               </python>
             </value>
           </scalar_field>
@@ -155,8 +155,10 @@
             <value>
               <python>
                 <string_value lines="20" type="code" language="python">def val(x, t):
-  Sx = -cos(x[0])*sin(x[0])*sin(x[1])**2 + (cos(x[1]) + sin(x[0]**2))*cos(x[0])*cos(x[1]) + 11.4333333333333*cos(x[0])*sin(x[1])
-  Sy = 2*x[0]*cos(x[0]**2)*cos(x[0])*sin(x[1]) + 2.80*x[0]**2*sin(x[0]**2) + 10.0333333333333*cos(x[1])*sin(x[0]) - (cos(x[1]) + sin(x[0]**2))*sin(x[1]) - 1.40*cos(x[0]**2) + 0.933333333333333*cos(x[1])
+  Sx = -cos(x[0])*sin(x[0])*sin(x[1])**2 + (cos(x[1]) + sin(x[0]**2))*cos(x[0])*cos(x[1]) + 11.2*cos(x[0])*sin(x[1]) + 0.00250*sqrt(cos(x[0])**2*sin(x[1])**2 + (cos(x[1]) + sin(x[0]**2))**2)*cos(x[0])*sin(x[1])/(sin(x[0])*sin(x[1]) + 20.0)
+  
+  Sy = 2*x[0]*cos(x[0]**2)*cos(x[0])*sin(x[1]) + 2.40*x[0]**2*sin(x[0]**2) + 10.0*cos(x[1])*sin(x[0]) - (cos(x[1]) + sin(x[0]**2))*sin(x[1]) + 0.00250*sqrt(cos(x[0])**2*sin(x[1])**2 + (cos(x[1]) + sin(x[0]**2))**2)*(cos(x[1]) + sin(x[0]**2))/(sin(x[0])*sin(x[1]) + 20.0) - 1.20*cos(x[0]**2) + 0.800*cos(x[1])
+  
   return (Sx, Sy)</string_value>
               </python>
             </value>
