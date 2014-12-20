@@ -42,7 +42,8 @@ class ColoredFormatter(logging.Formatter):
 # Custom logger class with multiple destinations
 class ColoredLogger(logging.Logger):
     from mpi4py import MPI
-    FORMAT = "[$BOLD%(name)s$RESET (%(filename)s$RESET:%(lineno)d)][Process "+str(MPI.COMM_WORLD.Get_rank())+"][%(levelname)s] %(message)s"
+    is_parallel = (MPI.COMM_WORLD.Get_size() > 1)
+    FORMAT = "[$BOLD%(name)s$RESET (%(filename)s$RESET:%(lineno)d)]"+("[Process "+str(MPI.COMM_WORLD.Get_rank())+"]" if is_parallel else "")+"[%(levelname)s] %(message)s"
     COLOR_FORMAT = formatter_message(FORMAT, True)
     def __init__(self, name):
         logging.Logger.__init__(self, name, logging.DEBUG)                
