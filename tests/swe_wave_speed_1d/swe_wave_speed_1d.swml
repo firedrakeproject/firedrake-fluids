@@ -81,8 +81,11 @@
       <scalar_field name="FreeSurfacePerturbation">
         <initial_condition>
           <python>
-            <string_value lines="20" type="code" language="python">def val(t):
-  return "x[0] &lt;= 0.5 ? 1.0 : -1.0"</string_value>
+            <string_value lines="20" type="code" language="python">def val(x, t):
+  if(x[0] &lt;= 0.5):
+    return 1.0
+  else:
+    return -1.0</string_value>
           </python>
         </initial_condition>
       </scalar_field>

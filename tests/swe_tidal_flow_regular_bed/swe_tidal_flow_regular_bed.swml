@@ -96,8 +96,8 @@
           </surface_ids>
           <type name="dirichlet">
             <python>
-              <string_value lines="20" type="code" language="python">def val(t):
-  return "4 - 4*sin(pi*((4*t/86400.0) + 0.5))"</string_value>
+              <string_value lines="20" type="code" language="python">def val(x, t):
+  return 4 - 4*sin(pi*((4*t/86400.0) + 0.5))</string_value>
             </python>
           </type>
         </boundary_condition>
@@ -105,8 +105,8 @@
       <scalar_field name="FreeSurfaceMean">
         <value>
           <python>
-            <string_value lines="20" type="code" language="python">def val(t):
-  return "50.5 - 40*x[0]/14000.0 - 10*sin(pi*((4*x[0]/14000.0) - 0.5))"</string_value>
+            <string_value lines="20" type="code" language="python">def val(x, t):
+  return 50.5 - 40*x[0]/14000.0 - 10*sin(pi*((4*x[0]/14000.0) - 0.5))</string_value>
           </python>
         </value>
       </scalar_field>

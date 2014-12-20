@@ -93,8 +93,9 @@
           </surface_ids>
           <type name="dirichlet">
             <python>
-              <string_value lines="20" type="code" language="python">def val(t):
-  return "-4*sin(pi*(((4*t)/86400.0) + 0.5))"</string_value>
+              <string_value lines="20" type="code" language="python">def val(x, t):
+  from math import sin, pi
+  return -4*sin(pi*(((4*t)/86400.0) + 0.5))</string_value>
             </python>
           </type>
         </boundary_condition>
@@ -102,36 +103,62 @@
       <scalar_field name="FreeSurfaceMean">
         <value>
           <python>
-            <string_value lines="20" type="code" language="python">def val(t):
-  elevation = '''20.0 - (x[0] &lt;= 50 ? 0 : (
-  x[0] &lt;= 100 ? (x[0]-50)*(2.5 - 0.0)/50.0 : ( 
-  x[0] &lt;= 150 ? 2.5 + (x[0]-100)*(5.0-2.5)/50.0 : (
-  x[0] &lt;= 250 ? 5.0 : (
-  x[0] &lt;= 300 ? 5.0 + (x[0]-250)*(3.0-5.0)/50.0 : (
-  x[0] &lt;= 350 ? 3.0 + (x[0]-300)*(5.0-3.0)/50.0 : (
-  x[0] &lt;= 400 ? 5.0 : (
-  x[0] &lt;= 425 ? 5.0 + (x[0]-400)*(7.5-5.0)/25.0 : (
-  x[0] &lt;= 435 ? 7.5 + (x[0]-425)*(8.0-7.5)/10.0 : (
-  x[0] &lt;= 450 ? 8.0 + (x[0]-435)*(9.0-8.0)/15.0 : (
-  x[0] &lt;= 475 ? 9.0 : (
-  x[0] &lt;= 500 ? 9.0 + (x[0]-475)*(9.1-9.0)/25.0 : (
-  x[0] &lt;= 505 ? 9.1 + (x[0]-500)*(9.0-9.1)/5.0 : (
-  x[0] &lt;= 530 ? 9.0 : (
-  x[0] &lt;= 550 ? 9.0 + (x[0]-530)*(6.0-9.0)/20.0 : (
-  x[0] &lt;= 565 ? 6.0 + (x[0]-550)*(5.5-6.0)/15.0 : (
-  x[0] &lt;= 575 ? 5.5 : (
-  x[0] &lt;= 600 ? 5.5 + (x[0]-575)*(5.0-5.5)/25.0 : (
-  x[0] &lt;= 650 ? 5.0 + (x[0]-600)*(4.0-5.0)/50.0 : (
-  x[0] &lt;= 700 ? 4.0 + (x[0]-650)*(3.0-4.0)/50.0 : (
-  x[0] &lt;= 750 ? 3.0 : (
-  x[0] &lt;= 800 ? 3.0 + (x[0]-750)*(2.3-3.0)/50.0 : (
-  x[0] &lt;= 820 ? 2.3 + (x[0]-800)*(2.0-2.3)/20.0 : (
-  x[0] &lt;= 900 ? 2.0 + (x[0]-820)*(1.2-2.0)/80.0 : (
-  x[0] &lt;= 950 ? 1.2 + (x[0]-900)*(0.4-1.2)/50.0 : (
-  x[0] &lt;= 1000 ? 0.4 + (x[0]-950)*(0.0-0.4)/50.0 : (
-  x[0] &lt;= 1500 ? 0.0 : 0.0
-  ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) ) )'''
-  return elevation</string_value>
+            <string_value lines="20" type="code" language="python">def val(x, t):
+  elevation = 20.0
+  if(x[0] &lt;= 50):
+    return elevation
+  if(x[0] &lt;= 100):
+    return elevation - (x[0]-50)*(2.5 - 0.0)/50.0
+  if(x[0] &lt;= 150):
+    return elevation - (2.5 + (x[0]-100)*(5.0-2.5)/50.0)
+  if(x[0] &lt;= 250):
+    return elevation - 5.0
+  if(x[0] &lt;= 300):
+    return elevation - (5.0 + (x[0]-250)*(3.0-5.0)/50.0)
+  if(x[0] &lt;= 350):
+    return elevation - (3.0 + (x[0]-300)*(5.0-3.0)/50.0)
+  if(x[0] &lt;= 400):
+    return elevation - 5.0
+  if(x[0] &lt;= 425):
+    return elevation - (5.0 + (x[0]-400)*(7.5-5.0)/25.0)
+  if(x[0] &lt;= 435):
+    return elevation - (7.5 + (x[0]-425)*(8.0-7.5)/10.0)
+  if(x[0] &lt;= 450):
+    return elevation - (8.0 + (x[0]-435)*(9.0-8.0)/15.0)
+  if(x[0] &lt;= 475):
+    return elevation - 9.0
+  if(x[0] &lt;= 500):
+    return elevation - (9.0 + (x[0]-475)*(9.1-9.0)/25.0)
+  if(x[0] &lt;= 505):
+    return elevation - (9.1 + (x[0]-500)*(9.0-9.1)/5.0)
+  if(x[0] &lt;= 530):
+    return elevation - 9.0
+  if(x[0] &lt;= 550):
+    return elevation - (9.0 + (x[0]-530)*(6.0-9.0)/20.0)
+  if(x[0] &lt;= 565):
+    return elevation - (6.0 + (x[0]-550)*(5.5-6.0)/15.0)
+  if(x[0] &lt;= 575):
+    return elevation - 5.5
+  if(x[0] &lt;= 600):
+    return elevation - (5.5 + (x[0]-575)*(5.0-5.5)/25.0)
+  if(x[0] &lt;= 650):
+    return elevation - (5.0 + (x[0]-600)*(4.0-5.0)/50.0)
+  if(x[0] &lt;= 700):
+    return elevation - (4.0 + (x[0]-650)*(3.0-4.0)/50.0)
+  if(x[0] &lt;= 750):
+    return elevation - 3.0
+  if(x[0] &lt;= 800):
+    return elevation - (3.0 + (x[0]-750)*(2.3-3.0)/50.0)
+  if(x[0] &lt;= 820):
+    return elevation - (2.3 + (x[0]-800)*(2.0-2.3)/20.0)
+  if(x[0] &lt;= 900):
+    return elevation - (2.0 + (x[0]-820)*(1.2-2.0)/80.0)
+  if(x[0] &lt;= 950):
+    return elevation - (1.2 + (x[0]-900)*(0.4-1.2)/50.0)
+  if(x[0] &lt;= 1000):
+    return elevation - (0.4 + (x[0]-950)*(0.0-0.4)/50.0)
+  if(x[0] &lt;= 1500):
+    return elevation</string_value>
           </python>
         </value>
       </scalar_field>

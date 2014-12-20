@@ -43,15 +43,15 @@ class ExpressionFromOptions:
          val = self.val
          t = self.t
          # Determine the value shape by plugging in some dummy coordinate and time.
-         s = val(x = [0,0,0], t = 0)
+         s = val(x = [0,0,0], t=t)
          
          class PythonExpression(Expression):
-            def eval(self, value, x):
+            def eval(self, value, x, t=None):
                value[:] = val(x, t)
                
-            if(not isinstance(s, float)):
+            if(not isinstance(s, float) and not isinstance(s, int)):
                def value_shape(self):
                   return (len(s),)
 
-         e = PythonExpression()
+         e = PythonExpression(t=t)
          return e
