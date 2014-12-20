@@ -7,13 +7,22 @@
         <ref name="real"/>
       </element>
       <element name="python">
-        <a:documentation>Python function prescribing real input given as a Python string. Functions should be of the form:
+        <a:documentation>Python function prescribing real input. Functions should be of the form:
 
 def val(x, t):
-    # String containing the input as Python code.
     # The argument 't' is the current simulation time and may also be used in the expression,
     # along with x[0], x[1] and x[2], the x, y and z coordinates of the mesh.
     return sin(x[0]*t)</a:documentation>
+        <ref name="python_code"/>
+      </element>
+      <element name="cpp">
+        <a:documentation>Python function prescribing real input, given as a C++ string. Functions should be of the form:
+
+def val():
+    # String containing the input as C++ code.
+    # 't' is the current simulation time and may also be used in the expression,
+    # along with x[0], x[1] and x[2], the x, y and z coordinates of the mesh.
+    return "sin(x[0]*t)"</a:documentation>
         <ref name="python_code"/>
       </element>
     </choice>
@@ -25,14 +34,24 @@ def val(x, t):
         <ref name="real_dim_vector"/>
       </element>
       <element name="python">
-        <a:documentation>Python function prescribing real input given as a Python string. Functions should be of the form:
+        <a:documentation>Python function prescribing real input. Functions should be of the form:
 
 def val(x, t):
-    # String containing the input as Python code.
     # The argument 't' is the current simulation time and may also be used in the expression,
     # along with x[0], x[1] and x[2], the x, y and z coordinates of the mesh.
     # For vectors, the function should return a list or tuple of length equal to that of the problem's dimension.
     return [sin(x[0]*t), cos(x[1]*t)]</a:documentation>
+        <ref name="python_code"/>
+      </element>
+      <element name="cpp">
+        <a:documentation>Python function prescribing real input, given as a C++ string. Functions should be of the form:
+
+def val():
+    # String containing the input as C++ code.
+    # 't' is the current simulation time and may be used in the expression,
+    # along with x[0], x[1] and x[2], the x, y and z coordinates of the mesh.
+    # For vectors, the function should return a list or tuple (of strings) length equal to that of the problem's dimension.
+    return ["sin(x[0]*t)", "cos(x[1]*t)"]</a:documentation>
         <ref name="python_code"/>
       </element>
     </choice>

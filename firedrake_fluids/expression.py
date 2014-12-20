@@ -23,35 +23,59 @@ class ExpressionFromOptions:
 
    def __init__(self, path, t=None):
 
-      if(libspud.have_option(path + "/constant")):
-         self.val = libspud.get_option(path + "/constant")
-         self.constant = True
+      try:
+         if(libspud.have_option(path + "/constant")):
+            self.val = libspud.get_option(path + "/constant")
+            self.type = "constant"
+               
+         elif(libspud.have_option(path + "/python")):
+            v = libspud.get_option(path + "/python")   
+            self.type = "python"
+            exec v # Make the 'val' function that the user has defined available for calling.
+            self.val = val
+            self.t = t
             
-      elif(libspud.have_option(path + "/python")):
-         v = libspud.get_option(path + "/python")   
-         self.constant = False   
-         exec v
-         self.val = val
-         self.t = t
+         elif(libspud.have_option(path + "/cpp")):
+            # For C++ expressions.
+            self.type = "cpp"
+            v = libspud.get_option(path + "/cpp")
+            exec v
+            self.val = val
+            self.t = t
+         else:
+            raise ValueError("Unknown expression type.")
+      except ValueError as e:
+         LOG.exception(e)
+         sys.exit()
          
       return 
       
    def get_expression(self):
-      if(self.constant):
-         return Expression(self.val)
-      else:
-         val = self.val
-         t = self.t
-         # Determine the value shape by plugging in some dummy coordinate and time.
-         s = val(x = [0,0,0], t=t)
-         
-         class PythonExpression(Expression):
-            def eval(self, value, x, t=None):
-               value[:] = val(x, t)
-               
-            if(not isinstance(s, float) and not isinstance(s, int)):
-               def value_shape(self):
-                  return (len(s),)
+      try:
+         if(self.type == "constant"):
+            return Expression(self.val)
+         elif(self.type == "cpp"):
+            return Expression(code=self.val(), t=self.t)
+         elif(self.type == "python"):
+            val = self.val
+            t = self.t
+            # Determine the value shape by plugging in some dummy coordinate and time.
+            s = val(x = [0,0,0], t=t)
+            
+            class PythonExpression(Expression):
+               def eval(self, value, x, t=None):
+                  value[:] = val(x, t)
+                  
+               if(not isinstance(s, float) and not isinstance(s, int)):
+                  def value_shape(self):
+                     return (len(s),)
 
-         e = PythonExpression(t=t)
-         return e
+            e = PythonExpression(t=t)
+            return e
+         else:
+            raise ValueError("Unknown expression type: %s." % self.type)
+            
+      except ValueError as e:
+         LOG.exception(e)
+         sys.exit()
+         
