@@ -380,16 +380,17 @@ class ShallowWater:
 
       # Quadratic drag term in the momentum equation
       if(self.options["have_drag"]):
-         LOG.debug("Adding drag term (momentum equation)...")
+         LOG.debug("Momentum equation: Adding drag term...")
          
          base_option_path = "/system/equations/momentum_equation/drag_term"
          
          # Get the bottom drag/friction coefficient.
+         LOG.debug("Momentum equation: Adding bottom drag contribution...")
          drag_coefficient = Function(self.W.sub(1)).interpolate(ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=t).get_expression())
          
          # Add on the turbine drag, if provided.
          if(libspud.have_option(base_option_path + "/turbine_drag")):
-            LOG.debug("Adding turbine drag...")
+            LOG.debug("Momentum equation: Adding turbine drag contribution...")
             
             self.array = TurbineArray(base_option_path + "/turbine_drag", self.mesh)
             turbine_drag = project(self.array.turbine_drag, self.W.sub(1))
