@@ -10,7 +10,7 @@ cwd = os.path.dirname(os.path.abspath(__file__))
 def input():
    os.system("make -C " + cwd)
    
-def bump_tophat():
+def turbine_drag_function():
 
    sw = ShallowWater(path=os.path.join(cwd, "bump.swml"))
    sw.run()
@@ -22,8 +22,8 @@ def bump_tophat():
    
    return bump, tophat
 
-def test_bump_tophat(input):
-   bump, tophat = bump_tophat()
+def test_turbine_drag_function(input):
+   bump, tophat = turbine_drag_function()
    expected_tophat_integral = 20.0*5.0*12.0
    expected_bump_integral = 1.45661*8.5*10*10 # The 1.45661 is the area under a bump function with x = (-1, 1) and y = (-1, 1). So we need to multiply this by 10 m * 10 m.
    print "Expected tophat integral: %.2f" % expected_tophat_integral
