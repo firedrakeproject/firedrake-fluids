@@ -418,7 +418,7 @@ class ShallowWater:
       # Divergence term in the shallow water continuity equation
       LOG.debug("Continuity equation: Adding divergence term...")
       if(self.options["integrate_continuity_equation_by_parts"]):
-
+         LOG.debug("The divergence term is being integrated by parts.")
          Ct_continuity = - H*inner(self.u, grad(self.v))*dx
          if(dg):
             Ct_continuity += inner(jump(self.v, self.n), avg(H*self.u))*dS
@@ -538,7 +538,7 @@ class ShallowWater:
             bc = DirichletBC(self.W.sub(0), expr, surface_ids, method=method)
             bcs.append(bc)
             bc_expressions.append(expr)
-            LOG.debug("Velocity BC #%d applied strongly to surface IDs: %s" % (i, surface_ids))
+            LOG.debug("Applying Velocity BC #%d strongly to surface IDs: %s" % (i, surface_ids))
 
       for i in range(0, libspud.option_count("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition/type::dirichlet")):
          if(libspud.have_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i) and
@@ -550,7 +550,7 @@ class ShallowWater:
             bc = DirichletBC(self.W.sub(1), expr, surface_ids, method=method)
             bcs.append(bc)
             bc_expressions.append(expr)
-            LOG.debug("FreeSurfacePerturbation BC #%d applied strongly to surface IDs: %s" % (i, surface_ids))
+            LOG.debug("Applying FreeSurfacePerturbation BC #%d strongly to surface IDs: %s" % (i, surface_ids))
             
       # Prepare solver_parameters dictionary
       LOG.debug("Defining solver_parameters dictionary...")
