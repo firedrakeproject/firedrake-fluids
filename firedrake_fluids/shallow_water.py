@@ -163,17 +163,18 @@ class ShallowWater:
       self.output_functions["FreeSurfacePerturbation"] = Function(self.W.sub(1), name="FreeSurfacePerturbation")
       
       # Set up the output stream
-      LOG.info("Initialising output streams...")
+      LOG.info("Initialising output file streams...")
       self.output_files = {}
       for field in self.output_functions.keys():
          self.output_files[field] = File("%s_%s.pvd" % (self.options["simulation_name"], field))
       
       # Write initial conditions to file
+      LOG.info("Writing initial conditions to file...")
       self.output_functions["Velocity"].assign(self.solution_old.split()[0])
       self.output_files["Velocity"] << self.output_functions["Velocity"]
       self.output_functions["FreeSurfacePerturbation"].assign(self.solution_old.split()[1])
       self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
-    
+      
       return
       
    def populate_options(self):
@@ -280,9 +281,10 @@ class ShallowWater:
       return mesh
       
    def run(self):
-      """ Execute the time-stepping loop. """
-            
+      """ Perform the simulation! """
+
       # Time-stepping parameters and constants
+      LOG.info("Setting up a few constants...")
       T = self.options["T"]
       t = self.options["t"]
       dt = self.options["dt"]
@@ -300,6 +302,7 @@ class ShallowWater:
       cellsize = CellSize(self.mesh)
 
       # The collection of all the individual terms in their weak form.
+      LOG.info("Constructing form...")
       F = 0
 
       # Mass term
@@ -337,7 +340,7 @@ class ShallowWater:
 
          # Eddy viscosity
          if(self.options["have_turbulence_parameterisation"]):
-            LOG.debug("Adding turbulence parameterisation...")
+            LOG.debug("Momentum equation: Adding turbulence parameterisation...")
             base_option_path = "/system/equations/momentum_equation/turbulence_parameterisation"
             # Large eddy simulation (LES)
             if(libspud.have_option(base_option_path + "/les")):
@@ -518,14 +521,15 @@ class ShallowWater:
 
          F += stabilisation.streamline_upwind(self.w, self.u, magnitude, grid_pe)
 
-      # Get all the Dirichlet boundary conditions for the Velocity field
+      LOG.info("Form construction complete.")
+
+      # Apply all the strong Dirichlet boundary conditions for the Velocity and FreeSurfacePerturbation fields
+      LOG.info("Applying strong Dirichlet boundary conditions...")
       bcs = []
       bc_expressions = []
       for i in range(0, libspud.option_count("/system/core_fields/vector_field::Velocity/boundary_condition")):
          if(libspud.have_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i) and
             not libspud.have_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet/apply_weakly" % i)):
-            # If it's not a weak BC, then it must be a strong one.
-            LOG.debug("Applying strong Velocity BC #%d" % i)
             expr = ExpressionFromOptions(path = ("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i), t=t).get_expression()
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/surface_ids" % i)
@@ -533,13 +537,11 @@ class ShallowWater:
             bc = DirichletBC(self.W.sub(0), expr, surface_ids, method=method)
             bcs.append(bc)
             bc_expressions.append(expr)
+            LOG.debug("Velocity BC #%d applied strongly to surface IDs: %s" % (i, surface_ids))
 
-      # Get all the Dirichlet boundary conditions for the FreeSurfacePerturbation field
       for i in range(0, libspud.option_count("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition/type::dirichlet")):
          if(libspud.have_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i) and
             not(libspud.have_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet/apply_weakly" % i))):
-            # If it's not a weak BC, then it must be a strong one.
-            LOG.debug("Applying strong FreeSurfacePerturbation BC #%d" % i)
             expr = ExpressionFromOptions(path = ("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i), t=t).get_expression()
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/surface_ids" % i)
@@ -547,6 +549,7 @@ class ShallowWater:
             bc = DirichletBC(self.W.sub(1), expr, surface_ids, method=method)
             bcs.append(bc)
             bc_expressions.append(expr)
+            LOG.debug("FreeSurfacePerturbation BC #%d applied strongly to surface IDs: %s" % (i, surface_ids))
             
       # Prepare solver_parameters dictionary
       LOG.debug("Defining solver_parameters dictionary...")
@@ -593,6 +596,7 @@ class ShallowWater:
       total_solver_time = 0.0
       
       # The time-stepping loop
+      LOG.info("Entering the time-stepping loop...")
       EPSILON = 1.0e-14
       while t <= T + EPSILON: # A small value EPSILON is added here in case of round-off error.
          LOG.info("t = %g" % t)
