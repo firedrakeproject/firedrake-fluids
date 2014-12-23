@@ -51,6 +51,7 @@ from firedrake_fluids.stabilisation import Stabilisation
 from firedrake_fluids.les import LES
 from firedrake_fluids.expression import ExpressionFromOptions
 from firedrake_fluids.turbines import TurbineArray
+from firedrake_fluids.metadata import *
 LOG.debug("Firedrake-Fluids sub-modules successfully imported.")
 
 class ShallowWater:
@@ -688,6 +689,11 @@ class ShallowWater:
 if(__name__ == "__main__"):
    import signal
    import argparse
+   
+   # Get the Git revision of the code.
+   revision = get_git_revision(os.path.dirname(os.path.realpath(__file__)))
+   if(revision is not None):
+      LOG.info("Software Git revision: %s" % revision)
 
    # Parse options and arguments from the command line
    LOG.info("Parsing command line arguments...")
