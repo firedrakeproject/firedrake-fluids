@@ -66,12 +66,12 @@ class FunctionSpace:
       else:
          self.family = "Continuous Lagrange"
          
-def convert(path):
+def convert(fluidity_options_file_path, ff_options_file_path):
    
    # Read in Fluidity simulation options
    
    libspud.clear_options()
-   libspud.load_options(path)
+   libspud.load_options(fluidity_options_file_path)
    
    # Simulation name
    simulation_name = libspud.get_option("/simulation_name")
@@ -184,13 +184,13 @@ def convert(path):
    libspud.clear_options()
    
    # Create a bare-bones .swml file to add to.
-   f = open("dummy.swml", "w")
+   f = open(ff_options_file_path, "w")
    f.write("<?xml version='1.0' encoding='utf-8'?>\n")
    f.write("<shallow_water_options>\n")
    f.write("</shallow_water_options>\n")
    f.close()
    
-   libspud.load_options("dummy.swml")
+   libspud.load_options(ff_options_file_path)
 
    # Simulation name
    libspud.set_option("/simulation_name", simulation_name)
@@ -321,7 +321,7 @@ def convert(path):
    
    
    # Write all the applied options to file.
-   libspud.write_options("dummy.swml")
+   libspud.write_options(ff_options_file_path)
    
    return
 
@@ -332,8 +332,8 @@ if(__name__ == "__main__"):
    usage = "Usage: python fl2ff.py [options] path/to/fluidity_setup_file.flml path/to/firedrake-fluids_setup_file.swml"
    parser = argparse.ArgumentParser(description="Converts a Fluidity shallow water setup file to a Firedrake-Fluids shallow water setup file.")
    parser.add_argument("path_to_fluidity_setup_file", help="The path to the Fluidity simulation configuration file (with a .flml extension).", action="store", type=str)
-   parser.add_argument("path_to_firedrake-fluids_setup_file", help="The path to the Firedrake-Fluids simulation configuration file (with a .swml extension).", action="store", type=str)
+   parser.add_argument("path_to_firedrake_fluids_setup_file", help="The path to the Firedrake-Fluids simulation configuration file (with a .swml extension).", action="store", type=str)
    args = parser.parse_args()
 
-   convert(args.path_to_fluidity_setup_file)
+   convert(args.path_to_fluidity_setup_file, args.path_to_firedrake_fluids_setup_file)
 
