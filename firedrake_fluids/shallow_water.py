@@ -693,7 +693,7 @@ if(__name__ == "__main__"):
    # Get the Git revision of the code.
    revision = get_git_revision(os.path.dirname(os.path.realpath(__file__)))
    if(revision is not None):
-      LOG.info("Software Git revision: %s" % revision)
+      LOG.info("Git revision: %s" % revision)
 
    # Parse options and arguments from the command line
    LOG.info("Parsing command line arguments...")

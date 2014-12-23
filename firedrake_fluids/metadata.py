@@ -2,7 +2,7 @@ import subprocess
 from firedrake_fluids import LOG
 
 def get_git_revision(cwd=None):
-   # From the pybench code by Florian Rathgeber.
+   # Adapted from the pybench code by Florian Rathgeber.
    # https://github.com/firedrakeproject/pybench/blob/master/pybench.py
    try:
       revision = subprocess.check_output(['git', 'rev-parse', 'HEAD'], cwd=cwd).strip()

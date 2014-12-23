@@ -7,3 +7,5 @@ nohup.out
 build
 doc/build
 doc/apidoc
+*.egg-info
+__pycache__
