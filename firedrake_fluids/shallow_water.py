@@ -706,19 +706,21 @@ if(__name__ == "__main__"):
    # Exit if SIGINT is detected.
    signal.signal(signal.SIGINT, signal.SIG_DFL)
    
-   simulation_start_time = mpi4py.MPI.Wtime()
-   
    if(os.path.exists(args.path)):
+   
+      simulation_start_time = mpi4py.MPI.Wtime()
+      
       # Set up a shallow water simulation.
       sw = ShallowWater(path=args.path, checkpoint=args.checkpoint)
       
       # Solve the shallow water equations!
       sw.run()
+      
+      simulation_end_time = mpi4py.MPI.Wtime()
+      
+      LOG.info("Total simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
+      
    else:
       LOG.error("The path to the simulation setup file does not exist.")
       sys.exit()
-   
-   simulation_end_time = mpi4py.MPI.Wtime()
-   
-   LOG.info("Total simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
-   
+
