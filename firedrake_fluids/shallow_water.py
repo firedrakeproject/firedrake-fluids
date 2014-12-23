@@ -560,6 +560,9 @@ class ShallowWater:
       solver_parameters["ksp_type"] = libspud.get_option("/system/solver/iterative_method/name")
       solver_parameters["ksp_rtol"] = libspud.get_option("/system/solver/relative_error")
       
+      solver_parameters['ksp_converged_reason'] = True
+      solver_parameters['ksp_monitor_true_residual'] = True
+      
       # Preconditioner options
       solver_parameters["pc_type"] = libspud.get_option("/system/solver/preconditioner/name")
       # Fieldsplit sub-options
