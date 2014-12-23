@@ -57,16 +57,14 @@ class PressureBoundaryCondition:
 class FunctionSpace:
    def __init__(self, option_path, index):
       self.name = libspud.get_option(option_path + "/mesh[%d]/name" % index)
-
       self.degree = libspud.get_option(option_path + "/mesh[%d]/from_mesh/mesh_shape/polynomial_degree" % index)
-      
       if(libspud.have_option(option_path + "/mesh[%d]/from_mesh/mesh_continuity" % index)):
          if(libspud.get_option(option_path + "/mesh[%d]/from_mesh/mesh_continuity" % index) == "continuous"):
-            self.continuity = "Continuous Lagrangian"
+            self.family = "Continuous Lagrange"
          else:
-            self.continuity = "Discontinuous Lagrangian"
+            self.family = "Discontinuous Lagrange"
       else:
-         self.continuity = "Continuous Lagrangian"
+         self.family = "Continuous Lagrange"
          
 def convert(path):
    
@@ -162,13 +160,68 @@ def convert(path):
       pressure_bcs.append(PressureBoundaryCondition(base + "/prognostic/boundary_conditions[%d]" % i))
    
    
+   
+   
+   
+   
+   
+   
+   
    # Write out to a Firedrake-Fluids simulation configuration file
    libspud.clear_options()
-   libspud.load_options("dummy.swml")
    
+   # Create a bare-bones .swml file to add to.
+   f = open("dummy.swml", "w")
+   f.write("<?xml version='1.0' encoding='utf-8'?>\n")
+   f.write("<shallow_water_options>\n")
+   f.write("</shallow_water_options>\n")
+   f.close()
+   
+   libspud.load_options("dummy.swml")
+
+   # Simulation name
    libspud.set_option("/simulation_name", simulation_name)
    
-   libspud.write_options()
+   # Geometry
+   base = "/geometry"
+   libspud.set_option(base + "/dimension", dimension)
+   libspud.set_option(base + "/mesh/from_file/relative_path", mesh_path)
+   
+   # Function spaces
+   base = "/function_spaces"
+   libspud.set_option(base + "/function_space::VelocityFunctionSpace/degree", velocity_function_space.degree)
+   libspud.set_option(base + "/function_space::VelocityFunctionSpace/family", velocity_function_space.family)
+   libspud.set_option(base + "/function_space::FreeSurfaceFunctionSpace/degree", freesurface_function_space.degree)
+   libspud.set_option(base + "/function_space::FreeSurfaceFunctionSpace/family", freesurface_function_space.family)
+   
+   # I/O
+   base = "/io"
+   libspud.set_option(base + "/dump_format", dump_format)
+   libspud.set_option(base + "/dump_period", dump_period)
+   
+   # Timestepping
+   base = "/timestepping"
+   libspud.set_option(base + "/current_time", current_time)
+   libspud.set_option(base + "/timestep", timestep)
+   libspud.set_option(base + "/finish_time", finish_time)
+   libspud.set_option(base + "/steady_state/tolerance"
+   
+   ## Steady-state
+   if(steady_state):
+      libspud.set_option(base + "/steady_state/tolerance", steady_state)
+      
+   # Gravity
+   libspud.set_option("/physical_parameters/gravity/magnitude", g_magnitude)
+   
+   # Velocity field (momentum equation)
+   base = "/material_phase[0]/vector_field::Velocity"
+   
+   ## Depth (free surface mean height)
+   c = libspud.get_child_name(base + "/prognostic/equation::ShallowWater/scalar_field::BottomDepth/prescribed/value::WholeMesh/", 1)
+   depth = libspud.get_option(base + "/prognostic/equation::ShallowWater/scalar_field::BottomDepth/prescribed/value::WholeMesh/%s" % c)
+   
+   # Write all the applied options to file.
+   libspud.write_options("dummy.swml")
    
    return
 
