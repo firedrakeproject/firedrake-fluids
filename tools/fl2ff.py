@@ -127,13 +127,20 @@ def convert(path):
       viscosity = libspud.get_option(base + "/prognostic/tensor_field::Viscosity/prescribed/value::WholeMesh/anisotropic_symmetric/constant")[0][0]
    else:
       viscosity = None
-   
+
+   ## Momentum source
+   if(libspud.have_option(base + "/prognostic/vector_field::Source")):
+      c = libspud.get_child_name(base + "/prognostic/vector_field::Source/prescribed/value::WholeMesh/", 1)
+      momentum_source = libspud.get_option(base + "/prognostic/vector_field::Source/prescribed/value::WholeMesh/%s" % c)
+   else:
+      momentum_source = None
+      
    ## Initial condition
    if(libspud.have_option(base + "/prognostic/initial_condition::WholeMesh")):
       c = libspud.get_child_name(base + "/prognostic/initial_condition::WholeMesh/", 1)
-      initial_condition = libspud.get_option(base + "/prognostic/initial_condition::WholeMesh/%s" % c)
+      velocity_initial_condition = libspud.get_option(base + "/prognostic/initial_condition::WholeMesh/%s" % c)
    else:
-      initial_condition = 0.0
+      velocity_initial_condition = 0.0
       
    ## Boundary conditions
    number_of_bcs = libspud.option_count(base + "/prognostic/boundary_conditions")
@@ -149,9 +156,9 @@ def convert(path):
    ## Initial condition
    if(libspud.have_option(base + "/prognostic/initial_condition::WholeMesh")):
       c = libspud.get_child_name(base + "/prognostic/initial_condition::WholeMesh/", 1)
-      initial_condition = libspud.get_option(base + "/prognostic/initial_condition::WholeMesh/%s" % c)
+      pressure_initial_condition = libspud.get_option(base + "/prognostic/initial_condition::WholeMesh/%s" % c)
    else:
-      initial_condition = 0.0
+      pressure_initial_condition = 0.0
       
    ## Boundary conditions
    number_of_bcs = libspud.option_count(base + "/prognostic/boundary_conditions")
@@ -159,12 +166,18 @@ def convert(path):
    for i in range(number_of_bcs):
       pressure_bcs.append(PressureBoundaryCondition(base + "/prognostic/boundary_conditions[%d]" % i))
    
+   ## Continuity source
+   if(libspud.have_option(base + "/prognostic/scalar_field::Source")):
+      c = libspud.get_child_name(base + "/prognostic/scalar_field::Source/prescribed/value::WholeMesh/", 1)
+      continuity_source = libspud.get_option(base + "/prognostic/scalar_field::Source/prescribed/value::WholeMesh/%s" % c)
+   else:
+      continuity_source = None
    
-   
-   
-   
-   
-   
+
+
+
+
+
    
    
    # Write out to a Firedrake-Fluids simulation configuration file
@@ -201,10 +214,13 @@ def convert(path):
    
    # Timestepping
    base = "/timestepping"
+   print timestep
    libspud.set_option(base + "/current_time", current_time)
-   libspud.set_option(base + "/timestep", timestep)
+   try:
+      libspud.set_option(base + "/timestep", timestep)
+   except:
+      pass
    libspud.set_option(base + "/finish_time", finish_time)
-   libspud.set_option(base + "/steady_state/tolerance"
    
    ## Steady-state
    if(steady_state):
@@ -213,12 +229,96 @@ def convert(path):
    # Gravity
    libspud.set_option("/physical_parameters/gravity/magnitude", g_magnitude)
    
-   # Velocity field (momentum equation)
-   base = "/material_phase[0]/vector_field::Velocity"
+   # System/Core Fields: Velocity
+   base = "/system/core_fields/vector_field::Velocity"
    
-   ## Depth (free surface mean height)
-   c = libspud.get_child_name(base + "/prognostic/equation::ShallowWater/scalar_field::BottomDepth/prescribed/value::WholeMesh/", 1)
-   depth = libspud.get_option(base + "/prognostic/equation::ShallowWater/scalar_field::BottomDepth/prescribed/value::WholeMesh/%s" % c)
+   ## Initial condition
+   if(isinstance(velocity_initial_condition, str)):
+      libspud.set_option(base + "/initial_condition/python", velocity_initial_condition)
+   else:
+      libspud.set_option(base + "/initial_condition/constant", velocity_initial_condition)
+   
+   ## Boundary conditions
+   try:
+      for i in range(len(velocity_bcs)):
+         libspud.set_option(base + "/boundary_condition::%s/surface_ids" % velocity_bcs[i].name, velocity_bcs[i].surface_ids)
+         libspud.set_option_attribute(base + "/boundary_condition::%s/type/name" % velocity_bcs[i].name, velocity_bcs[i].type)
+         
+         if(velocity_bcs[i].type == "dirichlet"):
+            if(isinstance(velocity_bcs[i].value, str)):
+               libspud.set_option(base + "/boundary_condition::%s/type::dirichlet/value/python" % velocity_bcs[i].name, velocity_bcs[i].value)
+            else:
+               libspud.set_option(base + "/boundary_condition::%s/type::dirichlet/value/constant" % velocity_bcs[i].name, velocity_bcs[i].value)
+   except:
+      pass
+
+   # System/Core Fields: FreeSurfacePerturbation
+   base = "/system/core_fields/scalar_field::FreeSurfacePerturbation"
+   
+   #FIXME: Pressure initial and boundary conditions are multiplied by 'g' in Fluidity, but not in Firedrake-Fluids.
+   ## Initial condition
+   if(isinstance(pressure_initial_condition, str)):
+      libspud.set_option(base + "/initial_condition/python", pressure_initial_condition)
+   else:
+      libspud.set_option(base + "/initial_condition/constant", pressure_initial_condition)
+   
+   ## Boundary conditions
+   try:
+      for i in range(len(pressure_bcs)):
+         libspud.set_option(base + "/boundary_condition::%s/surface_ids" % pressure_bcs[i].name, pressure_bcs[i].surface_ids)
+         libspud.set_option(base + "/boundary_condition::%s/type/name" % pressure_bcs[i].name, pressure_bcs[i].type)
+         
+         if(pressure_bcs[i].type == "dirichlet"):
+            if(isinstance(pressure_bcs[i].value, str)):
+               libspud.set_option(base + "/boundary_condition::%s/type::dirichlet/value/python" % pressure_bcs[i].name, pressure_bcs[i].value)
+            else:
+               libspud.set_option(base + "/boundary_condition::%s/type::dirichlet/value/constant" % pressure_bcs[i].name, pressure_bcs[i].value)
+   except:
+      pass
+
+   # System/Core Fields: FreeSurfaceMean
+   base = "/system/core_fields/scalar_field::FreeSurfaceMean"
+   if(isinstance(depth, str)):
+      libspud.set_option(base + "/value/python", depth)
+   else:
+      libspud.set_option(base + "/value/constant", depth)
+      
+   
+   # Equations: Continuity equation
+   base = "/system/equations/continuity_equation"
+   libspud.set_option(base + "/integrate_by_parts", integrate_by_parts)
+
+   ## Source term
+   if(continuity_source is not None):
+      if(isinstance(continuity_source, str)):
+         libspud.set_option(base + "/source_term/scalar_field::Source/value/python", continuity_source)
+      else:
+         libspud.set_option(base + "/source_term/scalar_field::Source/value/constant", continuity_source)
+         
+   # Equations: Momentum equation
+   base = "/system/equations/momentum_equation"
+   
+   ## Viscosity
+   if(viscosity is not None):
+      if(isinstance(viscosity, str)):
+         libspud.set_option(base + "/stress_term/scalar_field::Viscosity/value/python", viscosity)
+      else:
+         libspud.set_option(base + "/stress_term/scalar_field::Viscosity/value/constant", viscosity)
+
+   ## Bottom drag
+   if(bottom_drag is not None):
+      if(isinstance(bottom_drag, str)):
+         libspud.set_option(base + "/drag_term/scalar_field::BottomDragCoefficient/value/python", bottom_drag)
+      else:
+         libspud.set_option(base + "/drag_term/scalar_field::BottomDragCoefficient/value/constant", bottom_drag)
+   
+   ## Source term
+   if(momentum_source is not None):
+      if(isinstance(momentum_source, str)):
+         libspud.set_option(base + "/source_term/vector_field::Source/value/python", momentum_source)
+      else:
+         libspud.set_option(base + "/source_term/vector_field::Source/value/constant", momentum_source)
+   
    
    # Write all the applied options to file.
    libspud.write_options("dummy.swml")
