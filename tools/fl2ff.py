@@ -32,10 +32,8 @@ class VelocityBoundaryCondition:
          R = ["x", "y", "z"]
          for r in R:
             if(libspud.have_option(option_path + "/type::%s/align_bc_with_cartesian/%s_component" % (self.type, r))):
-               if(libspud.have_option(option_path + "/type::%s/align_bc_with_cartesian/%s_component/constant" % (self.type, r))):
-                  self.value.append(libspud.get_option(option_path + "/type::%s/align_bc_with_cartesian/%s_component/constant" % (self.type, r)))
-               else:
-                  self.value.append(libspud.get_option(option_path + "/type::%s/align_bc_with_cartesian/%s_component/python" % (self.type, r)))
+               c = libspud.get_child_name(option_path + "/type::%s/align_bc_with_cartesian/%s_component/" % (self.type), 1)
+               self.value.append(libspud.get_option(option_path + "/type::%s/align_bc_with_cartesian/%s_component/%s" % (self.type, r, c)))
             else:
                self.value.append(None)
          print self.value
@@ -51,10 +49,8 @@ class PressureBoundaryCondition:
       self.type = libspud.get_option(option_path + "/type/name")
       
       if(self.type == "dirichlet"):
-         if(libspud.have_option(option_path + "/type::%s/constant" % self.type)):
-            self.value.append(libspud.get_option(option_path + "/type::%s/align_bc_with_cartesian/%s_component/constant" % self.type))
-         else:
-            self.value.append(libspud.get_option(option_path + "/type::%s/align_bc_with_cartesian/%s_component/python" % self.type))
+         c = libspud.get_child_name(option_path + "/type::%s/", 1)
+         self.value.append(libspud.get_option(option_path + "/type::%s/align_bc_with_cartesian/%s_component/%s" % (self.type, c)))
       else:
          self.value = None
          
@@ -73,6 +69,8 @@ class FunctionSpace:
          self.continuity = "Continuous Lagrangian"
          
 def convert(path):
+   
+   # Read in Fluidity simulation options
    
    libspud.clear_options()
    libspud.load_options(path)
@@ -116,17 +114,13 @@ def convert(path):
    base = "/material_phase[0]/vector_field::Velocity"
    
    ## Depth (free surface mean height)
-   if(libspud.have_option(base + "/prognostic/equation::ShallowWater/scalar_field::BottomDepth/prescribed/value::WholeMesh/constant")):
-      depth = libspud.get_option(base + "/prognostic/equation::ShallowWater/scalar_field::BottomDepth/prescribed/value::WholeMesh/constant")
-   else:
-      depth = libspud.get_option(base + "/prognostic/equation::ShallowWater/scalar_field::BottomDepth/prescribed/value::WholeMesh/python")
+   c = libspud.get_child_name(base + "/prognostic/equation::ShallowWater/scalar_field::BottomDepth/prescribed/value::WholeMesh/", 1)
+   depth = libspud.get_option(base + "/prognostic/equation::ShallowWater/scalar_field::BottomDepth/prescribed/value::WholeMesh/%s" % c)
    
    ## Bottom drag coefficient
    if(libspud.have_option(base + "/prognostic/equation::ShallowWater/bottom_drag")):
-      if(libspud.have_option(base + "/prognostic/equation::ShallowWater/bottom_drag/scalar_field::BottomDragCoefficient/prescribed/value::WholeMesh/constant")):
-         bottom_drag = libspud.get_option(base + "/prognostic/equation::ShallowWater/bottom_drag/scalar_field::BottomDragCoefficient/prescribed/value::WholeMesh/constant")
-      else:
-         bottom_drag = libspud.get_option(base + "/prognostic/equation::ShallowWater/bottom_drag/scalar_field::BottomDragCoefficient/prescribed/value::WholeMesh/python")
+      c = libspud.get_child_name(base + "/prognostic/equation::ShallowWater/bottom_drag/scalar_field::BottomDragCoefficient/prescribed/value::WholeMesh/", 1)
+      bottom_drag = libspud.get_option(base + "/prognostic/equation::ShallowWater/bottom_drag/scalar_field::BottomDragCoefficient/prescribed/value::WholeMesh/%s" % c)
    else:
       bottom_drag = None
       
@@ -136,13 +130,10 @@ def convert(path):
    else:
       viscosity = None
    
-   
    ## Initial condition
    if(libspud.have_option(base + "/prognostic/initial_condition::WholeMesh")):
-      if(libspud.have_option(base + "/prognostic/initial_condition::WholeMesh/constant")):
-         initial_condition = libspud.get_option(base + "/prognostic/initial_condition::WholeMesh/constant")
-      else:
-         initial_condition = libspud.get_option(base + "/prognostic/initial_condition::WholeMesh/python")
+      c = libspud.get_child_name(base + "/prognostic/initial_condition::WholeMesh/", 1)
+      initial_condition = libspud.get_option(base + "/prognostic/initial_condition::WholeMesh/%s" % c)
    else:
       initial_condition = 0.0
       
@@ -159,10 +150,8 @@ def convert(path):
    
    ## Initial condition
    if(libspud.have_option(base + "/prognostic/initial_condition::WholeMesh")):
-      if(libspud.have_option(base + "/prognostic/initial_condition::WholeMesh/constant")):
-         initial_condition = libspud.get_option(base + "/prognostic/initial_condition::WholeMesh/constant")
-      else:
-         initial_condition = libspud.get_option(base + "/prognostic/initial_condition::WholeMesh/python")
+      c = libspud.get_child_name(base + "/prognostic/initial_condition::WholeMesh/", 1)
+      initial_condition = libspud.get_option(base + "/prognostic/initial_condition::WholeMesh/%s" % c)
    else:
       initial_condition = 0.0
       
@@ -172,6 +161,14 @@ def convert(path):
    for i in range(number_of_bcs):
       pressure_bcs.append(PressureBoundaryCondition(base + "/prognostic/boundary_conditions[%d]" % i))
    
+   
+   # Write out to a Firedrake-Fluids simulation configuration file
+   libspud.clear_options()
+   libspud.load_options("dummy.swml")
+   
+   libspud.set_option("/simulation_name", simulation_name)
+   
+   libspud.write_options()
    
    return
 
