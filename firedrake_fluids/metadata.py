@@ -19,7 +19,12 @@ import subprocess
 from firedrake_fluids import LOG
 
 def get_git_revision(cwd=None):
-   """ Return the Git HEAD revision in the form of a SHA-1 hash. """
+   """ Return the Git HEAD revision in the form of a SHA-1 hash. 
+   
+   :param str cwd: The current working directory that Git should look in for version information.
+   :returns: The SHA-1 hash corresponding to the HEAD revision in the Git repository.
+   :rtype: str
+   """
    # Adapted from the pybench code by Florian Rathgeber.
    # https://github.com/firedrakeproject/pybench/blob/master/pybench.py
    try:

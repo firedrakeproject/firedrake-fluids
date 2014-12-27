@@ -27,12 +27,33 @@ class LES:
       return
       
    def strain_rate_tensor(self, u):
-      """ Returns the UFL of the strain rate tensor. """
+      r""" Return the UFL of the strain rate tensor :math:`\mathbb{S}`, defined by
+      
+      .. math:: \mathbb{S} = \frac{1}{2}\left(\nabla\mathbf{u} + \nabla\mathbf{u}^{\mathrm{T}}\right)
+      
+      where :math:`\mathbf{u}` is the velocity field, and the superscript T denotes the transpose.
+      
+      :param ufl.Function u: The velocity field.
+      :returns: A UFL Form object representing the strain rate tensor.
+      :rtype: ufl.Form      
+      """
       S = 0.5*(grad(u) + grad(u).T)
       return S
 
    def eddy_viscosity(self, u, density, smagorinsky_coefficient):
-      """ Defines the eddy viscosity in UFL, and returns the LHS and RHS of the form. """
+      r""" Define a Form representing the eddy viscosity
+      
+      .. math:: \left(C_s \Delta_e\right)^2\|\mathbb{S}\|
+      
+      where :math:`C_s` is the Smagorinsky coefficient, :math:`\Delta_e` is a measure of the cell size, 
+      and :math:`\|\mathbb{S}\|` is the modulus of the strain rate tensor :math:`\mathbb{S}`.
+
+      :param ufl.Function u: The velocity field.
+      :param density: The density field. This can be a constant value, or a ufl.Function.
+      :param float smagorinsky_coefficient: The Smagorinsky coefficient. Typical values are in the range [0.1, 0.2].
+      :returns: A tuple containing the LHS and RHS of the UFL Form representing the eddy viscosity.
+      :rtype: tuple
+      """
       dimension = len(u)
       w = TestFunction(self.function_space)
       eddy_viscosity = TrialFunction(self.function_space)

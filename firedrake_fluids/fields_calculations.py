@@ -18,7 +18,7 @@
 from firedrake import *
 
 def magnitude_vector(mesh, u, function_space):
-   r""" Calculate the Euclidean norm of a given vector-valued Function :math:`\mathbf{u}`. """
+   r""" Return the Euclidean norm of a given vector-valued Function :math:`\mathbf{u}`. """
 
    w = TestFunction(function_space)
    magnitude = TrialFunction(function_space)
@@ -31,7 +31,7 @@ def magnitude_vector(mesh, u, function_space):
    return solution
 
 def grid_peclet_number(mesh, diffusivity, magnitude, function_space, cellsize):
-   r""" Calculate and return the grid Peclet number field, given by
+   r""" Return the grid Peclet number field, given by
    
        .. math:: \mathrm{Pe} = \frac{\|\mathbf{u}\|\Delta x}{2\kappa}
        

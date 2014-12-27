@@ -18,7 +18,11 @@
 from mpi4py import MPI
 
 def rank0():
-   """ Determine whether or not the calling process has MPI rank 0. """
+   """ Determine whether or not the calling process has MPI rank 0.
+   
+   :returns: True if the calling process has MPI rank 0, otherwise returns False.
+   :rtype: bool
+   """
    if(MPI.COMM_WORLD.Get_rank() == 0):
       return True
    else:

@@ -55,10 +55,35 @@ from firedrake_fluids.metadata import *
 LOG.debug("Firedrake-Fluids sub-modules successfully imported.")
 
 class ShallowWater:
-   """ A class for setting up and running a non-linear shallow water simulation. """
+   r""" A class for setting up and running a non-linear shallow water simulation.
+   
+   At its core, this involves solving a coupled system of equations for two primitive variables :math:`\mathbf{u}` (the velocity) and :math:`h` (the perturbation of the free surface).
+   
+   The momentum equation is given by
+   
+   .. math:: \frac{\partial \mathbf{u}}{\partial t} + \mathbf{u}\cdot\nabla\mathbf{u} = -g\nabla h + \nabla\cdot\mathbb{T} - C_D\frac{||\mathbf{u}||\mathbf{u}}{(H + h)},
+
+   where :math:`g` is the acceleration due to gravity, :math:`\mathbf{u}`
+   is the velocity, and :math:`C_D` is the non-dimensional drag
+   coefficient. The stress tensor :math:`\mathbb{T}` is given by
+
+   .. math:: \mathbb{T} = \nu\left(\nabla\mathbf{u} + \nabla\mathbf{u}^{\mathrm{T}}\right) - \frac{2}{3}\nu\left(\nabla\cdot\mathbf{u}\right)\mathbb{I},
+
+   where :math:`\nu` is the isotropic kinematic viscosity, and
+   :math:`\mathbb{I}` is the identity tensor.
+
+   The continuity equation is given by
+
+   .. math:: \frac{\partial h}{\partial t} + \nabla\cdot\left(\left(H + h\right)\mathbf{u}\right) = 0.   
+   """
    
    def __init__(self, path, checkpoint=None):
-      """ Initialise a new shallow water simulation using an options file stored at the location given by 'path'. """
+      """ Initialise a new shallow water simulation, using an options file.
+      
+      :param str path: The path to the simulation's configuration/options file.
+      :param str checkpoint: The path to a checkpoint file.
+      :returns: None
+      """
    
       LOG.info("Initialising simulation...")
       
@@ -179,7 +204,10 @@ class ShallowWater:
       return
       
    def populate_options(self):
-      """ Add simulation options related to the shallow water model to a dictionary object. """
+      """ Add simulation options related to the shallow water model to a dictionary object.
+      
+      :returns: None
+      """
       # A dictionary storing all the options
       self.options = {}
       
@@ -236,7 +264,11 @@ class ShallowWater:
       return         
          
    def get_mesh(self, path):
-      """ Create or load a mesh, given a configuration specified in the simulation configuration file. """
+      """ Create or load a mesh, given a configuration specified in the simulation configuration file. 
+      
+      :param str path: The path to the mesh file.
+      :returns: A Mesh object.
+      """
       LOG.info("Creating/loading mesh...")
       
       dimension = self.options["dimension"]

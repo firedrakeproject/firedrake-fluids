@@ -20,9 +20,14 @@ from firedrake_fluids import LOG
 import libspud
 
 class ExpressionFromOptions:
+   """ A module for instantiating UFL Expression objects using information provided
+   in a simulation's configuration/options file. """
 
    def __init__(self, path, t=None):
+      """ Retrieve the expression's value from the options file.
       
+      :param str path: The path to the expression's definition in the options file.
+      :param float t: The current time. """
       try:
          if(libspud.have_option(path + "/constant")):
             self.val = libspud.get_option(path + "/constant")
