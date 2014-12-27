@@ -1,0 +1,23 @@
+#!/bin/bash
+
+n=8
+for F in A B C
+do
+    echo creating set $F with n_ele=$n	
+
+    cp MMS_X.swml MMS_$F.swml 
+    sed s/MMS_X/MMS_$F/ MMS_$F.swml > MMS_$F.swml.cp
+
+    sed s/XX/$n/ src/MMS_X.geo > src/MMS_$F.geo	
+
+    n=$((n*2))
+done
+
+echo setting swml timestep values
+
+sed s/999/0.1/ MMS_A.swml.cp > MMS_A.swml
+rm MMS_A.swml.cp*
+sed s/999/0.05/ MMS_B.swml.cp > MMS_B.swml
+rm MMS_B.swml.cp*
+sed s/999/0.025/ MMS_C.swml.cp > MMS_C.swml
+rm MMS_C.swml.cp*
