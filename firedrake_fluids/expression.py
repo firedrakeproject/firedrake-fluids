@@ -22,7 +22,7 @@ import libspud
 class ExpressionFromOptions:
 
    def __init__(self, path, t=None):
-
+      
       try:
          if(libspud.have_option(path + "/constant")):
             self.val = libspud.get_option(path + "/constant")
@@ -51,6 +51,7 @@ class ExpressionFromOptions:
       return 
       
    def get_expression(self):
+      """ Return a UFL Expression object, whose value is obtained from self.val. """
       try:
          if(self.type == "constant"):
             return Expression(self.val)
