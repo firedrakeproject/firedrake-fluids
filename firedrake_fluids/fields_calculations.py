@@ -17,8 +17,16 @@
 
 from firedrake import *
 
-def magnitude_vector(mesh, u, function_space):
-   r""" Return the Euclidean norm of a given vector-valued Function :math:`\mathbf{u}`. """
+def magnitude_vector(u, function_space):
+   r""" Calculate the Euclidean norm of a given vector-valued Function :math:`\mathbf{u}`
+   
+        .. math:: \|\mathbf{u}\|_2 = \sqrt{\mathbf{u}\cdot\mathbf{u}}
+        
+   :param ufl.Function u: The vector field.
+   :param ufl.FunctionSpace function_space: The (scalar) function space used to represent the 'magnitude' field.
+   :returns: A UFL Function representing the magnitude of the given vector field.
+   :rtype: ufl.Function
+   """
 
    w = TestFunction(function_space)
    magnitude = TrialFunction(function_space)
@@ -30,12 +38,19 @@ def magnitude_vector(mesh, u, function_space):
 
    return solution
 
-def grid_peclet_number(mesh, diffusivity, magnitude, function_space, cellsize):
-   r""" Return the grid Peclet number field, given by
+def grid_peclet_number(diffusivity, magnitude, function_space, cellsize):
+   r""" Calculate the grid Peclet number field, given by
    
-       .. math:: \mathrm{Pe} = \frac{\|\mathbf{u}\|\Delta x}{2\kappa}
+       .. math:: \mathrm{Pe} = \frac{\|\mathbf{u}\|_2\Delta x}{2\kappa}
        
        where :math:`\kappa` is the (isotropic) diffusivity, :math:`\Delta x` is the element size, and :math:`\mathbf{u}` is the velocity field.
+       
+   :param diffusivity: The isotropic diffusivity, which can be a constant value or a ufl.Function.
+   :param ufl.Function magnitude: The magnitude of the velocity field.
+   :param ufl.FunctionSpace function_space: The (scalar) function space used to represent the grid Peclet number field.
+   :param ufl.CellSize cellsize: A measure of the size of the cells in the mesh.
+   :returns: A UFL Function representing the grid Peclet number.
+   :rtype: ufl.Function
    """
 
    w = TestFunction(function_space)
@@ -49,7 +64,16 @@ def grid_peclet_number(mesh, diffusivity, magnitude, function_space, cellsize):
    return solution
 
 def steady_state(f, f_old, tolerance=1e-7):
-   """ Return True if the field 'f' (which is a Function) has reached steady-state, given a steady-state tolerance. Return False otherwise. """
+   """ Determine whether the field 'f' (which is a Function) has reached steady-state, given a steady-state tolerance.
+   
+   Note that this uses the infinity norm.
+   
+   :param ufl.Function f: The field at time n.
+   :param ufl.Function f_old: The field at time n-1.
+   :param float tolerance: The steady-state tolerance.
+   :returns: True if the field has reached steady-state, and False otherwise.
+   :rtype: bool
+    """
    
    # Take the maximum difference across all processes.
    maximum_difference = max(abs(f.vector().gather() - f_old.vector().gather()))

@@ -56,7 +56,13 @@ class ExpressionFromOptions:
       return 
       
    def get_expression(self):
-      """ Return a UFL Expression object, whose value is obtained from self.val. """
+      """ Create a UFL Expression object, whose value is obtained from self.val. 
+      
+      Note that for time-dependent Expressions, the variable 't' will need to be updated manually.
+      
+      :returns: A UFL Expression object.
+      :rtype: ufl.Expression      
+      """
       try:
          if(self.type == "constant"):
             return Expression(self.val)

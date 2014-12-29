@@ -33,14 +33,19 @@ class Diagnostics:
    def courant_number(self, u, dt):
       r''' Compute the Courant number given by 
       
-          .. math:: \frac{\|\mathbf{u}\|\Delta t}{\Delta x}
+          .. math:: \frac{\|\mathbf{u}\|_2\Delta t}{\Delta x}
              
           where :math:`\mathbf{u}` is the velocity field, :math:`\Delta t` is the time-step, and :math:`\Delta x` is the element size.
+          
+      :param ufl.Function u: The velocity field.
+      :param dt: The time-step size.
+      :returns: A UFL Function representing the Courant number field.
+      :rtype: ufl.Function
       '''
       solution = Function(self.function_space)
       
       h = CellSize(self.mesh)
-      magnitude = fields_calculations.magnitude_vector(self.mesh, u, self.function_space)
+      magnitude = fields_calculations.magnitude_vector(u, self.function_space)
       
       a = inner(self.test, self.trial)*dx
       L = (self.test*(magnitude*dt)/h)*dx
@@ -51,15 +56,21 @@ class Diagnostics:
    def grid_reynolds_number(self, rho, u, mu):
       r''' Compute the grid Reynolds number given by 
       
-          .. math:: \frac{\rho\|\mathbf{u}\|\Delta x}{\mu}
+          .. math:: \frac{\rho\|\mathbf{u}\|_2\Delta x}{\mu}
              
           where :math:`\rho` is the density, :math:`\mathbf{u}` is the velocity field, 
           :math:`\Delta x` is the element size, and :math:`\mu` is the (isotropic) viscosity.
+         
+      :param rho: The density, which can be a constant value or a ufl.Function.
+      :param ufl.Function u: The velocity field.
+      :param mu: The (isotropic) viscosity.
+      :returns: A UFL Function representing the grid Reynolds number field.
+      :rtype: ufl.Function
       '''
       solution = Function(self.function_space)
       
       h = CellSize(self.mesh)
-      magnitude = fields_calculations.magnitude_vector(self.mesh, u, self.function_space)
+      magnitude = fields_calculations.magnitude_vector(u, self.function_space)
       
       a = inner(self.test, self.trial)*dx
       L = (self.test*(rho*magnitude*h)/mu)*dx
@@ -72,6 +83,9 @@ class Diagnostics:
       
            .. math:: \nabla\cdot\mathbf{u}
       
+      :param ufl.Function u: A vector field.
+      :returns: A UFL Function representing the divergence field.
+      :rtype: ufl.Function
       '''
       
       solution = Function(self.function_space)

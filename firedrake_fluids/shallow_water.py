@@ -537,7 +537,7 @@ class ShallowWater:
          LOG.debug("Momentum equation: Adding streamline-upwind stabilisation term...")
          stabilisation = Stabilisation(self.mesh, P1, cellsize)
          
-         magnitude = magnitude_vector(self.mesh, self.solution_old.split()[0], P1)
+         magnitude = magnitude_vector(self.solution_old.split()[0], P1)
 
          # Bound the values for the magnitude below by 1.0e-9 for numerical stability reasons.
          u_nodes = magnitude.vector()
@@ -546,7 +546,7 @@ class ShallowWater:
 
          diffusivity = ExpressionFromOptions(path = "/system/equations/momentum_equation/stress_term/scalar_field::Viscosity/value", t=self.options["t"]).get_expression()
          diffusivity = Function(self.W.sub(1)).interpolate(diffusivity) # Background viscosity
-         grid_pe = grid_peclet_number(self.mesh, diffusivity, magnitude, P1, cellsize)
+         grid_pe = grid_peclet_number(diffusivity, magnitude, P1, cellsize)
    
          # Bound the values for grid_pe below by 1.0e-9 for numerical stability reasons. 
          grid_pe_nodes = grid_pe.vector()
@@ -642,14 +642,14 @@ class ShallowWater:
          
          # Re-compute the velocity magnitude and grid Peclet number fields.
          if(self.options["have_su_stabilisation"]):
-            magnitude.assign(magnitude_vector(self.mesh, self.solution_old.split()[0], P1))
+            magnitude.assign(magnitude_vector(self.solution_old.split()[0], P1))
 
             # Bound the values for the magnitude below by 1.0e-9 for numerical stability reasons.
             u_nodes = magnitude.vector()
             near_zero = numpy.array([1.0e-9 for i in range(len(u_nodes))])
             u_nodes.set_local(numpy.maximum(u_nodes.array(), near_zero))
             
-            grid_pe.assign(grid_peclet_number(self.mesh, diffusivity, magnitude, P1, cellsize))
+            grid_pe.assign(grid_peclet_number(diffusivity, magnitude, P1, cellsize))
       
             # Bound the values for grid_pe below by 1.0e-9 for numerical stability reasons. 
             grid_pe_nodes = grid_pe.vector()
