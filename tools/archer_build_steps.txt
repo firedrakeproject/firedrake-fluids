@@ -1,0 +1,28 @@
+cd $WORK
+mkdir build
+source $HOME/firedrake.env
+
+# SWIG
+wget http://prdownloads.sourceforge.net/swig/swig-3.0.2.tar.gz
+tar -zxf swig-3.0.2.tar.gz
+cd swig-3.0.2
+module load pcre/8.35
+./configure --prefix=/work/n01/n01/ctjacobs/install/
+make
+make install
+
+# PETSc
+git clone https://bitbucket.org/mapdes/petsc.git
+cd petsc
+python reconfigure-cray-gnu-shared.py
+
+
+
+# COFFEE
+export PYTHONPATH=/work/n01/n01/ctjacobs/install_new//lib/python2.7/site-packages:$PYTHONPATH
+
+# PyOP2
+Remove the numpy>=1.6 dependency from setup.py, since this doesn't play nicely with the ARCHER anaconda installation.
+
+# mpi4py
+Remember to install mpi4py too, otherwise we get weird MPICH errors.
