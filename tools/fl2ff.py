@@ -17,6 +17,8 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Firedrake-Fluids.  If not, see <http://www.gnu.org/licenses/>.
 
+# FIXME: This script relies on libspud, which currently suffers from the issue described here: https://bugs.launchpad.net/spud/+bug/1405171
+# You will need to comment out the call to PyErr_SetString in order for many of the set_option calls to work properly here.
 import libspud
 
 class VelocityBoundaryCondition:
@@ -56,8 +58,16 @@ class PressureBoundaryCondition:
          
 class FunctionSpace:
    def __init__(self, option_path, index):
+      # Name
       self.name = libspud.get_option(option_path + "/mesh[%d]/name" % index)
-      self.degree = libspud.get_option(option_path + "/mesh[%d]/from_mesh/mesh_shape/polynomial_degree" % index)
+      
+      # Degree
+      if(libspud.have_option(option_path + "/mesh[%d]/from_mesh/mesh_shape/polynomial_degree" % index)):
+         self.degree = libspud.get_option(option_path + "/mesh[%d]/from_mesh/mesh_shape/polynomial_degree" % index)
+      else:
+         self.degree = 1
+         
+      # Family
       if(libspud.have_option(option_path + "/mesh[%d]/from_mesh/mesh_continuity" % index)):
          if(libspud.get_option(option_path + "/mesh[%d]/from_mesh/mesh_continuity" % index) == "continuous"):
             self.family = "Continuous Lagrange"
@@ -84,12 +94,7 @@ def convert(fluidity_options_file_path, ff_options_file_path):
    # Function spaces
    velocity_function_space = FunctionSpace("/geometry", 1)
    freesurface_function_space = FunctionSpace("/geometry", 2)
-   
-   # I/O
-   base = "/io"
-   dump_format = libspud.get_option(base + "/dump_format")
-   dump_period = libspud.get_option(base + "/dump_period/constant")
-      
+    
    # Timestepping
    base = "/timestepping"
    current_time = libspud.get_option(base + "/current_time")
@@ -104,7 +109,18 @@ def convert(fluidity_options_file_path, ff_options_file_path):
          steady_state = 1e-7
    else:
       steady_state = None   
-   
+
+   # I/O
+   base = "/io"
+   dump_format = libspud.get_option(base + "/dump_format")
+   if(libspud.have_option(base + "/dump_period")):
+      dump_period = libspud.get_option(base + "/dump_period/constant")
+   elif(libspud.have_option(base + "/dump_period_in_timesteps")):
+      dump_period = libspud.get_option(base + "/dump_period_in_timesteps/constant")*timestep
+   else:
+      print "Unable to obtain dump_period."
+      sys.exit()
+      
    # Gravity
    g_magnitude = libspud.get_option("/physical_parameters/gravity/magnitude")
    
