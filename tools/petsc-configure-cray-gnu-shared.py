@@ -51,6 +51,7 @@ if __name__ == '__main__':
     '--download-superlu',
     '--download-superlu_dist',
     '--download-ml',
+    '--with-make-np=12',
 
     '--with-hypre-dir=/opt/cray/tpsl/1.4.1/GNU/49/sandybridge',
     '--with-hypre=1',
