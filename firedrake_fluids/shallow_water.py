@@ -419,7 +419,8 @@ class ShallowWater:
          
          # Get the bottom drag/friction coefficient.
          LOG.debug("Momentum equation: Adding bottom drag contribution...")
-         drag_coefficient = Function(self.W.sub(1)).interpolate(ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=t).get_expression())
+         drag_expression = ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=t).get_expression()
+         drag_coefficient = Function(self.W.sub(1)).interpolate(drag_expression)
          
          # Add on the turbine drag, if provided.
          if(libspud.have_option(base_option_path + "/turbine_drag")):
@@ -524,13 +525,15 @@ class ShallowWater:
       # Add in any source terms
       if(self.options["have_momentum_source"]):
          LOG.debug("Momentum equation: Adding source term...")
-         momentum_source = ExpressionFromOptions(path = "/system/equations/momentum_equation/source_term/vector_field::Source/value", t=t).get_expression()
-         F -= inner(self.w, Function(self.W.sub(0)).interpolate(momentum_source))*dx
+         momentum_source_expression = ExpressionFromOptions(path = "/system/equations/momentum_equation/source_term/vector_field::Source/value", t=t).get_expression()
+         momentum_source_function = Function(self.W.sub(0))
+         F -= inner(self.w, momentum_source_function.interpolate(momentum_source_expression))*dx
 
       if(self.options["have_continuity_source"]):
          LOG.debug("Continuity equation: Adding source term...")
-         continuity_source = ExpressionFromOptions(path = "/system/equations/continuity_equation/source_term/scalar_field::Source/value", t=t).get_expression()
-         F -= inner(self.v, Function(self.W.sub(1)).interpolate(continuity_source))*dx
+         continuity_source_expression = ExpressionFromOptions(path = "/system/equations/continuity_equation/source_term/scalar_field::Source/value", t=t).get_expression()
+         continuity_source_function = Function(self.W.sub(1))
+         F -= inner(self.v, continuity_source_function.interpolate(continuity_source_expression))*dx
          
       # Add in any SU stabilisation
       if(self.options["have_su_stabilisation"]):
@@ -631,7 +634,6 @@ class ShallowWater:
       main_solver_stage = PETSc.Log.Stage('Main block-coupled system solve')
 
       total_solver_time = 0.0
-      
       # The time-stepping loop
       LOG.info("Entering the time-stepping loop...")
       EPSILON = 1.0e-14
@@ -662,9 +664,11 @@ class ShallowWater:
 
          # Time-dependent source terms
          if(self.options["have_momentum_source"]):
-            momentum_source.t = t
+            momentum_source_expression.t = t
+            momentum_source_function.interpolate(momentum_source_expression)
          if(self.options["have_continuity_source"]):
-            continuity_source.t = t
+            continuity_source_expression.t = t
+            continuity_source_function.interpolate(continuity_source_expression)
             
          # Update any time-varying DirichletBC objects.
          for expr in bc_expressions:
