@@ -42,7 +42,7 @@ LOG.debug("Firedrake successfully imported")
 # COFFEE, PyOP2 and FFC parameters
 op2.init(lazy_evaluation=False)
 parameters['form_compiler']['quadrature_degree'] = 4
-parameters["coffee"]["O2"] = False # FIXME: Remove this one this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
+parameters["coffee"]["O2"] = False # FIXME: Remove this line once this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
 
 # Firedrake-Fluids modules
 from firedrake_fluids.utils import *
@@ -53,6 +53,11 @@ from firedrake_fluids.expression import ExpressionFromOptions
 from firedrake_fluids.turbines import TurbineArray
 from firedrake_fluids.metadata import *
 LOG.debug("Firedrake-Fluids sub-modules successfully imported.")
+
+from firedrake_adjoint import *
+LOG.debug("Firedrake-Adjoint successfully imported")
+
+parameters["adjoint"]["test_derivative"] = True
 
 class ShallowWater:
    r""" A class for setting up and running a non-linear shallow water simulation.
@@ -77,7 +82,7 @@ class ShallowWater:
    .. math:: \frac{\partial h}{\partial t} + \nabla\cdot\left(\left(H + h\right)\mathbf{u}\right) = 0.   
    """
    
-   def __init__(self, path, checkpoint=None):
+   def __init__(self, path, checkpoint=None, annotate=True):
       """ Initialise a new shallow water simulation, using an options file.
       
       :param str path: The path to the simulation's configuration/options file.
@@ -148,7 +153,7 @@ class ShallowWater:
       LOG.info("Test functions created.")
       
       # The solution field defined on the mixed function space
-      self.solution = Function(self.W)
+      self.solution = Function(self.W, name="Solution", annotate=annotate)
       
       # These are like the TrialFunctions, but are just regular Functions here because we want to solve a non-linear problem
       # 'u' and 'h' are the velocity and free surface perturbation, respectively.
@@ -160,7 +165,7 @@ class ShallowWater:
       self.n = FacetNormal(self.mesh)
    
       # The solution from the previous time-step. At t=0, this holds the initial conditions.
-      self.solution_old = Function(self.W)
+      self.solution_old = Function(self.W, name="SolutionOld", annotate=annotate)
       functions_old = split(self.solution_old)
       self.u_old = functions_old[0]; self.h_old = functions_old[1]
 
@@ -168,8 +173,12 @@ class ShallowWater:
       LOG.info("Setting initial conditions...")
       h_initial = ExpressionFromOptions(path = "/system/core_fields/scalar_field::FreeSurfacePerturbation/initial_condition").get_expression()
       u_initial = ExpressionFromOptions(path = "/system/core_fields/vector_field::Velocity/initial_condition").get_expression()
-      self.solution_old.sub(0).assign(Function(self.W.sub(0)).interpolate(u_initial))
-      self.solution_old.sub(1).assign(Function(self.W.sub(1)).interpolate(h_initial))
+      self.solution_old.sub(0).assign(Function(self.W.sub(0), annotate=False).interpolate(u_initial), annotate=False)
+      self.solution_old.sub(1).assign(Function(self.W.sub(1), annotate=False).interpolate(h_initial), annotate=False)
+      
+      self.initial = Function(self.W, name="InitialCondition", annotate=annotate)
+      self.initial.sub(0).assign(Function(self.W.sub(0), annotate=False).interpolate(u_initial), annotate=False)
+      self.initial.sub(1).assign(Function(self.W.sub(1), annotate=False).interpolate(h_initial), annotate=False)
       
       # Load initial conditions from the specified checkpoint file if desired.
       if(checkpoint is not None):
@@ -177,16 +186,16 @@ class ShallowWater:
          LOG.debug("Loaded initial condition from checkpoint file.")
          
       # The solution should first hold the initial condition.
-      self.solution.assign(self.solution_old)
+      self.solution.assign(self.solution_old, annotate=False)
       
       # Mean free surface height
-      self.h_mean = Function(self.W.sub(1))
+      self.h_mean = Function(self.W.sub(1), name="FreeSurfaceMean", annotate=False)
       self.h_mean.interpolate(ExpressionFromOptions(path = "/system/core_fields/scalar_field::FreeSurfaceMean/value").get_expression())
 
       # Set up the functions used to write fields to file.
       self.output_functions = {}
-      self.output_functions["Velocity"] = Function(self.W.sub(0), name="Velocity")
-      self.output_functions["FreeSurfacePerturbation"] = Function(self.W.sub(1), name="FreeSurfacePerturbation")
+      self.output_functions["Velocity"] = Function(self.W.sub(0), name="VelocityOutput", annotate=False)
+      self.output_functions["FreeSurfacePerturbation"] = Function(self.W.sub(1), name="FreeSurfacePerturbationOutput", annotate=False)
       
       # Set up the output stream
       LOG.info("Initialising output file streams...")
@@ -313,7 +322,7 @@ class ShallowWater:
          
       return mesh
       
-   def run(self):
+   def run(self, annotate=True):
       """ Perform the simulation! """
 
       # Time-stepping parameters and constants
@@ -526,13 +535,13 @@ class ShallowWater:
       if(self.options["have_momentum_source"]):
          LOG.debug("Momentum equation: Adding source term...")
          momentum_source_expression = ExpressionFromOptions(path = "/system/equations/momentum_equation/source_term/vector_field::Source/value", t=t).get_expression()
-         momentum_source_function = Function(self.W.sub(0))
+         momentum_source_function = Function(self.W.sub(0), annotate=False)
          F -= inner(self.w, momentum_source_function.interpolate(momentum_source_expression))*dx
 
       if(self.options["have_continuity_source"]):
          LOG.debug("Continuity equation: Adding source term...")
          continuity_source_expression = ExpressionFromOptions(path = "/system/equations/continuity_equation/source_term/scalar_field::Source/value", t=t).get_expression()
-         continuity_source_function = Function(self.W.sub(1))
+         continuity_source_function = Function(self.W.sub(1), annotate=False)
          F -= inner(self.v, continuity_source_function.interpolate(continuity_source_expression))*dx
          
       # Add in any SU stabilisation
@@ -632,7 +641,7 @@ class ShallowWater:
       # PETSc solver run-times
       from petsc4py import PETSc
       main_solver_stage = PETSc.Log.Stage('Main block-coupled system solve')
-
+      
       total_solver_time = 0.0
       # The time-stepping loop
       LOG.info("Entering the time-stepping loop...")
@@ -675,24 +684,24 @@ class ShallowWater:
             expr.t = t
          for expr in weak_bc_expressions:
             expr.t = t
-                   
+           
          # Solve the system of equations!
          start_solver_time = mpi4py.MPI.Wtime()
          main_solver_stage.push()
          LOG.debug("Solving the system of equations...")
-         solver.solve()
+         solver.solve(annotate=annotate)
          main_solver_stage.pop()
          end_solver_time = mpi4py.MPI.Wtime()
          total_solver_time += (end_solver_time - start_solver_time)     
 
          # Write the solution to file.
-         if((self.options["dump_period"] is not None) and (dt*iterations_since_dump >= self.options["dump_period"])):
-            LOG.debug("Writing data to file...")
-            self.output_functions["Velocity"].assign(self.solution.split()[0])
-            self.output_files["Velocity"] << self.output_functions["Velocity"]
-            self.output_functions["FreeSurfacePerturbation"].assign(self.solution.split()[1])
-            self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
-            iterations_since_dump = 0 # Reset the counter.
+         #if((self.options["dump_period"] is not None) and (dt*iterations_since_dump >= self.options["dump_period"])):
+         #   LOG.debug("Writing data to file...")
+         #   self.output_functions["Velocity"].assign(self.solution.split()[0])
+         #   self.output_files["Velocity"] << self.output_functions["Velocity"]
+         #   self.output_functions["FreeSurfacePerturbation"].assign(self.solution.split()[1])
+         #   self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
+         #   iterations_since_dump = 0 # Reset the counter.
 
          # Print out the total power generated by turbines.
          if(self.options["have_drag"] and self.array is not None and rank0()):
@@ -705,12 +714,12 @@ class ShallowWater:
             iterations_since_checkpoint = 0 # Reset the counter.
             
          # Check whether a steady-state has been reached.
-         if(steady_state(self.solution.split()[0], self.solution_old.split()[0], self.options["steady_state_tolerance"]) and steady_state(self.solution.split()[1], self.solution_old.split()[1], self.options["steady_state_tolerance"])):
-            LOG.info("Steady-state attained. Exiting the time-stepping loop...")
-            break
+         #if(steady_state(self.solution.split()[0], self.solution_old.split()[0], self.options["steady_state_tolerance"]) and steady_state(self.solution.split()[1], self.solution_old.split()[1], self.options["steady_state_tolerance"])):
+         #   LOG.info("Steady-state attained. Exiting the time-stepping loop...")
+         #   break
 
          # Move to next time step    
-         self.solution_old.assign(self.solution)    
+         self.solution_old.assign(self.solution, annotate=annotate)    
          t += dt
          iterations_since_dump += 1
          iterations_since_checkpoint += 1
@@ -720,7 +729,7 @@ class ShallowWater:
 
       LOG.debug("Total solver time: %.2f" % (total_solver_time))
 
-      return
+      return self.solution
 
 if(__name__ == "__main__"):
    import signal
@@ -747,15 +756,39 @@ if(__name__ == "__main__"):
       simulation_start_time = mpi4py.MPI.Wtime()
       
       # Set up a shallow water simulation.
-      sw = ShallowWater(path=args.path, checkpoint=args.checkpoint)
+      sw = ShallowWater(path=args.path, checkpoint=args.checkpoint, annotate=True)
+
+      solution_old = sw.solution_old
+      control = Control(solution_old)
       
       # Solve the shallow water equations!
-      sw.run()
+      solution = sw.run(annotate=True)
       
       simulation_end_time = mpi4py.MPI.Wtime()
       
       LOG.info("Total simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
+
+      adj_html("forward.html", "forward")
+      print "Replaying forward model"
+      assert replay_dolfin(tol=1e-13, stop=True)
       
+      J = Functional(dot(solution, solution)*dx)
+      Jc = assemble(dot(solution, solution)*dx)
+      adj_html("forward.html", "forward")
+      adj_html("adjoint.html", "adjoint")
+      
+      def Jhat(solution_old):
+         sw.solution_old.assign(solution_old, annotate=False)
+         sw.solution.assign(solution_old, annotate=False)
+         solution = sw.run(annotate=False)
+         return assemble(dot(solution, solution)*dx)
+      
+      dJdc = compute_gradient(J, control, forget=False)
+      parameters["adjoint"]["stop_annotating"] = True
+      print "Gradient: ", dJdc.vector().array()
+      minconv = taylor_test(Jhat, control, Jc, dJdc, seed=1e-4)
+      print minconv
+
    else:
       LOG.error("The path to the simulation setup file does not exist.")
       sys.exit()
