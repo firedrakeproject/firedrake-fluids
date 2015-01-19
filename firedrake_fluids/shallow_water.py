@@ -336,7 +336,7 @@ class ShallowWater:
       h_mid = (1.0 - theta) * self.h_old + theta * self.h
          
       # The total height of the free surface.
-      H = self.h_mean + h_mid
+      H = self.h_mean + self.h
       
       # Simple P1 function space, to be used in the stabilisation routines (if applicable).
       P1 = FunctionSpace(self.mesh, "CG", 1)
