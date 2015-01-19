@@ -133,6 +133,17 @@ start =
             {
                real
             },
+            ## The theta-weighting to be used in the time-stepping scheme.
+            ##
+            ## theta = 0 gives forward Euler.
+            ##
+            ## theta = 0.5 gives Crank-Nicolson.
+            ##
+            ## theta = 1.0 gives backward Euler.
+            element theta
+            {
+               real
+            },
             ## Activate if you want to terminate the simulation once a steady state is reached.
             element steady_state 
             {

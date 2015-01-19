@@ -220,6 +220,7 @@ class ShallowWater:
       self.options["T"] = libspud.get_option("/timestepping/finish_time")
       self.options["t"] = libspud.get_option("/timestepping/current_time")
       self.options["dt"] = libspud.get_option("/timestepping/timestep")
+      self.options["theta"] = libspud.get_option("/timestepping/theta")
       if(libspud.have_option("/timestepping/steady_state")):
          self.options["steady_state_tolerance"] = libspud.get_option("/timestepping/steady_state/tolerance")
       else:
@@ -320,12 +321,19 @@ class ShallowWater:
       LOG.info("Setting up a few constants...")
       T = self.options["T"]
       t = self.options["t"]
+      theta = self.options["theta"]
       dt = self.options["dt"]
       dimension = self.options["dimension"]
       g_magnitude = self.options["g_magnitude"]
       
       # Is the Velocity field represented by a discontinous function space?
       dg = (self.W.sub(0).ufl_element().family() == "Discontinuous Lagrange")
+      
+      # Weight u and h by theta to obtain the theta time-stepping scheme.
+      assert(theta >= 0.0 and theta <= 1.0)
+      LOG.info("Time-stepping scheme using theta = %.2f" % (theta))
+      u_mid = (1.0 - theta) * self.u_old + theta * self.u
+      h_mid = (1.0 - theta) * self.h_old + theta * self.h
          
       # The total height of the free surface.
       H = self.h_mean + self.h
@@ -349,16 +357,16 @@ class ShallowWater:
          LOG.debug("Momentum equation: Adding advection term...")
 
          if(self.options["integrate_advection_term_by_parts"]):
-            outflow = (dot(self.u, self.n) + abs(dot(self.u, self.n)))/2.0
+            outflow = (dot(u_mid, self.n) + abs(dot(u_mid, self.n)))/2.0
 
-            A_momentum = -inner(dot(self.u, grad(self.w)), self.u)*dx - inner(dot(self.u, grad(self.u)), self.w)*dx
-            A_momentum += inner(self.w, outflow*self.u)*ds
+            A_momentum = -inner(dot(u_mid, grad(self.w)), u_mid)*dx - inner(dot(u_mid, grad(u_mid)), self.w)*dx
+            A_momentum += inner(self.w, outflow*u_mid)*ds
             if(dg):
                # Only add interior facet integrals if we are dealing with a discontinous Galerkin discretisation.
-               A_momentum += dot(outflow('+')*self.u('+') - outflow('-')*self.u('-'), jump(self.w))*dS
+               A_momentum += dot(outflow('+')*u_mid('+') - outflow('-')*u_mid('-'), jump(self.w))*dS
 
          else:
-            A_momentum = inner(dot(grad(self.u), self.u), self.w)*dx
+            A_momentum = inner(dot(grad(u_mid), u_mid), self.w)*dx
          F += A_momentum
          
       # Viscous stress term. Note that the viscosity is kinematic (not dynamic).
@@ -382,7 +390,7 @@ class ShallowWater:
                smagorinsky_coefficient = Constant(libspud.get_option(base_option_path + "/les/smagorinsky/smagorinsky_coefficient"))
                
                eddy_viscosity = Function(self.W.sub(1))
-               eddy_viscosity_lhs, eddy_viscosity_rhs = les.eddy_viscosity(self.u, density, smagorinsky_coefficient)
+               eddy_viscosity_lhs, eddy_viscosity_rhs = les.eddy_viscosity(u_mid, density, smagorinsky_coefficient)
                eddy_viscosity_problem = LinearVariationalProblem(eddy_viscosity_lhs, eddy_viscosity_rhs, eddy_viscosity, bcs=[])
                eddy_viscosity_solver = LinearVariationalSolver(eddy_viscosity_problem)
                
@@ -392,23 +400,23 @@ class ShallowWater:
          # Stress tensor: tau = grad(u) + transpose(grad(u)) - (2/3)*div(u)
          if(not dg):
             # Perform a double dot product of the stress tensor and grad(w).
-            K_momentum = -viscosity*inner(grad(self.u) + grad(self.u).T, grad(self.w))*dx
-            K_momentum += viscosity*(2.0/3.0)*inner(div(self.u)*Identity(dimension), grad(self.w))*dx
+            K_momentum = -viscosity*inner(grad(u_mid) + grad(u_mid).T, grad(self.w))*dx
+            K_momentum += viscosity*(2.0/3.0)*inner(div(u_mid)*Identity(dimension), grad(self.w))*dx
          else:
             # Interior penalty method
             cellsize = Constant(0.2) # In general, we should use CellSize(self.mesh) instead.
             alpha = 1/cellsize # Penalty parameter.
             
-            K_momentum = -viscosity('+')*inner(grad(self.u), grad(self.w))*dx
+            K_momentum = -viscosity('+')*inner(grad(u_mid), grad(self.w))*dx
             for dim in range(self.options["dimension"]):
-               K_momentum += -viscosity('+')*(alpha('+')/cellsize('+'))*dot(jump(self.w[dim], self.n), jump(self.u[dim], self.n))*dS
-               K_momentum += viscosity('+')*dot(avg(grad(self.w[dim])), jump(self.u[dim], self.n))*dS + viscosity('+')*dot(jump(self.w[dim], self.n), avg(grad(self.u[dim])))*dS
+               K_momentum += -viscosity('+')*(alpha('+')/cellsize('+'))*dot(jump(self.w[dim], self.n), jump(u_mid[dim], self.n))*dS
+               K_momentum += viscosity('+')*dot(avg(grad(self.w[dim])), jump(u_mid[dim], self.n))*dS + viscosity('+')*dot(jump(self.w[dim], self.n), avg(grad(u_mid[dim])))*dS
 
          F -= K_momentum # Negative sign here because we are bringing the stress term over from the RHS.
 
       # The gradient of the height of the free surface, h
       LOG.debug("Momentum equation: Adding gradient term...")
-      C_momentum = -g_magnitude*inner(self.w, grad(self.h))*dx
+      C_momentum = -g_magnitude*inner(self.w, grad(h_mid))*dx
       F -= C_momentum
 
       # Quadratic drag term in the momentum equation
@@ -434,10 +442,10 @@ class ShallowWater:
             self.array = None
          
          # Magnitude of the velocity field
-         magnitude = sqrt(dot(self.u, self.u))
+         magnitude = sqrt(dot(u_mid, u_mid))
          
          # Form the drag term
-         D_momentum = -inner(self.w, (drag_coefficient*magnitude/H)*self.u)*dx
+         D_momentum = -inner(self.w, (drag_coefficient*magnitude/H)*u_mid)*dx
          F -= D_momentum
 
       # The mass term in the shallow water continuity equation 
@@ -453,9 +461,9 @@ class ShallowWater:
       LOG.debug("Continuity equation: Adding divergence term...")
       if(self.options["integrate_continuity_equation_by_parts"]):
          LOG.debug("The divergence term is being integrated by parts.")
-         Ct_continuity = - H*inner(self.u, grad(self.v))*dx
+         Ct_continuity = - H*inner(u_mid, grad(self.v))*dx
          if(dg):
-            Ct_continuity += inner(jump(self.v, self.n), avg(H*self.u))*dS
+            Ct_continuity += inner(jump(self.v, self.n), avg(H*u_mid))*dS
                            
          # Add in the surface integrals, but check to see if any boundary conditions need to be applied weakly here.
          boundary_markers = self.mesh.exterior_facets.unique_markers
@@ -490,7 +498,7 @@ class ShallowWater:
                      
                      # The known exterior value for the FreeSurfacePerturbation.
                      h_ext = ExpressionFromOptions(path = (bc_path + "/type::flather/exterior_free_surface_perturbation"), t=t).get_expression()
-                     Ct_continuity += H*sqrt(g_magnitude/H)*(self.h - Function(self.W.sub(1)).interpolate(h_ext))*self.v*ds(int(marker))
+                     Ct_continuity += H*sqrt(g_magnitude/H)*(h_mid - Function(self.W.sub(1)).interpolate(h_ext))*self.v*ds(int(marker))
                      
                      weak_bc_expressions.append(u_ext)
                      weak_bc_expressions.append(h_ext)
@@ -503,7 +511,7 @@ class ShallowWater:
                      
                   elif(bc_type == "dirichlet"):
                      # Add in the surface integral as it is here. The BC will be applied strongly later using a DirichletBC object.
-                     Ct_continuity += H * inner(self.u, self.n) * self.v * ds(int(marker))
+                     Ct_continuity += H * inner(u_mid, self.n) * self.v * ds(int(marker))
                   elif(bc_type == "no_normal_flow"):
                      # Do nothing here since dot(u, n) is zero.
                      continue
@@ -516,10 +524,10 @@ class ShallowWater:
                   
             # If no boundary condition has been applied, include the surface integral as it is.
             if(bc_type is None):
-               Ct_continuity += H * inner(self.u, self.n) * self.v * ds(int(marker))
+               Ct_continuity += H * inner(u_mid, self.n) * self.v * ds(int(marker))
 
       else:
-         Ct_continuity = inner(self.v, div(H*self.u))*dx
+         Ct_continuity = inner(self.v, div(H*u_mid))*dx
       F += Ct_continuity
 
       # Add in any source terms
@@ -556,7 +564,7 @@ class ShallowWater:
          values = numpy.array([1.0e-9 for i in range(len(grid_pe_nodes))])
          grid_pe_nodes.set_local(numpy.maximum(grid_pe_nodes.array(), values))
 
-         F += stabilisation.streamline_upwind(self.w, self.u, magnitude, grid_pe)
+         F += stabilisation.streamline_upwind(self.w, u_mid, magnitude, grid_pe)
 
       LOG.info("Form construction complete.")
 
