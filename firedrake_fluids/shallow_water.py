@@ -330,6 +330,7 @@ class ShallowWater:
       dg = (self.W.sub(0).ufl_element().family() == "Discontinuous Lagrange")
       
       # Weight u and h by theta to obtain the theta time-stepping scheme.
+      assert(theta >= 0.0 and theta <= 1.0)
       LOG.info("Time-stepping scheme using theta = %.2f" % (theta))
       u_mid = (1.0 - theta) * self.u_old + theta * self.u
       h_mid = (1.0 - theta) * self.h_old + theta * self.h
