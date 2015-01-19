@@ -120,6 +120,16 @@ Setting this to zero will result in checkpoint dumps at every time-step.</a:docu
           <a:documentation>Simulation time at which the simulation should end.</a:documentation>
           <ref name="real"/>
         </element>
+        <element name="theta">
+          <a:documentation>The theta-weighting to be used in the time-stepping scheme.
+
+theta = 0 gives forward Euler.
+
+theta = 0.5 gives Crank-Nicolson.
+
+theta = 1.0 gives backward Euler.</a:documentation>
+          <ref name="real"/>
+        </element>
         <optional>
           <element name="steady_state">
             <a:documentation>Activate if you want to terminate the simulation once a steady state is reached.</a:documentation>
