@@ -271,11 +271,17 @@ class ShallowWater:
       d = Diagnostics(self.mesh)
       for i in range(0, libspud.option_count("/system/diagnostic_fields/diagnostic")):
          name = libspud.get_option("/system/diagnostic_fields/diagnostic[%d]/name" % i)
-         if(name == "grid_reynolds_number"):
-            viscosity = Function(self.W.sub(1)).interpolate(Expression(libspud.get_option("/system/equations/momentum_equation/stress_term/scalar_field::Viscosity/value/constant")))
-            field = d.grid_reynolds_number(self.u, viscosity)
-         elif(name == "courant_number"):
-            field = d.courant_number(self.u, self.options["dt"])
+         try:
+            if(name == "grid_reynolds_number"):
+               viscosity = Function(self.W.sub(1)).interpolate(Expression(libspud.get_option("/system/equations/momentum_equation/stress_term/scalar_field::Viscosity/value/constant")))
+               field = d.grid_reynolds_number(self.u, viscosity)
+            elif(name == "courant_number"):
+               field = d.courant_number(self.u, self.options["dt"])
+            else:
+               raise ValueError("Unknown diagnostic field: %s" % name)
+         except ValueError as e:
+            LOG.exception(name)
+            sys.exit()
             
          LOG.info("Diagnostic results for: %s" % name)
          LOG.info("Maximum value: %f" % max(field.vector()))
