@@ -24,7 +24,8 @@ def test_swe_standing_wave(input):
    h_min = min(h_values)
    print "h_max: ", h_max
    print "h_min: ", h_min
-   assert h_max <= 1.0
+   eps = 0.1 # For small over-shoots
+   assert h_max <= 1.0 + eps
    assert h_min >= -1.0
 
 if __name__ == '__main__':
