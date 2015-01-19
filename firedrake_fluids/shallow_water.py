@@ -52,6 +52,7 @@ from firedrake_fluids.les import LES
 from firedrake_fluids.expression import ExpressionFromOptions
 from firedrake_fluids.turbines import TurbineArray
 from firedrake_fluids.metadata import *
+from firedrake_fluids.diagnostics import Diagnostics
 LOG.debug("Firedrake-Fluids sub-modules successfully imported.")
 
 class ShallowWater:
@@ -262,8 +263,26 @@ class ShallowWater:
       self.options["integrate_continuity_equation_by_parts"] = libspud.have_option("/system/equations/continuity_equation/integrate_by_parts")
       self.options["integrate_advection_term_by_parts"] = libspud.have_option("/system/equations/momentum_equation/advection_term/integrate_by_parts")
       
-      return         
+      return
+
+      
+   def compute_diagnostics(self):
+      LOG.info("Computing diagnostic fields...")
+      d = Diagnostics(self.mesh)
+      for i in range(0, libspud.option_count("/system/diagnostic_fields/diagnostic")):
+         name = libspud.get_option("/system/diagnostic_fields/diagnostic[%d]/name" % i)
+         if(name == "grid_reynolds_number"):
+            viscosity = Function(self.W.sub(1)).interpolate(Expression(libspud.get_option("/system/equations/momentum_equation/stress_term/scalar_field::Viscosity/value/constant")))
+            field = d.grid_reynolds_number(self.u, viscosity)
+         elif(name == "courant_number"):
+            field = d.courant_number(self.u, self.options["dt"])
+            
+         LOG.info("Diagnostic results for: %s" % name)
+         LOG.info("Maximum value: %f" % max(field.vector()))
+         LOG.info("Maximum value: %f" % min(field.vector()))
          
+      return
+      
    def get_mesh(self, path):
       """ Create or load a mesh, given a configuration specified in the simulation configuration file. 
       
@@ -716,6 +735,8 @@ class ShallowWater:
          if(steady_state(self.solution.split()[0], self.solution_old.split()[0], self.options["steady_state_tolerance"]) and steady_state(self.solution.split()[1], self.solution_old.split()[1], self.options["steady_state_tolerance"])):
             LOG.info("Steady-state attained. Exiting the time-stepping loop...")
             break
+
+         self.compute_diagnostics()
 
          # Move to next time step    
          self.solution_old.assign(self.solution)    

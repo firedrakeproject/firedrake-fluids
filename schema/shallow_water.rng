@@ -6,6 +6,7 @@
   <include href="turbulence_parameterisation.rng"/>
   <include href="les.rng"/>
   <include href="solvers.rng"/>
+  <include href="diagnostics.rng"/>
   <start>
     <element name="shallow_water_options">
       <a:documentation>The root node of the shallow water options dictionary.</a:documentation>
@@ -143,7 +144,7 @@ theta = 1.0 gives backward Euler.</a:documentation>
         <a:documentation>The physical parameters</a:documentation>
         <element name="gravity">
           <element name="magnitude">
-            <a:documentation>Acceleration due to gravity. This is 9.8 m/s^2 on Earth.</a:documentation>
+            <a:documentation>Acceleration due to gravity. This is 9.8 m/s**2 on Earth.</a:documentation>
             <ref name="real"/>
           </element>
         </element>
@@ -151,7 +152,14 @@ theta = 1.0 gives backward Euler.</a:documentation>
       <element name="system">
         <a:documentation>The description of the physical system, specifying the core fields and the options associated with the shallow water equations.</a:documentation>
         <element name="core_fields">
+          <a:documentation>The options available for the core fields of the shallow water model.</a:documentation>
           <ref name="core_fields"/>
+        </element>
+        <element name="diagnostic_fields">
+          <a:documentation>Diagnostic fields.</a:documentation>
+          <zeroOrMore>
+            <ref name="scalar_diagnostics"/>
+          </zeroOrMore>
         </element>
         <element name="equations">
           <a:documentation>The options available for the governing equations of the shallow water model.</a:documentation>

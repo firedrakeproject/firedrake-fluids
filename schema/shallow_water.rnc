@@ -5,6 +5,7 @@ include "boundary_conditions.rnc"
 include "turbulence_parameterisation.rnc"
 include "les.rnc"
 include "solvers.rnc"
+include "diagnostics.rnc"
 
 start =
    (
@@ -158,7 +159,7 @@ start =
          {
             element gravity 
             {
-               ## Acceleration due to gravity. This is 9.8 m/s^2 on Earth.
+               ## Acceleration due to gravity. This is 9.8 m/s**2 on Earth.
                element magnitude 
                {
                   real
@@ -168,9 +169,15 @@ start =
          ## The description of the physical system, specifying the core fields and the options associated with the shallow water equations.
          element system 
          {
+            ## The options available for the core fields of the shallow water model.
             element core_fields
             {
                core_fields
+            },
+            ## Diagnostic fields.
+            element diagnostic_fields
+            {
+               scalar_diagnostics*
             },
             ## The options available for the governing equations of the shallow water model.
             element equations
