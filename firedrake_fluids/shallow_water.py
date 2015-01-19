@@ -267,9 +267,13 @@ class ShallowWater:
 
       
    def compute_diagnostics(self):
+      diagnostic_field_count = libspud.option_count("/system/diagnostic_fields/diagnostic")
+      if(diagnostic_field_count == 0):
+         return
+         
       LOG.info("Computing diagnostic fields...")
       d = Diagnostics(self.mesh)
-      for i in range(0, libspud.option_count("/system/diagnostic_fields/diagnostic")):
+      for i in range(0, diagnostic_field_count):
          name = libspud.get_option("/system/diagnostic_fields/diagnostic[%d]/name" % i)
          try:
             if(name == "grid_reynolds_number"):
