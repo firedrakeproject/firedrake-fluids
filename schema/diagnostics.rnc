@@ -1,0 +1,18 @@
+grid_reynolds_number =
+   (   
+      ## The (non-dimensional) grid Reynolds number.
+      element diagnostic {
+         attribute name { "grid_reynolds_number" }
+      }
+   )
+
+courant_number =
+   (   
+      ## The Courant number.
+      element diagnostic {
+         attribute name { "courant_number" }
+      }
+   )
+   
+scalar_diagnostics = grid_reynolds_number
+scalar_diagnostics |= courant_number

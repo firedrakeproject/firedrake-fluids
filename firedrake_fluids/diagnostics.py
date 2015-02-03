@@ -21,16 +21,11 @@ import firedrake_fluids.fields_calculations as fields_calculations
 
 class Diagnostics:
 
-   def __init__(self, mesh, function_space):
-      self.mesh = mesh
-      self.function_space = function_space
-      
-      self.test = TestFunction(self.function_space)
-      self.trial = TrialFunction(self.function_space)
-      
+   def __init__(self, mesh):
+      self.mesh = mesh      
       return
 
-   def courant_number(self, u, dt):
+   def courant_number(self, u, dt, function_space=None):
       r''' Compute the Courant number given by 
       
           .. math:: \frac{\|\mathbf{u}\|_2\Delta t}{\Delta x}
@@ -39,59 +34,81 @@ class Diagnostics:
           
       :param ufl.Function u: The velocity field.
       :param dt: The time-step size.
+      :param ufl.FunctionSpace function_space: The function space in which the grid Reynolds number should be computed.
       :returns: A UFL Function representing the Courant number field.
       :rtype: ufl.Function
       '''
-      solution = Function(self.function_space)
+      
+      if(function_space is None):
+         function_space = FunctionSpace(self.mesh, "CG", 1)
+         
+      test = TestFunction(function_space)
+      trial = TrialFunction(function_space)
+      solution = Function(function_space)
       
       h = CellSize(self.mesh)
-      magnitude = fields_calculations.magnitude_vector(u, self.function_space)
+      magnitude = fields_calculations.magnitude_vector(u, function_space)
       
-      a = inner(self.test, self.trial)*dx
-      L = (self.test*(magnitude*dt)/h)*dx
+      a = inner(test, trial)*dx
+      L = (test*(magnitude*dt)/h)*dx
       
       solve(a == L, solution, bcs=[])
       return solution
    
-   def grid_reynolds_number(self, rho, u, mu):
+   def grid_reynolds_number(self, u, rho, mu=1, function_space=None):
       r''' Compute the grid Reynolds number given by 
       
           .. math:: \frac{\rho\|\mathbf{u}\|_2\Delta x}{\mu}
              
           where :math:`\rho` is the density, :math:`\mathbf{u}` is the velocity field, 
           :math:`\Delta x` is the element size, and :math:`\mu` is the (isotropic) viscosity.
-         
-      :param rho: The density, which can be a constant value or a ufl.Function.
+
       :param ufl.Function u: The velocity field.
-      :param mu: The (isotropic) viscosity.
+      :param rho: The density, which can be a constant value or a ufl.Function.
+      :param ufl.FunctionSpace function_space: The function space in which the grid Reynolds number should be computed.
+      :param mu: The (isotropic) viscosity. By default, this is set to 1.0.
       :returns: A UFL Function representing the grid Reynolds number field.
       :rtype: ufl.Function
       '''
-      solution = Function(self.function_space)
+
+      if(function_space is None):
+         function_space = FunctionSpace(self.mesh, "CG", 1)
+         
+      test = TestFunction(function_space)
+      trial = TrialFunction(function_space)
+      
+      solution = Function(function_space)
       
       h = CellSize(self.mesh)
-      magnitude = fields_calculations.magnitude_vector(u, self.function_space)
+      magnitude = fields_calculations.magnitude_vector(u, function_space)
       
-      a = inner(self.test, self.trial)*dx
-      L = (self.test*(rho*magnitude*h)/mu)*dx
+      a = inner(test, trial)*dx
+      L = (test*(rho*magnitude*h)/mu)*dx
       
       solve(a == L, solution, bcs=[])
       return solution
 
-   def divergence(self, u):
+   def divergence(self, u, function_space=None):
       r''' For a given vector field :math:`\mathbf{u}`, return its divergence (a scalar field):
       
            .. math:: \nabla\cdot\mathbf{u}
       
       :param ufl.Function u: A vector field.
+      :param ufl.FunctionSpace function_space: The function space in which the grid Reynolds number should be computed.
       :returns: A UFL Function representing the divergence field.
       :rtype: ufl.Function
       '''
+
+      if(function_space is None):
+         function_space = FunctionSpace(self.mesh, "CG", 1)
+         
+      test = TestFunction(function_space)
+      trial = TrialFunction(function_space)
       
-      solution = Function(self.function_space)
+      solution = Function(function_space)
       
-      a = inner(self.test, self.trial)*dx
-      L = self.test*div(u)*dx
+      a = inner(test, trial)*dx
+      L = test*div(u)*dx
       
       solve(a == L, solution, bcs=[])
       return solution

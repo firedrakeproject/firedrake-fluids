@@ -51,6 +51,9 @@
     <finish_time>
       <real_value rank="0">15.0</real_value>
     </finish_time>
+    <theta>
+      <real_value rank="0">1.0</real_value>
+    </theta>
   </timestepping>
   <physical_parameters>
     <gravity>

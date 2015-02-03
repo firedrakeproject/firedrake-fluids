@@ -6,6 +6,7 @@
   <include href="turbulence_parameterisation.rng"/>
   <include href="les.rng"/>
   <include href="solvers.rng"/>
+  <include href="diagnostics.rng"/>
   <start>
     <element name="shallow_water_options">
       <a:documentation>The root node of the shallow water options dictionary.</a:documentation>
@@ -120,6 +121,16 @@ Setting this to zero will result in checkpoint dumps at every time-step.</a:docu
           <a:documentation>Simulation time at which the simulation should end.</a:documentation>
           <ref name="real"/>
         </element>
+        <element name="theta">
+          <a:documentation>The theta-weighting to be used in the time-stepping scheme.
+
+theta = 0 gives forward Euler.
+
+theta = 0.5 gives Crank-Nicolson.
+
+theta = 1.0 gives backward Euler.</a:documentation>
+          <ref name="real"/>
+        </element>
         <optional>
           <element name="steady_state">
             <a:documentation>Activate if you want to terminate the simulation once a steady state is reached.</a:documentation>
@@ -133,7 +144,7 @@ Setting this to zero will result in checkpoint dumps at every time-step.</a:docu
         <a:documentation>The physical parameters</a:documentation>
         <element name="gravity">
           <element name="magnitude">
-            <a:documentation>Acceleration due to gravity. This is 9.8 m/s^2 on Earth.</a:documentation>
+            <a:documentation>Acceleration due to gravity. This is 9.8 m/s**2 on Earth.</a:documentation>
             <ref name="real"/>
           </element>
         </element>
@@ -141,7 +152,14 @@ Setting this to zero will result in checkpoint dumps at every time-step.</a:docu
       <element name="system">
         <a:documentation>The description of the physical system, specifying the core fields and the options associated with the shallow water equations.</a:documentation>
         <element name="core_fields">
+          <a:documentation>The options available for the core fields of the shallow water model.</a:documentation>
           <ref name="core_fields"/>
+        </element>
+        <element name="diagnostic_fields">
+          <a:documentation>Diagnostic fields.</a:documentation>
+          <zeroOrMore>
+            <ref name="scalar_diagnostics"/>
+          </zeroOrMore>
         </element>
         <element name="equations">
           <a:documentation>The options available for the governing equations of the shallow water model.</a:documentation>

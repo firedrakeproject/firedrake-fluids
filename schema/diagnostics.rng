@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0">
+  <define name="grid_reynolds_number">
+    <element name="diagnostic">
+      <a:documentation>The (non-dimensional) grid Reynolds number.</a:documentation>
+      <attribute name="name">
+        <value>grid_reynolds_number</value>
+      </attribute>
+    </element>
+  </define>
+  <define name="courant_number">
+    <element name="diagnostic">
+      <a:documentation>The Courant number.</a:documentation>
+      <attribute name="name">
+        <value>courant_number</value>
+      </attribute>
+    </element>
+  </define>
+  <define name="scalar_diagnostics">
+    <ref name="grid_reynolds_number"/>
+  </define>
+  <define name="scalar_diagnostics" combine="choice">
+    <ref name="courant_number"/>
+  </define>
+</grammar>
