@@ -19,7 +19,7 @@ def diagnostics_courant_number():
    velocity = Function(vfs).interpolate(Expression(("x[0]", "x[1]")))
    dt = 0.5
 
-   diagnostics = Diagnostics(mesh, fs)
+   diagnostics = Diagnostics(mesh)
    
    courant_number = diagnostics.courant_number(velocity, dt)
    courant_number_exact = Function(fs).interpolate(Expression("sqrt(pow(x[0], 2) + pow(x[1], 2))*0.5/0.1414213562"))
