@@ -42,7 +42,7 @@ LOG.debug("Firedrake successfully imported")
 # COFFEE, PyOP2 and FFC parameters
 op2.init(lazy_evaluation=False)
 parameters['form_compiler']['quadrature_degree'] = 4
-parameters["coffee"]["O2"] = False # FIXME: Remove this line once this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
+#parameters["coffee"]["O2"] = False # FIXME: Remove this one this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
 
 # Firedrake-Fluids modules
 from firedrake_fluids.utils import *
@@ -83,11 +83,10 @@ class ShallowWater:
    .. math:: \frac{\partial h}{\partial t} + \nabla\cdot\left(\left(H + h\right)\mathbf{u}\right) = 0.   
    """
    
-   def __init__(self, path, checkpoint=None, annotate=True):
+   def __init__(self, path, annotate=True):
       """ Initialise a new shallow water simulation, using an options file.
       
       :param str path: The path to the simulation's configuration/options file.
-      :param str checkpoint: The path to a checkpoint file.
       :returns: None
       """
    
@@ -148,68 +147,8 @@ class ShallowWater:
       H = self.function_spaces["FreeSurfaceFunctionSpace"]
       self.W = MixedFunctionSpace([U, H])
 
-      # Get the test functions
-      test_functions = TestFunctions(self.W)
-      self.w = test_functions[0]; self.v = test_functions[1]
-      LOG.info("Test functions created.")
-      
-      # The solution field defined on the mixed function space
-      self.solution = Function(self.W, name="Solution", annotate=annotate)
-      
-      # These are like the TrialFunctions, but are just regular Functions here because we want to solve a non-linear problem
-      # 'u' and 'h' are the velocity and free surface perturbation, respectively.
-      functions = split(self.solution)
-      self.u = functions[0]; self.h = functions[1]
-      LOG.info("Trial functions created.")
-      
-      # Normal vector to each element facet
-      self.n = FacetNormal(self.mesh)
-   
-      # The solution from the previous time-step. At t=0, this holds the initial conditions.
-      self.solution_old = Function(self.W, name="SolutionOld", annotate=annotate)
-      functions_old = split(self.solution_old)
-      self.u_old = functions_old[0]; self.h_old = functions_old[1]
-
-      # Set up initial conditions
-      LOG.info("Setting initial conditions...")
-      h_initial = ExpressionFromOptions(path = "/system/core_fields/scalar_field::FreeSurfacePerturbation/initial_condition").get_expression()
-      u_initial = ExpressionFromOptions(path = "/system/core_fields/vector_field::Velocity/initial_condition").get_expression()
-      self.solution_old.sub(0).assign(Function(self.W.sub(0), annotate=False).interpolate(u_initial), annotate=False)
-      self.solution_old.sub(1).assign(Function(self.W.sub(1), annotate=False).interpolate(h_initial), annotate=False)
-      
-      self.initial = Function(self.W, name="InitialCondition", annotate=annotate)
-      self.initial.sub(0).assign(Function(self.W.sub(0), annotate=False).interpolate(u_initial), annotate=False)
-      self.initial.sub(1).assign(Function(self.W.sub(1), annotate=False).interpolate(h_initial), annotate=False)
-      
-      # Load initial conditions from the specified checkpoint file if desired.
-      if(checkpoint is not None):
-         self.solution_old.dat.load(checkpoint)
-         LOG.debug("Loaded initial condition from checkpoint file.")
-         
-      # The solution should first hold the initial condition.
-      self.solution.assign(self.solution_old, annotate=False)
-      
-      # Mean free surface height
-      self.h_mean = Function(self.W.sub(1), name="FreeSurfaceMean", annotate=False)
-      self.h_mean.interpolate(ExpressionFromOptions(path = "/system/core_fields/scalar_field::FreeSurfaceMean/value").get_expression())
-
-      # Set up the functions used to write fields to file.
-      self.output_functions = {}
-      self.output_functions["Velocity"] = Function(self.W.sub(0), name="VelocityOutput", annotate=False)
-      self.output_functions["FreeSurfacePerturbation"] = Function(self.W.sub(1), name="FreeSurfacePerturbationOutput", annotate=False)
-      
-      # Set up the output stream
-      LOG.info("Initialising output file streams...")
-      self.output_files = {}
-      for field in self.output_functions.keys():
-         self.output_files[field] = File("%s_%s.pvd" % (self.options["simulation_name"], field))
-      
-      # Write initial conditions to file
-      LOG.info("Writing initial conditions to file...")
-      self.output_functions["Velocity"].assign(self.solution_old.split()[0], annotate=False)
-      self.output_files["Velocity"] << self.output_functions["Velocity"]
-      self.output_functions["FreeSurfacePerturbation"].assign(self.solution_old.split()[1], annotate=False)
-      self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
+      # Set up the output streams
+      self.create_output_streams()
       
       return
       
@@ -274,7 +213,22 @@ class ShallowWater:
       
       return
 
+   def get_initial_condition(self, checkpoint=None):
+      # Set up initial conditions
+      LOG.info("Setting initial conditions...")
+      h_initial = ExpressionFromOptions(path = "/system/core_fields/scalar_field::FreeSurfacePerturbation/initial_condition").get_expression()
+      u_initial = ExpressionFromOptions(path = "/system/core_fields/vector_field::Velocity/initial_condition").get_expression()
+      initial_condition = Function(self.W)
+      initial_condition.sub(0).assign(Function(self.W.sub(0)).interpolate(u_initial))
+      initial_condition.sub(1).assign(Function(self.W.sub(1)).interpolate(h_initial))
       
+      # Load initial conditions from the specified checkpoint file if desired.
+      if(checkpoint is not None):
+         initial_condition.dat.load(checkpoint)
+         LOG.debug("Loaded initial condition from checkpoint file.")
+      
+      return initial_condition
+   
    def compute_diagnostics(self):
       diagnostic_field_count = libspud.option_count("/system/diagnostic_fields/diagnostic")
       if(diagnostic_field_count == 0):
@@ -351,43 +305,49 @@ class ShallowWater:
          sys.exit()
          
       return mesh
-      
-   def run(self, annotate=True):
-      """ Perform the simulation! """
 
-      # Time-stepping parameters and constants
-      LOG.info("Setting up a few constants...")
-      T = self.options["T"]
-      t = self.options["t"]
+   def construct_form(self, u, u_old, h, h_old):
+      # The collection of all the individual terms in their weak form.
+      LOG.info("Constructing form...")
+      F = 0
+
       theta = self.options["theta"]
       dt = self.options["dt"]
       dimension = self.options["dimension"]
       g_magnitude = self.options["g_magnitude"]
+
+      # Get the test functions
+      test_functions = TestFunctions(self.W)
+      w = test_functions[0]; v = test_functions[1]
+      LOG.info("Test functions created.")
       
       # Is the Velocity field represented by a discontinous function space?
       dg = (self.W.sub(0).ufl_element().family() == "Discontinuous Lagrange")
-      
+
+      # Mean free surface height
+      h_mean = Function(self.W.sub(1))
+      h_mean.interpolate(ExpressionFromOptions(path = "/system/core_fields/scalar_field::FreeSurfaceMean/value").get_expression())
+
       # Weight u and h by theta to obtain the theta time-stepping scheme.
       assert(theta >= 0.0 and theta <= 1.0)
       LOG.info("Time-stepping scheme using theta = %g" % (theta))
-      u_mid = (1.0 - theta) * self.u_old + theta * self.u
-      h_mid = (1.0 - theta) * self.h_old + theta * self.h
+      u_mid = (1.0 - theta) * u_old + theta * u
+      h_mid = (1.0 - theta) * h_old + theta * h
          
       # The total height of the free surface.
-      H = self.h_mean + self.h
+      H = h_mean + h
       
       # Simple P1 function space, to be used in the stabilisation routines (if applicable).
       P1 = FunctionSpace(self.mesh, "CG", 1)
       cellsize = CellSize(self.mesh)
 
-      # The collection of all the individual terms in their weak form.
-      LOG.info("Constructing form...")
-      F = 0
-
+      # Normal vector to each element facet
+      n = FacetNormal(self.mesh)
+      
       # Mass term
       if(self.options["have_momentum_mass"]):
          LOG.debug("Momentum equation: Adding mass term...")
-         M_momentum = (1.0/dt)*(inner(self.w, self.u) - inner(self.w, self.u_old))*dx
+         M_momentum = (1.0/dt)*(inner(w, u) - inner(w, u_old))*dx
          F += M_momentum
       
       # Advection term
@@ -395,16 +355,16 @@ class ShallowWater:
          LOG.debug("Momentum equation: Adding advection term...")
 
          if(self.options["integrate_advection_term_by_parts"]):
-            outflow = (dot(u_mid, self.n) + abs(dot(u_mid, self.n)))/2.0
+            outflow = (dot(u_mid, n) + abs(dot(u_mid, n)))/2.0
 
-            A_momentum = -inner(dot(u_mid, grad(self.w)), u_mid)*dx - inner(dot(u_mid, grad(u_mid)), self.w)*dx
-            A_momentum += inner(self.w, outflow*u_mid)*ds
+            A_momentum = -inner(dot(u_mid, grad(w)), u_mid)*dx - inner(dot(u_mid, grad(u_mid)), w)*dx
+            A_momentum += inner(w, outflow*u_mid)*ds
             if(dg):
                # Only add interior facet integrals if we are dealing with a discontinous Galerkin discretisation.
-               A_momentum += dot(outflow('+')*u_mid('+') - outflow('-')*u_mid('-'), jump(self.w))*dS
+               A_momentum += dot(outflow('+')*u_mid('+') - outflow('-')*u_mid('-'), jump(w))*dS
 
          else:
-            A_momentum = inner(dot(grad(u_mid), u_mid), self.w)*dx
+            A_momentum = inner(dot(grad(u_mid), u_mid), w)*dx
          F += A_momentum
          
       # Viscous stress term. Note that the viscosity is kinematic (not dynamic).
@@ -438,23 +398,23 @@ class ShallowWater:
          # Stress tensor: tau = grad(u) + transpose(grad(u)) - (2/3)*div(u)
          if(not dg):
             # Perform a double dot product of the stress tensor and grad(w).
-            K_momentum = -viscosity*inner(grad(u_mid) + grad(u_mid).T, grad(self.w))*dx
-            K_momentum += viscosity*(2.0/3.0)*inner(div(u_mid)*Identity(dimension), grad(self.w))*dx
+            K_momentum = -viscosity*inner(grad(u_mid) + grad(u_mid).T, grad(w))*dx
+            K_momentum += viscosity*(2.0/3.0)*inner(div(u_mid)*Identity(dimension), grad(w))*dx
          else:
             # Interior penalty method
             cellsize = Constant(0.2) # In general, we should use CellSize(self.mesh) instead.
             alpha = 1/cellsize # Penalty parameter.
             
-            K_momentum = -viscosity('+')*inner(grad(u_mid), grad(self.w))*dx
+            K_momentum = -viscosity('+')*inner(grad(u_mid), grad(w))*dx
             for dim in range(self.options["dimension"]):
-               K_momentum += -viscosity('+')*(alpha('+')/cellsize('+'))*dot(jump(self.w[dim], self.n), jump(u_mid[dim], self.n))*dS
-               K_momentum += viscosity('+')*dot(avg(grad(self.w[dim])), jump(u_mid[dim], self.n))*dS + viscosity('+')*dot(jump(self.w[dim], self.n), avg(grad(u_mid[dim])))*dS
+               K_momentum += -viscosity('+')*(alpha('+')/cellsize('+'))*dot(jump(w[dim], n), jump(u_mid[dim], n))*dS
+               K_momentum += viscosity('+')*dot(avg(grad(self.w[dim])), jump(u_mid[dim], n))*dS + viscosity('+')*dot(jump(w[dim], n), avg(grad(u_mid[dim])))*dS
 
          F -= K_momentum # Negative sign here because we are bringing the stress term over from the RHS.
 
       # The gradient of the height of the free surface, h
       LOG.debug("Momentum equation: Adding gradient term...")
-      C_momentum = -g_magnitude*inner(self.w, grad(h_mid))*dx
+      C_momentum = -g_magnitude*inner(w, grad(h_mid))*dx
       F -= C_momentum
 
       # Quadratic drag term in the momentum equation
@@ -465,7 +425,7 @@ class ShallowWater:
          
          # Get the bottom drag/friction coefficient.
          LOG.debug("Momentum equation: Adding bottom drag contribution...")
-         drag_expression = ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=t).get_expression()
+         drag_expression = ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=0).get_expression()
          drag_coefficient = Function(self.W.sub(1)).interpolate(drag_expression)
          
          # Add on the turbine drag, if provided.
@@ -483,13 +443,13 @@ class ShallowWater:
          magnitude = sqrt(dot(u_mid, u_mid))
          
          # Form the drag term
-         D_momentum = -inner(self.w, (drag_coefficient*magnitude/H)*u_mid)*dx
+         D_momentum = -inner(w, (drag_coefficient*magnitude/H)*u_mid)*dx
          F -= D_momentum
 
       # The mass term in the shallow water continuity equation 
       # (i.e. an advection equation for the free surface height, h)
       LOG.debug("Continuity equation: Adding mass term...")
-      M_continuity = (1.0/dt)*(inner(self.v, self.h) - inner(self.v, self.h_old))*dx
+      M_continuity = (1.0/dt)*(inner(v, h) - inner(v, h_old))*dx
       F += M_continuity
 
       # Append any Expression objects for weak BCs here.
@@ -499,9 +459,9 @@ class ShallowWater:
       LOG.debug("Continuity equation: Adding divergence term...")
       if(self.options["integrate_continuity_equation_by_parts"]):
          LOG.debug("The divergence term is being integrated by parts.")
-         Ct_continuity = - H*inner(u_mid, grad(self.v))*dx
+         Ct_continuity = - H*inner(u_mid, grad(v))*dx
          if(dg):
-            Ct_continuity += inner(jump(self.v, self.n), avg(H*u_mid))*dS
+            Ct_continuity += inner(jump(v, n), avg(H*u_mid))*dS
                            
          # Add in the surface integrals, but check to see if any boundary conditions need to be applied weakly here.
          boundary_markers = self.mesh.exterior_facets.unique_markers
@@ -532,24 +492,24 @@ class ShallowWater:
                   if(bc_type == "flather"):
                      # The known exterior value for the Velocity.
                      u_ext = ExpressionFromOptions(path = (bc_path + "/type::flather/exterior_velocity"), t=t).get_expression()
-                     Ct_continuity += H*inner(Function(self.W.sub(0)).interpolate(u_ext), self.n)*self.v*ds(int(marker))
+                     Ct_continuity += H*inner(Function(self.W.sub(0)).interpolate(u_ext), n)*v*ds(int(marker))
                      
                      # The known exterior value for the FreeSurfacePerturbation.
                      h_ext = ExpressionFromOptions(path = (bc_path + "/type::flather/exterior_free_surface_perturbation"), t=t).get_expression()
-                     Ct_continuity += H*sqrt(g_magnitude/H)*(h_mid - Function(self.W.sub(1)).interpolate(h_ext))*self.v*ds(int(marker))
+                     Ct_continuity += H*sqrt(g_magnitude/H)*(h_mid - Function(self.W.sub(1)).interpolate(h_ext))*v*ds(int(marker))
                      
                      weak_bc_expressions.append(u_ext)
                      weak_bc_expressions.append(h_ext)
                      
                   elif(bc_type == "weak_dirichlet"):
                      u_bdy = ExpressionFromOptions(path = (bc_path + "/type::dirichlet"), t=t).get_expression()
-                     Ct_continuity += H*(dot(Function(self.W.sub(0)).interpolate(u_bdy), self.n))*self.v*ds(int(marker))
+                     Ct_continuity += H*(dot(Function(self.W.sub(0)).interpolate(u_bdy), n))*v*ds(int(marker))
                      
                      weak_bc_expressions.append(u_bdy)
                      
                   elif(bc_type == "dirichlet"):
                      # Add in the surface integral as it is here. The BC will be applied strongly later using a DirichletBC object.
-                     Ct_continuity += H * inner(u_mid, self.n) * self.v * ds(int(marker))
+                     Ct_continuity += H * inner(u_mid, n) * v * ds(int(marker))
                   elif(bc_type == "no_normal_flow"):
                      # Do nothing here since dot(u, n) is zero.
                      continue
@@ -562,10 +522,10 @@ class ShallowWater:
                   
             # If no boundary condition has been applied, include the surface integral as it is.
             if(bc_type is None):
-               Ct_continuity += H * inner(u_mid, self.n) * self.v * ds(int(marker))
+               Ct_continuity += H * inner(u_mid, n) * v * ds(int(marker))
 
       else:
-         Ct_continuity = inner(self.v, div(H*u_mid))*dx
+         Ct_continuity = inner(v, div(H*u_mid))*dx
       F += Ct_continuity
 
       # Add in any source terms
@@ -573,13 +533,13 @@ class ShallowWater:
          LOG.debug("Momentum equation: Adding source term...")
          momentum_source_expression = ExpressionFromOptions(path = "/system/equations/momentum_equation/source_term/vector_field::Source/value", t=t).get_expression()
          momentum_source_function = Function(self.W.sub(0), annotate=False)
-         F -= inner(self.w, momentum_source_function.interpolate(momentum_source_expression))*dx
+         F -= inner(w, momentum_source_function.interpolate(momentum_source_expression))*dx
 
       if(self.options["have_continuity_source"]):
          LOG.debug("Continuity equation: Adding source term...")
          continuity_source_expression = ExpressionFromOptions(path = "/system/equations/continuity_equation/source_term/scalar_field::Source/value", t=t).get_expression()
          continuity_source_function = Function(self.W.sub(1), annotate=False)
-         F -= inner(self.v, continuity_source_function.interpolate(continuity_source_expression))*dx
+         F -= inner(v, continuity_source_function.interpolate(continuity_source_expression))*dx
          
       # Add in any SU stabilisation
       if(self.options["have_su_stabilisation"]):
@@ -605,15 +565,22 @@ class ShallowWater:
          F += stabilisation.streamline_upwind(self.w, u_mid, magnitude, grid_pe)
 
       LOG.info("Form construction complete.")
-
-      # Apply all the strong Dirichlet boundary conditions for the Velocity and FreeSurfacePerturbation fields
-      LOG.info("Applying strong Dirichlet boundary conditions...")
+      return F, weak_bc_expressions
+      
+      
+   def get_dirichlet_boundary_conditions(self):
+      """ Create all the strong Dirichlet boundary conditions for the Velocity and FreeSurfacePerturbation fields """
+      
+      # Is the Velocity field represented by a discontinous function space?
+      dg = (self.W.sub(0).ufl_element().family() == "Discontinuous Lagrange")
+      
+      LOG.info("Preparing strong Dirichlet boundary conditions...")
       bcs = []
       bc_expressions = []
       for i in range(0, libspud.option_count("/system/core_fields/vector_field::Velocity/boundary_condition")):
          if(libspud.have_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i) and
             not libspud.have_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet/apply_weakly" % i)):
-            expr = ExpressionFromOptions(path = ("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i), t=t).get_expression()
+            expr = ExpressionFromOptions(path = ("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/type::dirichlet" % i), t=0).get_expression()
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/vector_field::Velocity/boundary_condition[%d]/surface_ids" % i)
             method = ("geometric" if dg else "topological")
@@ -625,7 +592,7 @@ class ShallowWater:
       for i in range(0, libspud.option_count("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition/type::dirichlet")):
          if(libspud.have_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i) and
             not(libspud.have_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet/apply_weakly" % i))):
-            expr = ExpressionFromOptions(path = ("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i), t=t).get_expression()
+            expr = ExpressionFromOptions(path = ("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i), t=0).get_expression()
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/surface_ids" % i)
             method = ("geometric" if dg else "topological")
@@ -634,9 +601,12 @@ class ShallowWater:
             bc_expressions.append(expr)
             LOG.debug("Applying FreeSurfacePerturbation BC #%d strongly to surface IDs: %s" % (i, surface_ids))
             
-      # Prepare solver_parameters dictionary
+      return bcs, bc_expressions
+            
+   def get_solver_parameters(self):
       LOG.debug("Defining solver_parameters dictionary...")
-      solver_parameters = {'ksp_monitor': True, 'ksp_view': False, 'pc_view': False, 'snes_type': 'ksponly', 'ksp_max_it':10000} # NOTE: use 'snes_type': 'newtonls' for production runs.
+      # NOTE: use 'snes_type': 'newtonls' for production runs.
+      solver_parameters = {'ksp_monitor': True, 'ksp_view': False, 'pc_view': False, 'snes_type': 'ksponly', 'snes_rtol': 1e-7, 'ksp_max_it': 10000} 
       
       # KSP (iterative solver) options
       solver_parameters["ksp_type"] = libspud.get_option("/system/solver/iterative_method/name")
@@ -665,21 +635,75 @@ class ShallowWater:
          solver_parameters["fieldsplit_1_ksp_monitor"] = True
          solver_parameters["fieldsplit_0_pc_factor_shift_type"] = 'INBLOCKS'
          solver_parameters["fieldsplit_1_pc_factor_shift_type"] = 'INBLOCKS'
-         
+      return solver_parameters
+
+   def create_output_streams(self):
+      # Set up the functions used to write fields to file.
+      self.output_functions = {}
+      self.output_functions["Velocity"] = Function(self.W.sub(0), name="VelocityOutput", annotate=False)
+      self.output_functions["FreeSurfacePerturbation"] = Function(self.W.sub(1), name="FreeSurfacePerturbationOutput", annotate=False)
+      
+      # Set up the output stream
+      LOG.info("Initialising output file streams...")
+      self.output_files = {}
+      for field in self.output_functions.keys():
+         self.output_files[field] = File("%s_%s.pvd" % (self.options["simulation_name"], field))
+      
+      return
+      
+   def run(self, initial_condition, annotate=False):
+      """ Perform the simulation! """
+
+      # The solution field defined on the mixed function space
+      solution = Function(self.W)
+      # The solution from the previous time-step. At t=0, this holds the initial conditions.
+      solution_old = Function(self.W)
+      
+      # These are like the TrialFunctions, but are just regular Functions here because we want to solve a non-linear problem
+      # 'u' and 'h' are the velocity and free surface perturbation, respectively.
+      functions = split(solution)
+      u = functions[0]; h = functions[1]
+      LOG.info("Trial functions created.")
+
+      functions_old = split(solution_old)
+      u_old = functions_old[0]; h_old = functions_old[1]
+
+      # Write initial conditions to file
+      LOG.info("Writing initial conditions to file...")
+      self.output_functions["Velocity"].assign(solution_old.split()[0])
+      self.output_files["Velocity"] << self.output_functions["Velocity"]
+      self.output_functions["FreeSurfacePerturbation"].assign(solution_old.split()[1])
+      self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
+      
+      solution_old.assign(initial_condition)
+      
+      # Construct form and strong boundary conditions
+      F, weak_bc_expressions = self.construct_form(u, u_old, h, h_old)
+      bcs, bc_expressions = self.get_dirichlet_boundary_conditions()
+      
+      # Prepare solver_parameters dictionary
+      solver_parameters = self.get_solver_parameters()
+      
       # Construct the solver objects
-      problem = NonlinearVariationalProblem(F, self.solution, bcs=bcs)
+      problem = NonlinearVariationalProblem(F, solution, bcs=bcs)
       solver = NonlinearVariationalSolver(problem, solver_parameters=solver_parameters)
       LOG.debug("Variational problem solver created.")
-      
-      t += dt
-      iterations_since_dump = 1
-      iterations_since_checkpoint = 1
-      
+
       # PETSc solver run-times
       from petsc4py import PETSc
       main_solver_stage = PETSc.Log.Stage('Main block-coupled system solve')
-      
+
       total_solver_time = 0.0
+
+      # Time-stepping parameters and constants
+      T = self.options["T"]
+      t = self.options["t"]
+      dt = self.options["dt"]
+
+      t += dt
+      iterations_since_dump = 1
+      iterations_since_checkpoint = 1
+       
       # The time-stepping loop
       LOG.info("Entering the time-stepping loop...")
       EPSILON = 1.0e-14
@@ -690,7 +714,7 @@ class ShallowWater:
          
          # Re-compute the velocity magnitude and grid Peclet number fields.
          if(self.options["have_su_stabilisation"]):
-            magnitude.assign(magnitude_vector(self.solution_old.split()[0], P1))
+            magnitude.assign(magnitude_vector(solution_old.split()[0], P1))
 
             # Bound the values for the magnitude below by 1.0e-9 for numerical stability reasons.
             u_nodes = magnitude.vector()
@@ -734,31 +758,31 @@ class ShallowWater:
          # Write the solution to file.
          if((self.options["dump_period"] is not None) and (dt*iterations_since_dump >= self.options["dump_period"])):
             LOG.debug("Writing data to file...")
-            self.output_functions["Velocity"].assign(self.solution.split()[0], annotate=False)
+            self.output_functions["Velocity"].assign(solution.split()[0], annotate=False)
             #self.output_files["Velocity"] << self.output_functions["Velocity"]
-            self.output_functions["FreeSurfacePerturbation"].assign(self.solution.split()[1], annotate=False)
+            self.output_functions["FreeSurfacePerturbation"].assign(solution.split()[1], annotate=False)
             self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
             iterations_since_dump = 0 # Reset the counter.
 
          # Print out the total power generated by turbines.
          if(self.options["have_drag"] and self.array is not None):
-            LOG.info("Power = %.2f" % self.array.power(self.u, density=1000))
+            LOG.info("Power = %.2f" % self.array.power(u, density=1000))
             
          # Checkpointing
          if((self.options["checkpoint_period"] is not None) and (dt*iterations_since_checkpoint >= self.options["checkpoint_period"])):
             LOG.debug("Writing checkpoint data to file...")
-            self.solution.dat.save("checkpoint")
+            solution.dat.save("checkpoint")
             iterations_since_checkpoint = 0 # Reset the counter.
             
          # Check whether a steady-state has been reached.
-         if(steady_state(self.solution.split()[0], self.solution_old.split()[0], self.options["steady_state_tolerance"]) and steady_state(self.solution.split()[1], self.solution_old.split()[1], self.options["steady_state_tolerance"])):
+         if(steady_state(solution.split()[0], solution_old.split()[0], self.options["steady_state_tolerance"]) and steady_state(solution.split()[1], solution_old.split()[1], self.options["steady_state_tolerance"])):
             LOG.info("Steady-state attained. Exiting the time-stepping loop...")
             break
 
          self.compute_diagnostics()
 
          # Move to next time step    
-         self.solution_old.assign(self.solution, annotate=annotate)    
+         solution_old.assign(solution, annotate=annotate)    
          t += dt
          iterations_since_dump += 1
          iterations_since_checkpoint += 1
@@ -768,7 +792,7 @@ class ShallowWater:
 
       LOG.debug("Total solver time: %.2f" % (total_solver_time))
 
-      return self.solution
+      return solution
 
 if(__name__ == "__main__"):
    import signal
@@ -794,14 +818,12 @@ if(__name__ == "__main__"):
    
       simulation_start_time = mpi4py.MPI.Wtime()
       
-      # Set up a shallow water simulation.
-      sw = ShallowWater(path=args.path, checkpoint=args.checkpoint, annotate=True)
+      sw = ShallowWater(path=args.path, annotate=True)
 
-      solution_old = sw.solution_old
-      control = Control(solution_old)
-      
+      initial_condition = sw.get_initial_condition()
+
       # Solve the shallow water equations!
-      solution = sw.run(annotate=True)
+      sw.run(initial_condition, annotate=True)
       
       simulation_end_time = mpi4py.MPI.Wtime()
       
