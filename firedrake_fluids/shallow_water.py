@@ -42,7 +42,7 @@ LOG.debug("Firedrake successfully imported")
 # COFFEE, PyOP2 and FFC parameters
 op2.init(lazy_evaluation=False)
 parameters['form_compiler']['quadrature_degree'] = 4
-#parameters["coffee"]["O2"] = False # FIXME: Remove this one this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
+parameters["coffee"]["O2"] = False # FIXME: Remove this one this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
 
 # Firedrake-Fluids modules
 from firedrake_fluids.utils import *
@@ -57,7 +57,6 @@ LOG.debug("Firedrake-Fluids sub-modules successfully imported.")
 
 from firedrake_adjoint import *
 LOG.debug("Firedrake-Adjoint successfully imported")
-
 parameters["adjoint"]["test_derivative"] = True
 
 class ShallowWater:
@@ -218,9 +217,9 @@ class ShallowWater:
       LOG.info("Setting initial conditions...")
       h_initial = ExpressionFromOptions(path = "/system/core_fields/scalar_field::FreeSurfacePerturbation/initial_condition").get_expression()
       u_initial = ExpressionFromOptions(path = "/system/core_fields/vector_field::Velocity/initial_condition").get_expression()
-      initial_condition = Function(self.W)
-      initial_condition.sub(0).assign(Function(self.W.sub(0)).interpolate(u_initial))
-      initial_condition.sub(1).assign(Function(self.W.sub(1)).interpolate(h_initial))
+      initial_condition = Function(self.W, name="InitialCondition", annotate=False)
+      initial_condition.sub(0).assign(Function(self.W.sub(0), annotate=False).interpolate(u_initial))
+      initial_condition.sub(1).assign(Function(self.W.sub(1), annotate=False).interpolate(h_initial))
       
       # Load initial conditions from the specified checkpoint file if desired.
       if(checkpoint is not None):
@@ -325,7 +324,7 @@ class ShallowWater:
       dg = (self.W.sub(0).ufl_element().family() == "Discontinuous Lagrange")
 
       # Mean free surface height
-      h_mean = Function(self.W.sub(1))
+      h_mean = Function(self.W.sub(1), name="FreeSurfaceMean", annotate=False)
       h_mean.interpolate(ExpressionFromOptions(path = "/system/core_fields/scalar_field::FreeSurfaceMean/value").get_expression())
 
       # Weight u and h by theta to obtain the theta time-stepping scheme.
@@ -651,13 +650,13 @@ class ShallowWater:
       
       return
       
-   def run(self, initial_condition, annotate=False):
+   def run(self, initial_condition, annotate=True):
       """ Perform the simulation! """
 
       # The solution field defined on the mixed function space
-      solution = Function(self.W)
+      solution = Function(self.W, name="Solution", annotate=annotate)
       # The solution from the previous time-step. At t=0, this holds the initial conditions.
-      solution_old = Function(self.W)
+      solution_old = Function(self.W, name="SolutionOld", annotate=annotate)
       
       # These are like the TrialFunctions, but are just regular Functions here because we want to solve a non-linear problem
       # 'u' and 'h' are the velocity and free surface perturbation, respectively.
@@ -675,7 +674,7 @@ class ShallowWater:
       self.output_functions["FreeSurfacePerturbation"].assign(solution_old.split()[1])
       self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
       
-      solution_old.assign(initial_condition)
+      solution_old.assign(initial_condition, annotate=annotate)
       
       # Construct form and strong boundary conditions
       F, weak_bc_expressions = self.construct_form(u, u_old, h, h_old)
@@ -816,17 +815,12 @@ if(__name__ == "__main__"):
    
    if(os.path.exists(args.path)):
    
-      simulation_start_time = mpi4py.MPI.Wtime()
-      
-      sw = ShallowWater(path=args.path, annotate=True)
-
-      initial_condition = sw.get_initial_condition()
-
       # Solve the shallow water equations!
-      sw.run(initial_condition, annotate=True)
-      
+      simulation_start_time = mpi4py.MPI.Wtime()      
+      sw = ShallowWater(path=args.path, annotate=True)
+      initial_condition = sw.get_initial_condition()
+      solution = sw.run(initial_condition, annotate=True)
       simulation_end_time = mpi4py.MPI.Wtime()
-      
       LOG.info("Total simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
 
       adj_html("forward.html", "forward")
@@ -840,12 +834,11 @@ if(__name__ == "__main__"):
       adj_html("adjoint.html", "adjoint")
       
       def Jhat(solution_old):
-         sw.solution_old.assign(solution_old, annotate=False)
-         sw.solution.assign(solution_old, annotate=False)
-         solution = sw.run(annotate=False)
+         solution = sw.run(solution_old, annotate=False)
          u, h = split(solution)
          return assemble(1000.0*dot(u, u)**1.5*dx)
       
+      control = Control(initial_condition)
       dJdc = compute_gradient(J, control, forget=False)
       parameters["adjoint"]["stop_annotating"] = True
       print "Gradient: ", dJdc.vector().array()
