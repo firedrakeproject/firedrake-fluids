@@ -43,6 +43,7 @@ LOG.debug("Firedrake successfully imported")
 op2.init(lazy_evaluation=False)
 parameters['form_compiler']['quadrature_degree'] = 4
 parameters["coffee"]["O2"] = False # FIXME: Remove this one this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
+parameters["assembly_cache"]["enabled"] = False
 
 # Firedrake-Fluids modules
 from firedrake_fluids.utils import *
@@ -53,6 +54,7 @@ from firedrake_fluids.expression import ExpressionFromOptions
 from firedrake_fluids.turbines import TurbineArray
 from firedrake_fluids.metadata import *
 from firedrake_fluids.diagnostics import Diagnostics
+from firedrake_fluids.functionals import *
 LOG.debug("Firedrake-Fluids sub-modules successfully imported.")
 
 from firedrake_adjoint import *
@@ -82,7 +84,7 @@ class ShallowWater:
    .. math:: \frac{\partial h}{\partial t} + \nabla\cdot\left(\left(H + h\right)\mathbf{u}\right) = 0.   
    """
    
-   def __init__(self, path, annotate=True):
+   def __init__(self, path):
       """ Initialise a new shallow water simulation, using an options file.
       
       :param str path: The path to the simulation's configuration/options file.
@@ -439,7 +441,7 @@ class ShallowWater:
             self.array = None
          
          # Magnitude of the velocity field
-         magnitude = sqrt(dot(u_mid, u_mid))
+         magnitude = sqrt(dot(u_old, u_old))
          
          # Form the drag term
          D_momentum = -inner(w, (drag_coefficient*magnitude/H)*u_mid)*dx
@@ -657,6 +659,7 @@ class ShallowWater:
       solution = Function(self.W, name="Solution", annotate=annotate)
       # The solution from the previous time-step. At t=0, this holds the initial conditions.
       solution_old = Function(self.W, name="SolutionOld", annotate=annotate)
+      solution_old.assign(initial_condition, annotate=annotate)
       
       # These are like the TrialFunctions, but are just regular Functions here because we want to solve a non-linear problem
       # 'u' and 'h' are the velocity and free surface perturbation, respectively.
@@ -673,8 +676,6 @@ class ShallowWater:
       self.output_files["Velocity"] << self.output_functions["Velocity"]
       self.output_functions["FreeSurfacePerturbation"].assign(solution_old.split()[1])
       self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
-      
-      solution_old.assign(initial_condition, annotate=annotate)
       
       # Construct form and strong boundary conditions
       F, weak_bc_expressions = self.construct_form(u, u_old, h, h_old)
@@ -740,10 +741,10 @@ class ShallowWater:
             continuity_source_function.interpolate(continuity_source_expression)
 
          # Update any time-varying DirichletBC objects.
-         for expr in bc_expressions:
-            expr.t = t
-         for expr in weak_bc_expressions:
-            expr.t = t
+         #for expr in bc_expressions:
+         #   expr.t = t
+         #for expr in weak_bc_expressions:
+         #   expr.t = t
            
          # Solve the system of equations!
          start_solver_time = mpi4py.MPI.Wtime()
@@ -817,7 +818,7 @@ if(__name__ == "__main__"):
    
       # Solve the shallow water equations!
       simulation_start_time = mpi4py.MPI.Wtime()      
-      sw = ShallowWater(path=args.path, annotate=True)
+      sw = ShallowWater(path=args.path)
       initial_condition = sw.get_initial_condition()
       solution = sw.run(initial_condition, annotate=True)
       simulation_end_time = mpi4py.MPI.Wtime()
@@ -827,16 +828,18 @@ if(__name__ == "__main__"):
       print "Replaying forward model"
       assert replay_dolfin(tol=1e-13, stop=True)
       
+      pf = PowerFunctional()
+      
       u, h = split(solution)
-      J = Functional(1000.0*dot(u, u)**1.5*dx)
-      Jc = assemble(1000.0*dot(u, u)**1.5*dx)
+      J = Functional(pf.Jm(u, density=1000))
+      Jc = assemble(pf.Jm(u, density=1000))
       adj_html("forward.html", "forward")
       adj_html("adjoint.html", "adjoint")
       
       def Jhat(solution_old):
          solution = sw.run(solution_old, annotate=False)
          u, h = split(solution)
-         return assemble(1000.0*dot(u, u)**1.5*dx)
+         return assemble(pf.Jm(u, density=1000))
       
       control = Control(initial_condition)
       dJdc = compute_gradient(J, control, forget=False)
