@@ -655,6 +655,8 @@ class ShallowWater:
    def run(self, initial_condition, annotate=True):
       """ Perform the simulation! """
 
+      adj_reset()
+      
       # The solution field defined on the mixed function space
       solution = Function(self.W, name="Solution", annotate=annotate)
       # The solution from the previous time-step. At t=0, this holds the initial conditions.
@@ -784,6 +786,10 @@ class ShallowWater:
          # Move to next time step    
          solution_old.assign(solution, annotate=annotate)    
          t += dt
+         
+         if annotate:
+            adj_inc_timestep()
+         
          iterations_since_dump += 1
          iterations_since_checkpoint += 1
          LOG.debug("Moving to next time level...")
@@ -835,16 +841,16 @@ if(__name__ == "__main__"):
       Jc = assemble(pf.Jm(u, density=1000))
       adj_html("forward.html", "forward")
       adj_html("adjoint.html", "adjoint")
-      
-      def Jhat(solution_old):
-         solution = sw.run(solution_old, annotate=False)
-         u, h = split(solution)
-         return assemble(pf.Jm(u, density=1000))
-      
+
       control = Control(initial_condition)
       dJdc = compute_gradient(J, control, forget=False)
       parameters["adjoint"]["stop_annotating"] = True
       print "Gradient: ", dJdc.vector().array()
+
+      def Jhat(solution_old):
+         solution = sw.run(solution_old, annotate=False)
+         u, h = split(solution)
+         return assemble(pf.Jm(u, density=1000))
       minconv = taylor_test(Jhat, control, Jc, dJdc, seed=1e-3)
       print minconv
 
