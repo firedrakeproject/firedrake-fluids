@@ -654,6 +654,7 @@ class ShallowWater:
       solution = Function(self.W)
       # The solution from the previous time-step. At t=0, this holds the initial conditions.
       solution_old = Function(self.W)
+      solution_old.assign(initial_condition)
       
       # These are like the TrialFunctions, but are just regular Functions here because we want to solve a non-linear problem
       # 'u' and 'h' are the velocity and free surface perturbation, respectively.
@@ -670,8 +671,6 @@ class ShallowWater:
       self.output_files["Velocity"] << self.output_functions["Velocity"]
       self.output_functions["FreeSurfacePerturbation"].assign(solution_old.split()[1])
       self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
-      
-      solution_old.assign(initial_condition)
       
       # Construct form and strong boundary conditions
       F, weak_bc_expressions = self.construct_form(u, u_old, h, h_old)
