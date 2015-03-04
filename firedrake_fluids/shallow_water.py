@@ -307,11 +307,11 @@ class ShallowWater:
          
       return mesh
 
-   def construct_form(self, u, u_old, h, h_old):
+   def construct_form(self, u, u_old, h, h_old, drag_coefficient):
       # The collection of all the individual terms in their weak form.
       LOG.info("Constructing form...")
       F = 0
-
+      
       theta = self.options["theta"]
       dt = self.options["dt"]
       dimension = self.options["dimension"]
@@ -417,7 +417,7 @@ class ShallowWater:
       LOG.debug("Momentum equation: Adding gradient term...")
       C_momentum = -g_magnitude*inner(w, grad(h_mid))*dx
       F -= C_momentum
-
+      
       # Quadratic drag term in the momentum equation
       if(self.options["have_drag"]):
          LOG.debug("Momentum equation: Adding drag term...")
@@ -426,8 +426,8 @@ class ShallowWater:
          
          # Get the bottom drag/friction coefficient.
          LOG.debug("Momentum equation: Adding bottom drag contribution...")
-         drag_expression = ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=0).get_expression()
-         drag_coefficient = Function(self.W.sub(1)).interpolate(drag_expression)
+         #drag_expression = ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=0).get_expression()
+         #drag_coefficient = Function(self.W.sub(1)).interpolate(drag_expression)
          
          # Add on the turbine drag, if provided.
          if(libspud.have_option(base_option_path + "/turbine_drag")):
@@ -446,7 +446,7 @@ class ShallowWater:
          # Form the drag term
          D_momentum = -inner(w, (drag_coefficient*magnitude/H)*u_mid)*dx
          F -= D_momentum
-
+      
       # The mass term in the shallow water continuity equation 
       # (i.e. an advection equation for the free surface height, h)
       LOG.debug("Continuity equation: Adding mass term...")
@@ -652,15 +652,20 @@ class ShallowWater:
       
       return
       
-   def run(self, initial_condition, annotate=True):
+   def run(self, drag_coefficient, annotate=True):
       """ Perform the simulation! """
 
-      adj_reset()
+      #adj_reset()
+
+      #drag_coefficient = Function(dc, name="DragCoefficient")
       
       # The solution field defined on the mixed function space
       solution = Function(self.W, name="Solution", annotate=annotate)
       # The solution from the previous time-step. At t=0, this holds the initial conditions.
       solution_old = Function(self.W, name="SolutionOld", annotate=annotate)
+      
+      # Assign the initial condition
+      initial_condition = sw.get_initial_condition()
       solution_old.assign(initial_condition, annotate=annotate)
       
       # These are like the TrialFunctions, but are just regular Functions here because we want to solve a non-linear problem
@@ -680,7 +685,7 @@ class ShallowWater:
       self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
       
       # Construct form and strong boundary conditions
-      F, weak_bc_expressions = self.construct_form(u, u_old, h, h_old)
+      F, weak_bc_expressions = self.construct_form(u, u_old, h, h_old, drag_coefficient)
       bcs, bc_expressions = self.get_dirichlet_boundary_conditions()
       
       # Prepare solver_parameters dictionary
@@ -708,6 +713,8 @@ class ShallowWater:
        
       # The time-stepping loop
       LOG.info("Entering the time-stepping loop...")
+      #if annotate: adj_start_timestep(time=t)
+      
       EPSILON = 1.0e-14
       while t <= T + EPSILON: # A small value EPSILON is added here in case of round-off error.
          LOG.info("t = %g" % t)
@@ -747,12 +754,14 @@ class ShallowWater:
          #   expr.t = t
          #for expr in weak_bc_expressions:
          #   expr.t = t
-           
+         
          # Solve the system of equations!
          start_solver_time = mpi4py.MPI.Wtime()
          main_solver_stage.push()
+         
          LOG.debug("Solving the system of equations...")
-         solver.solve(annotate=annotate)
+         solve(F == 0, solution, annotate=annotate)
+         #solver.solve(annotate=annotate)
          main_solver_stage.pop()
          end_solver_time = mpi4py.MPI.Wtime()
          total_solver_time += (end_solver_time - start_solver_time)     
@@ -783,12 +792,10 @@ class ShallowWater:
 
          self.compute_diagnostics()
 
-         # Move to next time step    
+         # Move to next time step
          solution_old.assign(solution, annotate=annotate)    
          t += dt
-         
-         if annotate:
-            adj_inc_timestep()
+         #if annotate: adj_inc_timestep(time=t, finished=t>T)
          
          iterations_since_dump += 1
          iterations_since_checkpoint += 1
@@ -821,28 +828,28 @@ if(__name__ == "__main__"):
    signal.signal(signal.SIGINT, signal.SIG_DFL)
    
    if(os.path.exists(args.path)):
-   
       # Solve the shallow water equations!
       simulation_start_time = mpi4py.MPI.Wtime()      
       sw = ShallowWater(path=args.path)
-      initial_condition = sw.get_initial_condition()
-      solution = sw.run(initial_condition, annotate=True)
+      dc = Function(FunctionSpace(sw.mesh, "CG", 1), name="DragCoefficient", annotate=False).interpolate(Expression("0.0025"))
+      solution = sw.run(dc, annotate=True)
       simulation_end_time = mpi4py.MPI.Wtime()
       LOG.info("Total simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
 
-      adj_html("forward.html", "forward")
       print "Replaying forward model"
       assert replay_dolfin(tol=1e-13, stop=True)
       
       pf = PowerFunctional()
       
       u, h = split(solution)
-      J = Functional(pf.Jm(u, density=1000))
-      Jc = assemble(pf.Jm(u, density=1000))
+      J = Functional(pf.Jm(u, dc, density=1000))
+      Jc = assemble(pf.Jm(u, dc, density=1000))
+
       adj_html("forward.html", "forward")
       adj_html("adjoint.html", "adjoint")
-
-      control = Control(initial_condition)
+      #import sys; sys.exit()
+      
+      control = Control(dc)
       dJdc = compute_gradient(J, control, forget=False)
       parameters["adjoint"]["stop_annotating"] = True
       print "Gradient: ", dJdc.vector().array()
@@ -850,9 +857,19 @@ if(__name__ == "__main__"):
       def Jhat(solution_old):
          solution = sw.run(solution_old, annotate=False)
          u, h = split(solution)
-         return assemble(pf.Jm(u, density=1000))
-      minconv = taylor_test(Jhat, control, Jc, dJdc, seed=1e-3)
+         return assemble(pf.Jm(u, solution_old, density=1000))
+      minconv = taylor_test(Jhat, control, Jc, dJdc, seed=1e1)
       print minconv
+      
+      m_ex = Function(sw.function_spaces["FreeSurfaceFunctionSpace"])
+      viz  = File("output/iterations.pvd")
+      def derivative_cb(j, dj, m):
+         m_ex.assign(m)
+         viz << m_ex
+      
+      rf = reduced_functional.ReducedFunctional(J, control, derivative_cb=derivative_cb)
+      opt = optimization.maximize(rf)
+      File("opt.pvd") << project(opt, sw.function_spaces["FreeSurfaceFunctionSpace"])
 
    else:
       LOG.error("The path to the simulation setup file does not exist.")

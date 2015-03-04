@@ -23,10 +23,10 @@ class PowerFunctional:
    def __init__(self):
       pass
       
-   def Jm(self, u, density):
-      return self.power(u, density)*dx
+   def Jm(self, u, drag_coefficient, density):
+      return self.power(u, drag_coefficient, density)*dx
    
-   def power(self, u, density):
+   def power(self, u, drag_coefficient, density):
       """ Returns the form of the power expression. """
-      return density*dot(u, u)**1.5
+      return density*drag_coefficient*dot(u, u)**1.5
       
