@@ -42,7 +42,7 @@ LOG.debug("Firedrake successfully imported")
 # COFFEE, PyOP2 and FFC parameters
 op2.init(lazy_evaluation=False)
 parameters['form_compiler']['quadrature_degree'] = 4
-#parameters["coffee"]["O2"] = False # FIXME: Remove this one this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
+parameters["coffee"]["O2"] = False # FIXME: Remove this one this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
 
 # Firedrake-Fluids modules
 from firedrake_fluids.utils import *
@@ -300,7 +300,7 @@ class ShallowWater:
       return mesh
 
 
-   def construct_momentum_form(self, w, u, u0, u00, h0):
+   def construct_momentum_form(self, w, u, u0, u00, h0, u_nl):
       """ Construct the weak form of the momentum equation, using an initial guess for the free surface. """
    
       # The collection of all the individual terms in their weak form.
@@ -348,16 +348,17 @@ class ShallowWater:
          LOG.debug("Momentum equation: Adding advection term...")
 
          if(self.options["integrate_advection_term_by_parts"]):
-            outflow = (dot(u_mid, n) + abs(dot(u_mid, n)))/2.0
+            LOG.debug("Momentum equation: Integrating advection term by parts...")
+            outflow = (dot(u_nl, n) + abs(dot(u_nl, n)))/2.0
 
-            A_momentum = -inner(dot(u_mid, grad(w)), u_mid)*dx - inner(dot(u_mid, grad(u_mid)), w)*dx
-            A_momentum += inner(w, outflow*u_mid)*ds
+            A_momentum = -inner(dot(u_bash, grad(w)), u)*dx - inner(dot(u, grad(u_bash)), w)*dx
+            #A_momentum += inner(w, outflow*u_mid)*ds
             if(dg):
                # Only add interior facet integrals if we are dealing with a discontinous Galerkin discretisation.
                A_momentum += dot(outflow('+')*u_mid('+') - outflow('-')*u_mid('-'), jump(w))*dS
 
          else:
-            A_momentum = inner(dot(grad(u_bash), u_mid), w)*dx
+            A_momentum = inner(dot(grad(u), u_bash), w)*dx
          F += A_momentum
          
       # Viscous stress term. Note that the viscosity is kinematic (not dynamic).
@@ -433,7 +434,7 @@ class ShallowWater:
             self.array = None
          
          # Magnitude of the velocity field
-         magnitude = sqrt(dot(u_mid, u_mid))
+         magnitude = sqrt(dot(u0, u0))
          
          # Form the drag term
          D_momentum = -inner(w, (drag_coefficient*magnitude/H)*u_mid)*dx
@@ -442,7 +443,7 @@ class ShallowWater:
       # Add in any momentum source terms
       if(self.options["have_momentum_source"]):
          LOG.debug("Momentum equation: Adding source term...")
-         momentum_source_expression = ExpressionFromOptions(path = "/system/equations/momentum_equation/source_term/vector_field::Source/value", t=t).get_expression()
+         momentum_source_expression = ExpressionFromOptions(path = "/system/equations/momentum_equation/source_term/vector_field::Source/value", t=0).get_expression()
          momentum_source_function = Function(self.U)
          F -= inner(w, momentum_source_function.interpolate(momentum_source_expression))*dx
          
@@ -472,7 +473,7 @@ class ShallowWater:
       LOG.info("Form construction complete for momentum equation.")
       return F
       
-   def construct_h_correction_form(self, v, h, h0, u_star, u0):
+   def construct_h_correction_form(self, v, h, h0, u_star, u0, u_nl):
       theta = self.options["theta"]
       dt = self.options["dt"]
       g_magnitude = self.options["g_magnitude"]
@@ -483,14 +484,14 @@ class ShallowWater:
       
       h_total = h_mean + h0
       
-      F_h_correction = inner(v, (h - h0))*dx + g_magnitude*(dt**2)*(theta**2)*h_total*inner(grad(v), grad(h - h0))*dx + dt*v*div(h_total*u_star)*dx
+      F_h_correction = inner(v, (h - h0))*dx + g_magnitude*(dt**2)*(theta**2)*v*div(h_total*grad(h - h0))*dx + dt*v*div((h_mean+h)*u_nl)*dx
       return F_h_correction
 
    def construct_u_correction_form(self, w, u, u_star, h1, h0):
       theta = self.options["theta"]
       dt = self.options["dt"]
       g_magnitude = self.options["g_magnitude"]
-      F_u_correction = (1.0/dt)*inner(w, u - u_star)*dx + g_magnitude*theta*inner(w, grad(h1 - h0))*dx
+      F_u_correction = inner(w, u - u_star)*dx + dt*g_magnitude*theta*inner(w, grad(h1 - h0))*dx
       return F_u_correction
 
    def get_u_dirichlet_bcs(self):
@@ -529,8 +530,7 @@ class ShallowWater:
             expr = ExpressionFromOptions(path = ("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/type::dirichlet" % i), t=0).get_expression()
             # Surface IDs on the domain boundary
             surface_ids = libspud.get_option("/system/core_fields/scalar_field::FreeSurfacePerturbation/boundary_condition[%d]/surface_ids" % i)
-            method = ("geometric" if dg else "topological")
-            bc = DirichletBC(self.U, expr, surface_ids, method=method)
+            bc = DirichletBC(self.H, expr, surface_ids, method="topological")
             bcs.append(bc)
             bc_expressions.append(expr)
             LOG.debug("Applying FreeSurfacePerturbation BC #%d strongly to surface IDs: %s" % (i, surface_ids))
@@ -595,6 +595,8 @@ class ShallowWater:
       # The velocity obtained after the momentum equation solve, which will not necessarily satisfy the continuity equation.
       u_star = Function(self.U)
       
+      u_nl = Function(self.U).assign(u0)
+      
       # Write initial conditions to file
       LOG.info("Writing initial conditions to file...")
       self.output_functions["Velocity"].assign(u0)
@@ -607,13 +609,13 @@ class ShallowWater:
       ###########################################################
       ################# Tentative velocity step #################
       ###########################################################
-      F_momentum = self.construct_momentum_form(w, u, u0, u00, h0)
+      F_momentum = self.construct_momentum_form(w, u, u0, u00, h0, u_nl)
       u_bcs, u_bcs_expressions = self.get_u_dirichlet_bcs()
 
       ##########################################################
       ############### Free surface correction step #############
       ##########################################################   
-      F_h_correction = self.construct_h_correction_form(v, h, h0, u_star, u0)
+      F_h_correction = self.construct_h_correction_form(v, h, h0, u_star, u0, u_nl)
       h_bcs, h_bcs_expressions = self.get_h_dirichlet_bcs()
                  
       ##########################################################
@@ -639,10 +641,11 @@ class ShallowWater:
                                                                               'ksp_view': False, 
                                                                               'pc_view': False, 
                                                                               'pc_type': 'sor',
-                                                                              'ksp_type': 'cg',
+                                                                              'ksp_type': 'gmres',
                                                                               'ksp_rtol': 1.0e-7})
 
-      u_correction_problem = LinearVariationalProblem(lhs(F_u_correction), rhs(F_u_correction), u1, bcs=u_bcs)
+      u_bcs2, u_bcs_expressions2 = self.get_u_dirichlet_bcs()
+      u_correction_problem = LinearVariationalProblem(lhs(F_u_correction), rhs(F_u_correction), u1, bcs=u_bcs2)
       u_correction_solver = LinearVariationalSolver(u_correction_problem, solver_parameters={'ksp_monitor': True, 
                                                                               'ksp_view': False, 
                                                                               'pc_view': False, 
@@ -697,7 +700,7 @@ class ShallowWater:
          # Time-dependent source terms
          if(self.options["have_momentum_source"]):
             momentum_source_expression.t = t
-            momentum_source_function.interpolate(momentum_source_expression)
+            #momentum_source_function.interpolate(momentum_source_expression)
          if(self.options["have_continuity_source"]):
             continuity_source_expression.t = t
             continuity_source_function.interpolate(continuity_source_expression)
@@ -707,12 +710,15 @@ class ShallowWater:
             expr.t = t
                    
          # Solve the system of equations!
+         LOG.debug("Solving the system of equations...")
          start_solver_time = mpi4py.MPI.Wtime()
          main_solver_stage.push()
-         LOG.debug("Solving the system of equations...")
+         
          momentum_solver.solve()
-         u_correction_solver.solve()
          h_correction_solver.solve()
+         u_correction_solver.solve()
+         u_nl.assign(u1)
+            
          main_solver_stage.pop()
          end_solver_time = mpi4py.MPI.Wtime()
          total_solver_time += (end_solver_time - start_solver_time)     
