@@ -1,28 +1,49 @@
 cd $WORK
 mkdir build
+mkdir install
 source $HOME/firedrake.env
 
 # SWIG
+cd build
 wget http://prdownloads.sourceforge.net/swig/swig-3.0.2.tar.gz
 tar -zxf swig-3.0.2.tar.gz
 cd swig-3.0.2
 module load pcre/8.35
-./configure --prefix=/work/n01/n01/ctjacobs/install/
+./configure --prefix=$WORK/install/
 make
 make install
+
+# mpi4py
+Remember to install mpi4py too, otherwise we get MPICH-related errors.
 
 # PETSc
 git clone https://bitbucket.org/mapdes/petsc.git
 cd petsc
+git checkout firedrake # Go to the 'firedrake' branch of the MAPDES repository.
 python reconfigure-cray-gnu-shared.py
 
-
+# petsc4py
+Unload the fdrake modules, and only do the 'module swap' commands and set up the PETSC_DIR and PETSC_ARCH variables.
+git clone https://bitbucket.org/mapdes/petsc4py.git
+cd petsc4py
+git checkout firedrake
+python setup.py install --prefix=$WORK/install
 
 # COFFEE
-export PYTHONPATH=/work/n01/n01/ctjacobs/install_new//lib/python2.7/site-packages:$PYTHONPATH
+export PYTHONPATH=$WORK/install//lib/python2.7/site-packages:$PYTHONPATH
+git clone https://github.com/coneoproject/COFFEE.git
+cd COFFEE
+python setup.py install --prefix=$WORK/install
 
 # PyOP2
+git clone https://github.com/OP2/PyOP2.git
+cd PyOP2
 Remove the numpy>=1.6 dependency from setup.py, since this doesn't play nicely with the ARCHER anaconda installation.
+Load the fdrake modules again, otherwise we might be MPICH-related errors.
+python setup.py install --prefix=$WORK/install
 
-# mpi4py
-Remember to install mpi4py too, otherwise we get weird MPICH errors.
+# FFC (and the same for FIAT, UFL and Instant)
+git clone https://bitbucket.org/mapdes/ffc.git
+cd ffc
+python setup.py install --prefix=$WORK/install
+
