@@ -510,7 +510,8 @@ class ShallowWater:
                      
                   elif(bc_type == "dirichlet"):
                      # Add in the surface integral as it is here. The BC will be applied strongly later using a DirichletBC object.
-                     Ct_continuity += H * inner(u_mid, n) * v * ds(int(marker))
+                     #Ct_continuity += H * inner(u_mid, n) * v * ds(int(marker))
+                     pass
                   elif(bc_type == "no_normal_flow"):
                      # Do nothing here since dot(u, n) is zero.
                      continue
@@ -656,8 +657,6 @@ class ShallowWater:
       """ Perform the simulation! """
 
       #adj_reset()
-
-      #drag_coefficient = Function(dc, name="DragCoefficient")
       
       # The solution field defined on the mixed function space
       solution = Function(self.W, name="Solution", annotate=annotate)
@@ -750,10 +749,10 @@ class ShallowWater:
             continuity_source_function.interpolate(continuity_source_expression)
 
          # Update any time-varying DirichletBC objects.
-         #for expr in bc_expressions:
-         #   expr.t = t
-         #for expr in weak_bc_expressions:
-         #   expr.t = t
+         for expr in bc_expressions:
+            expr.t = t
+         for expr in weak_bc_expressions:
+            expr.t = t
          
          # Solve the system of equations!
          start_solver_time = mpi4py.MPI.Wtime()
@@ -837,7 +836,7 @@ if(__name__ == "__main__"):
       LOG.info("Total simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
 
       print "Replaying forward model"
-      assert replay_dolfin(tol=1e-13, stop=True)
+      assert replay_dolfin(tol=1e-12, stop=True)
       
       pf = PowerFunctional()
       
@@ -849,7 +848,7 @@ if(__name__ == "__main__"):
       adj_html("adjoint.html", "adjoint")
       #import sys; sys.exit()
       
-      control = Control(dc)
+      control = FunctionControl(dc)
       dJdc = compute_gradient(J, control, forget=False)
       parameters["adjoint"]["stop_annotating"] = True
       print "Gradient: ", dJdc.vector().array()
@@ -860,7 +859,7 @@ if(__name__ == "__main__"):
          return assemble(pf.Jm(u, solution_old, density=1000))
       minconv = taylor_test(Jhat, control, Jc, dJdc, seed=1e1)
       print minconv
-      
+      import sys; sys.exit()
       m_ex = Function(sw.function_spaces["FreeSurfaceFunctionSpace"])
       viz  = File("output/iterations.pvd")
       def derivative_cb(j, dj, m):
@@ -868,7 +867,7 @@ if(__name__ == "__main__"):
          viz << m_ex
       
       rf = reduced_functional.ReducedFunctional(J, control, derivative_cb=derivative_cb)
-      opt = optimization.maximize(rf)
+      opt = optimization.maximize(rf, bounds=[Function(FunctionSpace(sw.mesh, "CG", 1)).interpolate(Expression("x[0] >= 1000.0 && x[0] <= 2000 && x[1] >= 250 && x[1] <= 750 ? 0.0 : 0.0")), Function(FunctionSpace(sw.mesh, "CG", 1)).interpolate(Expression("x[0] >= 1000.0 && x[0] <= 2000 && x[1] >= 250 && x[1] <= 750 ? 12 : 0.0"))])
       File("opt.pvd") << project(opt, sw.function_spaces["FreeSurfaceFunctionSpace"])
 
    else:
