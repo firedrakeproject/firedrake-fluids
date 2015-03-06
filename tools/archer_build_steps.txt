@@ -47,3 +47,9 @@ git clone https://bitbucket.org/mapdes/ffc.git
 cd ffc
 python setup.py install --prefix=$WORK/install
 
+# psutil
+wget https://pypi.python.org/packages/source/p/psutil/psutil-2.2.0.tar.gz
+tar -zxf psutil-2.2.0.tar.gz
+cd psutil-2.2.0/
+python setup.py install --prefix=$WORK/install
+
