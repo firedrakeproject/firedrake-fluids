@@ -307,7 +307,16 @@ class ShallowWater:
          
       return mesh
 
-   def construct_form(self, u, u_old, h, h_old, drag_coefficient):
+   def get_turbine_array(self):
+      base_option_path = "/system/equations/momentum_equation/drag_term"
+      # Add on the turbine drag, if provided.
+      if(libspud.have_option(base_option_path + "/turbine_drag")):
+         array = TurbineArray(base_option_path + "/turbine_drag", self.mesh)
+      else:
+         array = None
+      return array
+      
+   def construct_form(self, u, u_old, h, h_old, array):
       # The collection of all the individual terms in their weak form.
       LOG.info("Constructing form...")
       F = 0
@@ -426,25 +435,14 @@ class ShallowWater:
          
          # Get the bottom drag/friction coefficient.
          LOG.debug("Momentum equation: Adding bottom drag contribution...")
-         #drag_expression = ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=0).get_expression()
-         #drag_coefficient = Function(self.W.sub(1)).interpolate(drag_expression)
-         
-         # Add on the turbine drag, if provided.
-         if(libspud.have_option(base_option_path + "/turbine_drag")):
-            LOG.debug("Momentum equation: Adding turbine drag contribution...")
-            
-            self.array = TurbineArray(base_option_path + "/turbine_drag", self.mesh)
-            turbine_drag = project(self.array.turbine_drag, self.W.sub(1))
-            drag_coefficient += turbine_drag
-            self.array.write_turbine_drag(self.options)
-         else:
-            self.array = None
+         bottom_drag = ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=0).get_expression()
+         bottom_drag = Function(self.W.sub(1)).interpolate(bottom_drag)
          
          # Magnitude of the velocity field
          magnitude = sqrt(dot(u_old, u_old))
          
          # Form the drag term
-         D_momentum = -inner(w, (drag_coefficient*magnitude/H)*u_mid)*dx
+         D_momentum = -inner(w, ((bottom_drag + array.turbine_drag)*magnitude/H)*u_mid)*dx
          F -= D_momentum
       
       # The mass term in the shallow water continuity equation 
@@ -492,11 +490,11 @@ class ShallowWater:
                   LOG.debug("Applying Velocity BC of type '%s' to surface ID %d..." % (bc_type, marker))
                   if(bc_type == "flather"):
                      # The known exterior value for the Velocity.
-                     u_ext = ExpressionFromOptions(path = (bc_path + "/type::flather/exterior_velocity"), t=t).get_expression()
+                     u_ext = ExpressionFromOptions(path = (bc_path + "/type::flather/exterior_velocity"), t=0).get_expression()
                      Ct_continuity += H*inner(Function(self.W.sub(0)).interpolate(u_ext), n)*v*ds(int(marker))
                      
                      # The known exterior value for the FreeSurfacePerturbation.
-                     h_ext = ExpressionFromOptions(path = (bc_path + "/type::flather/exterior_free_surface_perturbation"), t=t).get_expression()
+                     h_ext = ExpressionFromOptions(path = (bc_path + "/type::flather/exterior_free_surface_perturbation"), t=0).get_expression()
                      Ct_continuity += H*sqrt(g_magnitude/H)*(h_mid - Function(self.W.sub(1)).interpolate(h_ext))*v*ds(int(marker))
                      
                      weak_bc_expressions.append(u_ext)
@@ -652,7 +650,7 @@ class ShallowWater:
       
       return
       
-   def run(self, drag_coefficient, annotate=True):
+   def run(self, array, annotate=True):
       """ Perform the simulation! """
 
       #adj_reset()
@@ -683,7 +681,7 @@ class ShallowWater:
       self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
       
       # Construct form and strong boundary conditions
-      F, weak_bc_expressions = self.construct_form(u, u_old, h, h_old, drag_coefficient)
+      F, weak_bc_expressions = self.construct_form(u, u_old, h, h_old, array)
       bcs, bc_expressions = self.get_dirichlet_boundary_conditions()
       
       # Prepare solver_parameters dictionary
@@ -737,7 +735,7 @@ class ShallowWater:
 
          if(self.options["have_turbulence_parameterisation"]):
             eddy_viscosity_solver.solve()
-            viscosity.assign(background_viscosity + eddy_viscosity)
+            #viscosity.assign(background_viscosity + eddy_viscosity)
 
          # Time-dependent source terms
          if(self.options["have_momentum_source"]):
@@ -764,17 +762,17 @@ class ShallowWater:
          total_solver_time += (end_solver_time - start_solver_time)     
 
          # Write the solution to file.
-        # if((self.options["dump_period"] is not None) and (dt*iterations_since_dump >= self.options["dump_period"])):
-            #LOG.debug("Writing data to file...")
-         #   self.output_functions["Velocity"].assign(solution.split()[0], annotate=False)
-            #self.output_files["Velocity"] << self.output_functions["Velocity"]
-            #self.output_functions["FreeSurfacePerturbation"].assign(solution.split()[1], annotate=False)
-            #self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
-         #   iterations_since_dump = 0 # Reset the counter.
+         if((self.options["dump_period"] is not None) and (dt*iterations_since_dump >= self.options["dump_period"])):
+            LOG.debug("Writing data to file...")
+            self.output_functions["Velocity"].assign(solution.split()[0], annotate=False)
+            self.output_files["Velocity"] << self.output_functions["Velocity"]
+            self.output_functions["FreeSurfacePerturbation"].assign(solution.split()[1], annotate=False)
+            self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
+            iterations_since_dump = 0 # Reset the counter.
 
          # Print out the total power generated by turbines.
-         if(self.options["have_drag"] and self.array is not None):
-            LOG.info("Power = %.2f" % self.array.power(u, density=1000))
+         if(self.options["have_drag"] and array is not None):
+            LOG.info("Power = %.2f" % array.power(u, density=1000))
             
          # Checkpointing
          if((self.options["checkpoint_period"] is not None) and (dt*iterations_since_checkpoint >= self.options["checkpoint_period"])):
@@ -828,25 +826,25 @@ if(__name__ == "__main__"):
       # Solve the shallow water equations!
       simulation_start_time = mpi4py.MPI.Wtime()      
       sw = ShallowWater(path=args.path)
-      dc = Function(FunctionSpace(sw.mesh, "CG", 1), name="DragCoefficient", annotate=False).interpolate(Expression("0.0025"))
-      solution = sw.run(dc, annotate=True)
+      array = sw.get_turbine_array()
+      solution = sw.run(array, annotate=True)
       simulation_end_time = mpi4py.MPI.Wtime()
       LOG.info("Total simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
 
       print "Replaying forward model"
-      assert replay_dolfin(tol=1e-12, stop=True)
+      #assert replay_dolfin(tol=1e-12, stop=True)
       
       pf = PowerFunctional()
       
       u, h = split(solution)
-      J = Functional(pf.Jm(u, dc, density=1000))
-      Jc = assemble(pf.Jm(u, dc, density=1000))
-      print assemble(1000.0*dc*dot(u,u)**1.5*dx)
+      J = Functional(pf.Jm(u, array.turbine_drag, density=1000))
+      Jc = assemble(pf.Jm(u, array.turbine_drag, density=1000))
+      print assemble(1000.0*array.turbine_drag*dot(u,u)**1.5*dx)
       
       adj_html("forward.html", "forward")
       adj_html("adjoint.html", "adjoint")
       
-      control = FunctionControl(dc)
+      control = FunctionControl(array.turbine_drag)
       dJdc = compute_gradient(J, control, forget=False)
       parameters["adjoint"]["stop_annotating"] = True
       print "Gradient: ", dJdc.vector().array()
@@ -869,7 +867,7 @@ if(__name__ == "__main__"):
          viz << m_ex
       
       rf = reduced_functional.ReducedFunctional(J, control, eval_cb=eval_cb, derivative_cb=derivative_cb)
-      opt = optimization.maximize(rf, bounds=[Function(FunctionSpace(sw.mesh, "CG", 1)).interpolate(Expression("x[0] >= 1000.0 && x[0] <= 2000 && x[1] >= 250 && x[1] <= 750 ? 0.0025 : 0.0025")), Function(FunctionSpace(sw.mesh, "CG", 1)).interpolate(Expression("x[0] >= 1000.0 && x[0] <= 2000 && x[1] >= 250 && x[1] <= 750 ? 12 : 0.0025"))])
+      opt = optimization.maximize(rf, bounds=[Function(FunctionSpace(sw.mesh, "CG", 1)).interpolate(Expression("x[0] >= 1000.0 && x[0] <= 2000 && x[1] >= 250 && x[1] <= 750 ? 0 : 0")), Function(FunctionSpace(sw.mesh, "CG", 1)).interpolate(Expression("x[0] >= 1000.0 && x[0] <= 2000 && x[1] >= 250 && x[1] <= 750 ? 8.5 : 0"))], method="L-BFGS-B")
       File("opt.pvd") << project(opt, sw.function_spaces["FreeSurfaceFunctionSpace"])
 
    else:
