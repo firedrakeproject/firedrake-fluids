@@ -845,7 +845,6 @@ if(__name__ == "__main__"):
       
       adj_html("forward.html", "forward")
       adj_html("adjoint.html", "adjoint")
-      #import sys; sys.exit()
       
       control = FunctionControl(dc)
       dJdc = compute_gradient(J, control, forget=False)
