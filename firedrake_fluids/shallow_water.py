@@ -764,8 +764,8 @@ class ShallowWater:
          # Write the solution to file.
          if((self.options["dump_period"] is not None) and (dt*iterations_since_dump >= self.options["dump_period"])):
             LOG.debug("Writing data to file...")
-            self.output_functions["Velocity"].assign(solution.split()[0], annotate=False)
-            self.output_files["Velocity"] << self.output_functions["Velocity"]
+            #self.output_functions["Velocity"].assign(solution.split()[0], annotate=False)
+            #self.output_files["Velocity"] << self.output_functions["Velocity"]
             self.output_functions["FreeSurfacePerturbation"].assign(solution.split()[1], annotate=False)
             self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
             iterations_since_dump = 0 # Reset the counter.
@@ -823,52 +823,64 @@ if(__name__ == "__main__"):
    signal.signal(signal.SIGINT, signal.SIG_DFL)
    
    if(os.path.exists(args.path)):
-      # Solve the shallow water equations!
-      simulation_start_time = mpi4py.MPI.Wtime()      
+      
+      # Set up the basic options for the shallow water problem
       sw = ShallowWater(path=args.path)
+      # Get the turbine array
       array = sw.get_turbine_array()
-      solution = sw.run(array, annotate=True)
+      
+      adjoint = True
+      if(adjoint):
+         annotate = True
+      else:
+         annotate = False
+
+      simulation_start_time = mpi4py.MPI.Wtime()
+      # Solve the shallow water equations!
+      solution = sw.run(array, annotate=annotate)
       simulation_end_time = mpi4py.MPI.Wtime()
-      LOG.info("Total simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
-
-      print "Replaying forward model"
-      #assert replay_dolfin(tol=1e-12, stop=True)
-      
-      pf = PowerFunctional()
-      
-      u, h = split(solution)
-      J = Functional(pf.Jm(u, array.turbine_drag, density=1000))
-      Jc = assemble(pf.Jm(u, array.turbine_drag, density=1000))
-      print assemble(1000.0*array.turbine_drag*dot(u,u)**1.5*dx)
-      
-      adj_html("forward.html", "forward")
-      adj_html("adjoint.html", "adjoint")
-      
-      control = FunctionControl(array.turbine_drag)
-      dJdc = compute_gradient(J, control, forget=False)
-      parameters["adjoint"]["stop_annotating"] = True
-      print "Gradient: ", dJdc.vector().array()
-
-      def Jhat(solution_old):
-         solution = sw.run(solution_old, annotate=False)
-         u, h = split(solution)
-         return assemble(pf.Jm(u, solution_old, density=1000))
-      #minconv = taylor_test(Jhat, control, Jc, dJdc, seed=1e2)
-      #print minconv
-
-      m_ex = Function(sw.function_spaces["FreeSurfaceFunctionSpace"])
-      viz  = File("output/iterations.pvd")
-      def eval_cb(j, m):
-         print "j =", j
-         print "m =", m
+      LOG.info("Total forward simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
          
-      def derivative_cb(j, dj, m):
-         m_ex.assign(m)
-         viz << m_ex
+      if(adjoint):
+         print "Replaying forward model"
+         assert replay_dolfin(tol=1e-12, stop=True)
       
-      rf = reduced_functional.ReducedFunctional(J, control, eval_cb=eval_cb, derivative_cb=derivative_cb)
-      opt = optimization.maximize(rf, bounds=[Function(FunctionSpace(sw.mesh, "CG", 1)).interpolate(Expression("x[0] >= 1000.0 && x[0] <= 2000 && x[1] >= 250 && x[1] <= 750 ? 0 : 0")), Function(FunctionSpace(sw.mesh, "CG", 1)).interpolate(Expression("x[0] >= 1000.0 && x[0] <= 2000 && x[1] >= 250 && x[1] <= 750 ? 8.5 : 0"))], method="L-BFGS-B")
-      File("opt.pvd") << project(opt, sw.function_spaces["FreeSurfaceFunctionSpace"])
+         pf = PowerFunctional()
+      
+         u, h = split(solution)
+         J = Functional(pf.Jm(u, array.turbine_drag, density=1000))
+         Jc = assemble(pf.Jm(u, array.turbine_drag, density=1000))
+         print assemble(1000.0*array.turbine_drag*dot(u,u)**1.5*dx)
+      
+         adj_html("forward.html", "forward")
+         adj_html("adjoint.html", "adjoint")
+      
+         control = FunctionControl(array.turbine_drag)
+         dJdc = compute_gradient(J, control, forget=False)
+         parameters["adjoint"]["stop_annotating"] = True
+         print "Gradient: ", dJdc.vector().array()
+
+         #def Jhat(solution_old):
+         #   solution = sw.run(solution_old, annotate=False)
+         #   u, h = split(solution)
+         #   return assemble(pf.Jm(u, solution_old, density=1000))
+         #minconv = taylor_test(Jhat, control, Jc, dJdc, seed=1e2)
+         #print minconv
+
+         def eval_cb(j, m):
+            print "j =", j
+            print "m =", m
+            
+         iteration = Function(sw.function_spaces["FreeSurfaceFunctionSpace"])
+         iterations_file = File("output/iterations.pvd")
+         def derivative_cb(j, dj, m):
+            iteration.assign(m)
+            iterations_file << iteration
+         
+         # Optimise the turbine array.
+         rf = reduced_functional.ReducedFunctional(J, control, eval_cb=eval_cb, derivative_cb=derivative_cb)
+         opt = optimization.maximize(rf, bounds=[Function(sw.function_spaces["FreeSurfaceFunctionSpace"]).interpolate(Expression("x[0] >= 1000.0 && x[0] <= 2000 && x[1] >= 250 && x[1] <= 750 ? 0 : 0")), Function(sw.function_spaces["FreeSurfaceFunctionSpace"]).interpolate(Expression("x[0] >= 1000.0 && x[0] <= 2000 && x[1] >= 250 && x[1] <= 750 ? 8.5 : 0"))], method="L-BFGS-B")
+         File("optimised.pvd") << project(opt, sw.function_spaces["FreeSurfaceFunctionSpace"])
 
    else:
       LOG.error("The path to the simulation setup file does not exist.")
