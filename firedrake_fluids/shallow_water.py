@@ -709,7 +709,7 @@ class ShallowWater:
        
       # The time-stepping loop
       LOG.info("Entering the time-stepping loop...")
-      #if annotate: adj_start_timestep(time=t)
+      if annotate: adj_start_timestep(time=t)
       
       EPSILON = 1.0e-14
       while t <= T + EPSILON: # A small value EPSILON is added here in case of round-off error.
@@ -788,9 +788,10 @@ class ShallowWater:
          self.compute_diagnostics()
 
          # Move to next time step
-         solution_old.assign(solution, annotate=annotate)    
+         solution_old.assign(solution, annotate=annotate)  
+         array.turbine_drag.assign(project(array.turbine_drag, array.turbine_drag.function_space(), annotate=annotate), annotate=annotate)
          t += dt
-         #if annotate: adj_inc_timestep(time=t, finished=t>T)
+         if annotate: adj_inc_timestep(time=t, finished=t>T)
          
          iterations_since_dump += 1
          iterations_since_checkpoint += 1
@@ -843,12 +844,13 @@ if(__name__ == "__main__"):
          
       if(adjoint):
          print "Replaying forward model"
-         assert replay_dolfin(tol=1e-12, stop=True)
+         #assert replay_dolfin(tol=1e-10, stop=True)
       
          pf = PowerFunctional()
       
          u, h = split(solution)
-         J = Functional(pf.Jm(u, array.turbine_drag, density=1000))
+         dtm = TimeMeasure()
+         J = Functional(pf.Jm(u, array.turbine_drag, density=1000)*dtm[FINISH_TIME])
          Jc = assemble(pf.Jm(u, array.turbine_drag, density=1000))
          print assemble(1000.0*array.turbine_drag*dot(u,u)**1.5*dx)
       
@@ -860,10 +862,12 @@ if(__name__ == "__main__"):
          parameters["adjoint"]["stop_annotating"] = True
          print "Gradient: ", dJdc.vector().array()
 
-         #def Jhat(solution_old):
-         #   solution = sw.run(solution_old, annotate=False)
-         #   u, h = split(solution)
-         #   return assemble(pf.Jm(u, solution_old, density=1000))
+         #def Jhat(turbine_drag_old):
+            ##array = sw.get_turbine_array()
+            #array.turbine_drag.assign(turbine_drag_old, annotate=False)
+            #solution = sw.run(array, annotate=False)
+            #u, h = split(solution)
+            #return assemble(pf.Jm(u, array.turbine_drag, density=1000))
          #minconv = taylor_test(Jhat, control, Jc, dJdc, seed=1e2)
          #print minconv
 
