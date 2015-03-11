@@ -8,6 +8,7 @@ A collection of numerical models for fluid flow simulation, using the [Firedrake
 
 Firedrake-Fluids depends on:
 * [Firedrake](http://firedrakeproject.org)
+* firedrake-adjoint (part of the [dolfin-adjoint](http://dolfin-adjoint.org/) package)
 * [libspud](https://launchpad.net/spud)
 * [pytest](http://pytest.org) (optional, but required to run `make test`)
 * [gmsh](http://geuz.org/gmsh/) (optional, but required to run some tests)
