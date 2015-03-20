@@ -118,6 +118,7 @@
         </value>
       </scalar_field>
     </core_fields>
+    <diagnostic_fields/>
     <equations>
       <continuity_equation>
         <spatial_discretisation>
@@ -148,20 +149,31 @@
               </constant>
             </value>
           </scalar_field>
-          <turbine_drag>
+        </drag_term>
+        <turbulence_parameterisation>
+          <les>
+            <smagorinsky>
+              <smagorinsky_coefficient>
+                <real_value rank="0">0.15</real_value>
+              </smagorinsky_coefficient>
+            </smagorinsky>
+          </les>
+        </turbulence_parameterisation>
+        <turbines>
+          <array name="individual">
             <scalar_field name="TurbineDragCoefficient">
               <value>
                 <constant>
-                  <real_value rank="0">12.0</real_value>
+                  <real_value rank="0">12</real_value>
                 </constant>
               </value>
             </scalar_field>
             <turbine_radius>
-              <string_value lines="20" type="code" language="python">[2.5, 10.0]</string_value>
+              <string_value type="code" lines="20" language="python">[2.5, 10.0]</string_value>
             </turbine_radius>
             <turbine_type name="tophat"/>
             <turbine_coordinates>
-              <string_value lines="20" type="code" language="python">[(1060, 330),
+              <string_value type="code" lines="20" language="python">[(1060, 330),
 (1060, 500),
 (1060, 670),
 (1280, 330),
@@ -177,17 +189,8 @@
 (1940, 500),
 (1940, 670)]</string_value>
             </turbine_coordinates>
-          </turbine_drag>
-        </drag_term>
-        <turbulence_parameterisation>
-          <les>
-            <smagorinsky>
-              <smagorinsky_coefficient>
-                <real_value rank="0">0.15</real_value>
-              </smagorinsky_coefficient>
-            </smagorinsky>
-          </les>
-        </turbulence_parameterisation>
+          </array>
+        </turbines>
       </momentum_equation>
     </equations>
     <solver>
