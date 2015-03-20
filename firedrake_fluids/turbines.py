@@ -15,11 +15,14 @@
 #    You should have received a copy of the GNU General Public License
 #    along with Firedrake-Fluids.  If not, see <http://www.gnu.org/licenses/>.
 
+import sys
+
 from firedrake import *
 import libspud
 
 from firedrake_fluids import LOG
-      
+from firedrake_fluids.expression import ExpressionFromOptions
+
 class TurbineArray:
    """ Module for turbine parameterisation. """
 
@@ -33,13 +36,41 @@ class TurbineArray:
       
       fs = FunctionSpace(mesh, "CG", 1)
       
-      turbine_type = libspud.get_option(base_option_path + "/turbine_type/name")
-      turbine_coords = eval(libspud.get_option(base_option_path + "/turbine_coordinates"))
-      turbine_radius = eval(libspud.get_option(base_option_path + "/turbine_radius"))
-      K = libspud.get_option(base_option_path + "/scalar_field::TurbineDragCoefficient/value/constant")
+      array_type = libspud.get_option(base_option_path + "/array/name")
       
-      self.turbine_drag = Function(fs, name="TurbineDrag").interpolate(Expression("x[0] >= 1000.0 && x[0] <= 2000 && x[1] >= 250 && x[1] <= 750 ? 8.5 : 0"), fs)
+      if(array_type == "individual"):
+         turbine_type = libspud.get_option(base_option_path + "/array/turbine_type/name")
+         turbine_coords = eval(libspud.get_option(base_option_path + "/array/turbine_coordinates"))
+         turbine_radius = eval(libspud.get_option(base_option_path + "/array/turbine_radius"))
+         K = libspud.get_option(base_option_path + "/array/scalar_field::TurbineDragCoefficient/value/constant")
 
+         self.turbine_drag = Function(fs, name="TurbineDrag").interpolate(Expression("0"))
+         for coords in turbine_coords:
+            # For each coordinate tuple in the list, create a new turbine.
+            # FIXME: This assumes that all turbines are of the same type.
+            try:
+               if(turbine_type == "bump"):
+                  turbine = BumpTurbine(K=K, coords=coords, r=turbine_radius)
+               elif(turbine_type == "tophat"):
+                  turbine = TopHatTurbine(K=K, coords=coords, r=turbine_radius)
+               else:
+                  raise ValueError("Unknown turbine type '%s'." % turbine_type)
+            except ValueError as e:
+               LOG.exception(e)
+               sys.exit()
+
+            self.turbine_drag += Function(fs).interpolate(turbine)
+            LOG.info("Added %s turbine at %s..." % (turbine_type, coords))
+
+      elif(array_type == "continuum"):
+         K = ExpressionFromOptions(base_option_path + "/array/scalar_field::TurbineDragCoefficient/value/").get_expression()
+         self.turbine_drag = Function(fs, name="TurbineDrag").interpolate(K)
+      else:
+         print "Unknown array type."
+         sys.exit()
+          
+      self.bounds = eval(libspud.get_option(base_option_path + "/array/bounds"))
+      self.optimise = libspud.have_option(base_option_path + "/optimise")
       return
       
    def write_turbine_drag(self, options):

@@ -16,7 +16,6 @@
 #    along with Firedrake-Fluids.  If not, see <http://www.gnu.org/licenses/>.
 
 from firedrake import *
-from firedrake_adjoint import *
 
 class PowerFunctional:
 

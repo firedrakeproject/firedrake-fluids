@@ -67,7 +67,7 @@
       <vector_field name="Velocity">
         <initial_condition>
           <constant>
-            <real_value shape="2" dim1="dim" rank="1">0 0</real_value>
+            <real_value shape="2" dim1="dim" rank="1">1e-9 1e-9</real_value>
           </constant>
         </initial_condition>
         <boundary_condition name="All">
@@ -96,6 +96,7 @@
         </value>
       </scalar_field>
     </core_fields>
+    <diagnostic_fields/>
     <equations>
       <continuity_equation>
         <spatial_discretisation>

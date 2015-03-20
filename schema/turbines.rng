@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0">
+  <define name="individual_array">
+    <element name="array">
+      <attribute name="name">
+        <value>individual</value>
+      </attribute>
+      <element name="scalar_field">
+        <a:documentation>The (non-dimensional) drag coefficient which parameterises turbines.</a:documentation>
+        <attribute name="name">
+          <value>TurbineDragCoefficient</value>
+        </attribute>
+        <element name="value">
+          <ref name="input_choice_real"/>
+        </element>
+      </element>
+      <element name="turbine_radius">
+        <a:documentation>The 'radius' of the turbine(s).</a:documentation>
+        <ref name="python_code"/>
+      </element>
+      <choice>
+        <element name="turbine_type">
+          <a:documentation>The turbine drag function type.</a:documentation>
+          <attribute name="name">
+            <value>bump</value>
+          </attribute>
+        </element>
+        <element name="turbine_type">
+          <attribute name="name">
+            <value>tophat</value>
+          </attribute>
+        </element>
+      </choice>
+      <element name="turbine_coordinates">
+        <a:documentation>The coordinates of the turbine centres, as a list of tuples.</a:documentation>
+        <ref name="python_code"/>
+      </element>
+    </element>
+  </define>
+  <define name="continuum_array">
+    <element name="array">
+      <attribute name="name">
+        <value>continuum</value>
+      </attribute>
+      <element name="scalar_field">
+        <a:documentation>The (non-dimensional) drag coefficient which parameterises turbines.</a:documentation>
+        <attribute name="name">
+          <value>TurbineDragCoefficient</value>
+        </attribute>
+        <element name="value">
+          <ref name="input_choice_real"/>
+        </element>
+      </element>
+      <element name="bounds">
+        <a:documentation>The array coordinate bounds as a 4-tuple (or list): [x_min, y_min, x_max, y_max]</a:documentation>
+        <ref name="python_code"/>
+      </element>
+    </element>
+  </define>
+  <define name="turbines">
+    <ref name="individual_array"/>
+  </define>
+  <define name="turbines" combine="choice">
+    <ref name="continuum_array"/>
+  </define>
+</grammar>

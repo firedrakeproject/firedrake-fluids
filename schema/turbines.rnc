@@ -1,0 +1,65 @@
+individual_array =
+   (
+      element array
+      {
+         attribute name {"individual"},
+         
+         ## The (non-dimensional) drag coefficient which parameterises turbines.
+         element scalar_field 
+         {
+            attribute name { "TurbineDragCoefficient" },
+            element value 
+            {
+               input_choice_real
+            }
+         },
+         ## The 'radius' of the turbine(s).
+         element turbine_radius
+         {
+            python_code
+         },
+         (
+            ## The turbine drag function type.
+            element turbine_type
+            {
+               attribute name { "bump" }
+            }|
+            element turbine_type
+            {
+               attribute name { "tophat" }
+            }
+         ),
+         ## The coordinates of the turbine centres, as a list of tuples.
+         element turbine_coordinates
+         {
+            python_code
+         }
+      }
+   )
+ 
+continuum_array =
+   (
+      element array
+      {
+         attribute name {"continuum"},
+         
+         ## The (non-dimensional) drag coefficient which parameterises turbines.
+         element scalar_field 
+         {
+            attribute name { "TurbineDragCoefficient" },
+            element value 
+            {
+               input_choice_real
+            }
+         },
+         ## The array coordinate bounds as a 4-tuple (or list): [x_min, y_min, x_max, y_max]
+         element bounds
+         {
+            python_code
+         }
+      }
+   )
+
+turbines = individual_array
+turbines |= continuum_array
+
