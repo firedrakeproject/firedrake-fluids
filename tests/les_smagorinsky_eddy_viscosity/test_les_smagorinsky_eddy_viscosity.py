@@ -21,16 +21,13 @@ def les_smagorinsky_eddy_viscosity():
       
       exact_solution = project(Expression('pow(%f, 2) * sqrt(2.0*cos(x[0])*cos(x[0]) + 0.5*sin(x[0])*sin(x[0]) + 0.5*sin(x[0])*sin(x[0]))' % smagorinsky_coefficient), fs_exact)
 
-      les = LES(mesh, fs)
+      les = LES(mesh, fs, u, density, (smagorinsky_coefficient/filter_width))
       # Since the eddy viscosity depends on the filter_width, we need to provide smagorinsky_coefficient/filter_width here 
       # for the convergence test because we want to compare against the same exact solution throughout.
-      lhs, rhs = les.eddy_viscosity(u, density, (smagorinsky_coefficient/filter_width))
-      eddy_viscosity = Function(fs)
-      problem = LinearVariationalProblem(lhs, rhs, eddy_viscosity, bcs=[])
-      solver = LinearVariationalSolver(problem)
-      solver.solve()
+      les.solve()
       
-      print eddy_viscosity.vector()[:]
+      eddy_viscosity = les.eddy_viscosity
+      print eddy_viscosity.vector().array()
       errors.append(sqrt(assemble(dot(eddy_viscosity - exact_solution, eddy_viscosity - exact_solution) * dx)))
 
    return errors
