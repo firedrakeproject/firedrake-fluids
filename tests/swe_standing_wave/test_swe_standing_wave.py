@@ -13,10 +13,10 @@ def input():
 
 def swe_standing_wave():
    sw = ShallowWater(path=os.path.join(cwd, "swe_standing_wave.swml"))
-   sw.run()
-   h_old = sw.solution_old.split()[-1]
+   solution = sw.run()
+   h = solution.split()[-1]
    
-   return h_old.vector().array()
+   return h.vector().array()
 
 def test_swe_standing_wave(input):
    h_values = numpy.array(swe_standing_wave())

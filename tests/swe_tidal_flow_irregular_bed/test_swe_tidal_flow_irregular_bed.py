@@ -81,8 +81,8 @@ def swe_tidal_flow_irregular_bed():
    u_old = solution.split()[0]
    h_old = solution.split()[1]
    
-   u_old = project(u_old[0], fs)
-   h_old = project(h_old, fs)
+   u_old = project(u_old[0], fs, annotate=False)
+   h_old = project(h_old, fs, annotate=False)
    
    return coordinates.vector().array(), u_old.vector().array(), h_old.vector().array()
    
