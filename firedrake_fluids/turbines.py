@@ -34,7 +34,7 @@ class TurbineArray:
       :returns: None
       """
       
-      fs = FunctionSpace(mesh, "CG", 1)
+      fs = FunctionSpace(mesh, "CG", 2)
       
       array_type = libspud.get_option(base_option_path + "/array/name")
       
@@ -65,11 +65,11 @@ class TurbineArray:
       elif(array_type == "continuum"):
          K = ExpressionFromOptions(base_option_path + "/array/scalar_field::TurbineDragCoefficient/value/").get_expression()
          self.turbine_drag = Function(fs, name="TurbineDrag").interpolate(K)
+         self.bounds = eval(libspud.get_option(base_option_path + "/array/bounds"))
       else:
          print "Unknown array type."
          sys.exit()
-          
-      self.bounds = eval(libspud.get_option(base_option_path + "/array/bounds"))
+
       self.optimise = libspud.have_option(base_option_path + "/optimise")
       return
       

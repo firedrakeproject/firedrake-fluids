@@ -13,12 +13,12 @@ def input():
 def turbine_drag_function():
 
    sw = ShallowWater(path=os.path.join(cwd, "bump.swml"))
-   sw.run()
-   bump = assemble(sw.array.turbine_drag*dx)
+   array = sw.get_turbine_array()
+   bump = assemble(array.turbine_drag*dx)
 
    sw = ShallowWater(path=os.path.join(cwd, "tophat.swml"))
-   sw.run()
-   tophat = assemble(sw.array.turbine_drag*dx)
+   array = sw.get_turbine_array()
+   tophat = assemble(array.turbine_drag*dx)
    
    return bump, tophat
 
