@@ -13,23 +13,23 @@ def input():
 
 def swe_dam_break_2d():
    sw = ShallowWater(path=os.path.join(cwd, "swe_dam_break_2d.swml"))
-   sw.run()
+   solution = sw.run()
    
-   fs = FunctionSpace(sw.mesh, "CG", 1)
-   vfs = VectorFunctionSpace(sw.mesh, "CG", 2)
+   h = solution.split()[1]
+   u = solution.split()[0]
    
-   h_old = project(sw.solution_old.split()[1], fs)
-   u_old = project(sw.solution_old.split()[0], vfs)   
-   
-   return h_old.vector().array(), u_old.vector().array()
+   return h.vector().array(), u.vector().array()
 
 def test_swe_dam_break_2d(input):
    h, u = swe_dam_break_2d()
    
-   assert(max(u[:,0]) <= 9.0)   
-   assert(max(u[:,0]) >= -2.0)
-   assert(max(u[:,1]) <= 6.0)   
-   assert(max(u[:,1]) >= -6.0)
+   # x-component of Velocity
+   assert(max(u[0::2]) <= 9.0)   
+   assert(max(u[0::2]) >= -2.0)
+   # y-component of Velocity
+   assert(max(u[1::2]) <= 6.0)   
+   assert(max(u[1::2]) >= -6.0)
+   # Free surface
    assert(max(h) <= 5.0)   
    assert(max(h) >= -4.0)
 
