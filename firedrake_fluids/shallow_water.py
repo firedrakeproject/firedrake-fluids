@@ -826,9 +826,14 @@ if(__name__ == "__main__"):
       # Get the turbine array
       array = sw.get_turbine_array()
 
+      if(array and array.optimise):
+         annotate = True
+      else:
+         annotate = False
+
       # Solve the shallow water equations!
       simulation_start_time = mpi4py.MPI.Wtime()
-      solution = sw.run(array=array, annotate=True)
+      solution = sw.run(array=array, annotate=annotate)
       simulation_end_time = mpi4py.MPI.Wtime()
       LOG.info("Total forward simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
          
