@@ -676,7 +676,7 @@ class ShallowWater:
          values = numpy.array([1.0e-9 for i in range(len(grid_pe_nodes))])
          grid_pe_nodes.set_local(numpy.maximum(grid_pe_nodes.array(), values))
 
-         F += stabilisation.streamline_upwind(w, u_old, magnitude, grid_pe)
+         F += stabilisation.streamline_upwind(w, u, magnitude, grid_pe)
 
       LOG.info("Form construction complete.")
       
