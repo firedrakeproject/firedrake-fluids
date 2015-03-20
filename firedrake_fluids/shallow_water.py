@@ -431,9 +431,9 @@ class ShallowWater:
 
       # Write initial conditions to file
       LOG.info("Writing initial conditions to file...")
-      self.output_functions["Velocity"].assign(solution_old.split()[0])
+      self.output_functions["Velocity"].assign(solution_old.split()[0], annotate=False)
       self.output_files["Velocity"] << self.output_functions["Velocity"]
-      self.output_functions["FreeSurfacePerturbation"].assign(solution_old.split()[1])
+      self.output_functions["FreeSurfacePerturbation"].assign(solution_old.split()[1], annotate=False)
       self.output_files["FreeSurfacePerturbation"] << self.output_functions["FreeSurfacePerturbation"]
       
       # Construct the collection of all the individual terms in their weak form.
@@ -645,13 +645,13 @@ class ShallowWater:
       # Add in any source terms
       if(self.options["have_momentum_source"]):
          LOG.debug("Momentum equation: Adding source term...")
-         momentum_source_expression = ExpressionFromOptions(path = "/system/equations/momentum_equation/source_term/vector_field::Source/value", t=t).get_expression()
+         momentum_source_expression = ExpressionFromOptions(path = "/system/equations/momentum_equation/source_term/vector_field::Source/value", t=0).get_expression()
          momentum_source_function = Function(self.W.sub(0), annotate=False)
          F -= inner(w, momentum_source_function.interpolate(momentum_source_expression))*dx
 
       if(self.options["have_continuity_source"]):
          LOG.debug("Continuity equation: Adding source term...")
-         continuity_source_expression = ExpressionFromOptions(path = "/system/equations/continuity_equation/source_term/scalar_field::Source/value", t=t).get_expression()
+         continuity_source_expression = ExpressionFromOptions(path = "/system/equations/continuity_equation/source_term/scalar_field::Source/value", t=0).get_expression()
          continuity_source_function = Function(self.W.sub(1), annotate=False)
          F -= inner(v, continuity_source_function.interpolate(continuity_source_expression))*dx
          
@@ -742,10 +742,10 @@ class ShallowWater:
             continuity_source_function.interpolate(continuity_source_expression)
 
          # Update any time-varying DirichletBC objects.
-         #for expr in bc_expressions:
-         #   expr.t = t
-         #for expr in weak_bc_expressions:
-         #   expr.t = t
+         for expr in bc_expressions:
+            expr.t = t
+         for expr in weak_bc_expressions:
+            expr.t = t
          
          # Solve the system of equations!
          start_solver_time = mpi4py.MPI.Wtime()
@@ -828,7 +828,7 @@ if(__name__ == "__main__"):
 
       # Solve the shallow water equations!
       simulation_start_time = mpi4py.MPI.Wtime()
-      solution = sw.run(array=array, annotate=False)
+      solution = sw.run(array=array, annotate=True)
       simulation_end_time = mpi4py.MPI.Wtime()
       LOG.info("Total forward simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
          

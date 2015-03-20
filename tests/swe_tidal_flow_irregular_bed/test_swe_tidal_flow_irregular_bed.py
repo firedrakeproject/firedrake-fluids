@@ -68,7 +68,7 @@ def bed_height(x):
       
 def swe_tidal_flow_irregular_bed():
    sw = ShallowWater(path=os.path.join(cwd, "swe_tidal_flow_irregular_bed.swml"))
-   sw.run()
+   solution = sw.run()
    
    mesh = sw.mesh
    
@@ -76,10 +76,10 @@ def swe_tidal_flow_irregular_bed():
    coordinates = mesh.coordinates
    
    # For projecting to the same space as the coordinate field
-   fs = FunctionSpace(sw.mesh, "CG", 1)
+   fs = FunctionSpace(mesh, "CG", 1)
    
-   u_old = sw.solution_old.split()[0]
-   h_old = sw.solution_old.split()[1]
+   u_old = solution.split()[0]
+   h_old = solution.split()[1]
    
    u_old = project(u_old[0], fs)
    h_old = project(h_old, fs)
