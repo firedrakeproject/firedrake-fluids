@@ -3,11 +3,10 @@ import pytest
 import numpy
 from firedrake import *
 
-from firedrake_fluids.shallow_water import *
-
 cwd = os.path.dirname(os.path.abspath(__file__))
 
 def swe_steady_flow_dirichlet():
+   from firedrake_fluids.shallow_water import ShallowWater
    sw = ShallowWater(path=os.path.join(cwd, "swe_steady_flow_dirichlet.swml"))
    solution = sw.run()
    u_old = solution.split()[0]
@@ -16,6 +15,7 @@ def swe_steady_flow_dirichlet():
    return u_old.vector().array(), h_old.vector().array()
    
 def swe_steady_flow_flather():
+   from firedrake_fluids.shallow_water import ShallowWater
    sw = ShallowWater(path=os.path.join(cwd, "swe_steady_flow_flather.swml"))
    solution = sw.run()
    u_old = solution.split()[0]

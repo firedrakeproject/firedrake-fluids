@@ -3,9 +3,9 @@ import pytest
 import numpy
 from firedrake import *
 
-from firedrake_fluids.les import *
-
 def les_smagorinsky_eddy_viscosity():
+   from firedrake_fluids.les import LES
+   
    errors = []
    for n in [2, 4, 8, 16, 32]:
       mesh = UnitSquareMesh(n, n)

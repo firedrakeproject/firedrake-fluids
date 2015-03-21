@@ -6,8 +6,6 @@ import numpy
 import pylab
 from firedrake import *
 
-from firedrake_fluids.shallow_water import *
-
 cwd = os.path.dirname(os.path.abspath(__file__))
 
 def bed_height(x):
@@ -67,6 +65,8 @@ def bed_height(x):
       return 0
       
 def swe_tidal_flow_irregular_bed():
+   from firedrake_fluids.shallow_water import ShallowWater
+   from firedrake_adjoint import project
    sw = ShallowWater(path=os.path.join(cwd, "swe_tidal_flow_irregular_bed.swml"))
    solution = sw.run()
    
@@ -76,15 +76,20 @@ def swe_tidal_flow_irregular_bed():
    coordinates = mesh.coordinates
    
    # For projecting to the same space as the coordinate field
+   vfs = VectorFunctionSpace(mesh, "CG", 1)
    fs = FunctionSpace(mesh, "CG", 1)
    
-   u_old = solution.split()[0]
-   h_old = solution.split()[1]
+   u = solution.split()[0]
+   h = solution.split()[1]
+
+   u = project(u, vfs, annotate=False)
+   h = project(h, fs, annotate=False)
+
+   print coordinates.vector().array()
+   print u.vector().array()
+   print h.vector().array()
    
-   u_old = project(u_old[0], fs, annotate=False)
-   h_old = project(h_old, fs, annotate=False)
-   
-   return coordinates.vector().array(), u_old.vector().array(), h_old.vector().array()
+   return coordinates.vector().array(), u.vector().array(), h.vector().array()
    
 def test_swe_tidal_flow_irregular_bed():
    
@@ -107,14 +112,14 @@ def test_swe_tidal_flow_irregular_bed():
  
    # Check that the maximum error between the numerical and analytical solution is small.
    ux_difference = abs(ux_analytical - ux_numerical)
-   print max(ux_difference)
+   print "max(ux_difference) = %f" % (max(ux_difference))
    assert(max(ux_difference) < 2.0e-4)
    
    height = numpy.zeros(len(h_numerical))
    for i in range(len(h_numerical)):
       height[i] = h_numerical[i] + H[i]
    h_difference = abs(h_analytical - height)
-   print max(h_difference)
+   print "max(h_difference) = %f" % (max(h_difference))
    assert(max(h_difference) < 3.0e-4)
 
 if __name__ == '__main__':

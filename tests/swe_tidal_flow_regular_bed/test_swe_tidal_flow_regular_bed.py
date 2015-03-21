@@ -9,11 +9,12 @@ import numpy
 import pylab
 from firedrake import *
 
-from firedrake_fluids.shallow_water import *
-
 cwd = os.path.dirname(os.path.abspath(__file__))
 
 def swe_tidal_flow_regular_bed():
+   from firedrake_fluids.shallow_water import ShallowWater
+   from firedrake_adjoint import project
+   
    sw = ShallowWater(path=os.path.join(cwd, "swe_tidal_flow_regular_bed.swml"))
    solution = sw.run()
    
@@ -23,15 +24,21 @@ def swe_tidal_flow_regular_bed():
    coordinates = mesh.coordinates
    
    # For projecting to the same space as the coordinate field
+   vfs = VectorFunctionSpace(mesh, "CG", 1)
    fs = FunctionSpace(mesh, "CG", 1)
    
-   u_old = solution.split()[0]
-   h_old = solution.split()[1]
+   u = solution.split()[0]
+   h = solution.split()[1]
+  
+   u = project(u, vfs, annotate=False)
+   h = project(h, fs, annotate=False)
+
+   print coordinates.vector().array()
+   print u.vector().array()
+   print h.vector().array()
    
-   u_old = project(u_old[0], fs)
-   h_old = project(h_old, fs)
-   
-   return coordinates.vector().array(), u_old.vector().array(), h_old.vector().array()
+   # Use [0::2] to select the even-numbered components of the vector's array (i.e. the x-component only).
+   return coordinates.vector().array()[0::2], u.vector().array()[0::2], h.vector().array()
    
 def test_swe_tidal_flow_regular_bed():
    
@@ -40,7 +47,7 @@ def test_swe_tidal_flow_regular_bed():
    L = 14000.0
    t = 10000.0
    
-   x = coordinates[:, 0]
+   x = coordinates
    H = 50.5 - 40*x/L - 10*numpy.sin(numpy.pi*(4*x/L - 0.5))
    h_analytical = H + 4 - 4*numpy.sin(numpy.pi*(4*t/86400.0 + 0.5))
    ux_analytical = ((x - 14000.0)*numpy.pi/(5400.0*h_analytical))*numpy.cos(numpy.pi*(4*t/86400.0 + 0.5))

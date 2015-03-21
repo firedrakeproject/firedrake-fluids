@@ -2,7 +2,6 @@ import os
 import pytest
 import numpy
 from firedrake import *
-from firedrake_fluids.shallow_water import *
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
@@ -11,7 +10,8 @@ def input():
    os.system("make -C " + cwd)
    
 def turbine_drag_function():
-
+   from firedrake_fluids.shallow_water import ShallowWater
+   
    sw = ShallowWater(path=os.path.join(cwd, "bump.swml"))
    array = sw.get_turbine_array()
    bump = assemble(array.turbine_drag*dx)

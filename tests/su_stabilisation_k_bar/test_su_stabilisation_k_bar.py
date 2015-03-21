@@ -3,9 +3,9 @@ import pytest
 import numpy
 from firedrake import *
 
-from firedrake_fluids.stabilisation import *
-
 def su_stabilisation_k_bar():
+   from firedrake_fluids.stabilisation import Stabilisation
+   
    errors = []
    for n in [4, 8, 16, 32]:
       mesh = UnitSquareMesh(n, n)

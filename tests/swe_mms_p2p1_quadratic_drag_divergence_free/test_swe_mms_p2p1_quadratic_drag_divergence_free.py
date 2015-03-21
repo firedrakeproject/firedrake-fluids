@@ -3,8 +3,6 @@ import pytest
 import numpy
 from firedrake import *
 
-from firedrake_fluids.shallow_water import *
-
 cwd = os.path.dirname(os.path.abspath(__file__))
 
 @pytest.fixture(scope='session')
@@ -12,6 +10,8 @@ def input():
    os.system("make -C " + cwd)
 
 def swe_mms_p2p1_quadratic_drag_divergence_free():
+   from firedrake_fluids.shallow_water import ShallowWater
+   
    configs = ["MMS_A", "MMS_B", "MMS_C"]
    ux_norms = []
    uy_norms = []

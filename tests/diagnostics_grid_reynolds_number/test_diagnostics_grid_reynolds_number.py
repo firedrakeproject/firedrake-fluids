@@ -12,7 +12,8 @@ def input():
    os.system("make -C " + cwd)
 
 def diagnostics_grid_reynolds_number():
-
+   from firedrake_fluids.diagnostics import Diagnostics
+   
    mesh = UnitSquareMesh(10, 10)
    fs = FunctionSpace(mesh, "CG", 1)
    vfs = VectorFunctionSpace(mesh, "CG", 1)
