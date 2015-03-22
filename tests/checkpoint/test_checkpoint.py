@@ -5,12 +5,10 @@ import pytest
 import numpy
 from firedrake import *
 
-from firedrake_fluids.shallow_water import *
-
 cwd = os.path.dirname(os.path.abspath(__file__))
 
 def checkpoint():
-
+   from firedrake_fluids.shallow_water import ShallowWater
    # Initialise the simulation from scratch.
    sw = ShallowWater(path=os.path.join(cwd, "checkpoint.swml"), checkpoint=None)
    ux_initial = sw.solution_old.split()[0]

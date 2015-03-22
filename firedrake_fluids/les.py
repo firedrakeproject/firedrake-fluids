@@ -21,9 +21,15 @@ from firedrake_fluids import LOG
 class LES:
    """ Module containing models for Large Eddy Simulation (LES). """
 
-   def __init__(self, mesh, function_space):
+   def __init__(self, mesh, fs, u, density, smagorinsky_coefficient):
       self.mesh = mesh
-      self.function_space = function_space
+      self.function_space = fs
+      
+      self.eddy_viscosity = Function(self.function_space)
+      
+      F = self.form(u, density, smagorinsky_coefficient)
+      self.problem = LinearVariationalProblem(lhs(F), rhs(F), self.eddy_viscosity, bcs=[])
+      self.solver = LinearVariationalSolver(self.problem)
       return
       
    def strain_rate_tensor(self, u):
@@ -40,7 +46,7 @@ class LES:
       S = 0.5*(grad(u) + grad(u).T)
       return S
 
-   def eddy_viscosity(self, u, density, smagorinsky_coefficient):
+   def form(self, u, density, smagorinsky_coefficient):
       r""" Define a Form representing the eddy viscosity
       
       .. math:: \left(C_s \Delta_e\right)^2\|\mathbb{S}\|
@@ -69,8 +75,9 @@ class LES:
       second_invariant = sqrt(second_invariant)
       rhs = density*(smagorinsky_coefficient*filter_width)**2*second_invariant
 
-      lhs = inner(w, eddy_viscosity)*dx
-      rhs = inner(w, rhs)*dx
-      
-      return lhs, rhs
+      F = inner(w, eddy_viscosity)*dx - inner(w, rhs)*dx
+      return F
 
+   def solve(self):
+      self.solver.solve()
+      return self.eddy_viscosity

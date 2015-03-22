@@ -3,8 +3,6 @@ import pytest
 import numpy
 from firedrake import *
 
-from firedrake_fluids.shallow_water import *
-
 cwd = os.path.dirname(os.path.abspath(__file__))
 
 @pytest.fixture(scope='session')
@@ -12,11 +10,13 @@ def input():
    os.system("make -C " + cwd)
 
 def swe_standing_wave():
-   sw = ShallowWater(path=os.path.join(cwd, "swe_standing_wave.swml"))
-   sw.run()
-   h_old = sw.solution_old.split()[-1]
+   from firedrake_fluids.shallow_water import ShallowWater
    
-   return h_old.vector().array()
+   sw = ShallowWater(path=os.path.join(cwd, "swe_standing_wave.swml"))
+   solution = sw.run()
+   h = solution.split()[-1]
+   
+   return h.vector().array()
 
 def test_swe_standing_wave(input):
    h_values = numpy.array(swe_standing_wave())

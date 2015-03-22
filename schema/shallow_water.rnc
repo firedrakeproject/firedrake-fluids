@@ -6,6 +6,7 @@ include "turbulence_parameterisation.rnc"
 include "les.rnc"
 include "solvers.rnc"
 include "diagnostics.rnc"
+include "turbines.rnc"
 
 start =
    (
@@ -379,46 +380,7 @@ momentum_equation_options =
             {
                input_choice_real
             }
-         },
-         element turbine_drag
-         {
-            ## The (non-dimensional) drag coefficient which parameterises turbines.
-            element scalar_field 
-            {
-               attribute name { "TurbineDragCoefficient" },
-               element value 
-               {
-                  input_choice_real
-               }
-            },
-            ## The 'radius' of the turbine(s).
-            element turbine_radius
-            {
-               python_code
-            },
-            (
-               ## The turbine drag function type.
-               element turbine_type
-               {
-                  attribute name { "bump" }
-               }|
-               element turbine_type
-               {
-                  attribute name { "tophat" }
-               }
-            ),
-            ## The coordinates of the turbine centres, as a list of tuples.
-            element turbine_coordinates
-            {
-               python_code
-            },
-            ## Output a VTU showing the turbine drag field.
-            element write_turbine_drag
-            {
-               empty
-            }?
-         }?
-
+         }
       }?,
       ## Adds a source term to the RHS of the momentum equation.
       element source_term
@@ -436,7 +398,20 @@ momentum_equation_options =
       element turbulence_parameterisation 
       {
          turbulence_parameterisation
-      }?
+      }?,
+      element turbines
+      {
+         turbines,
+         ## Output a VTU showing the turbine drag field.
+         element write_turbine_drag
+         {
+            empty
+         }?,
+         element optimise
+         {
+            empty
+         }?
+      }?      
    )
 
 velocity_boundary_condition =

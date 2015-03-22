@@ -8,6 +8,7 @@ A collection of numerical models for fluid flow simulation, using the [Firedrake
 
 Firedrake-Fluids depends on:
 * [Firedrake](http://firedrakeproject.org)
+* firedrake-adjoint (part of the [dolfin-adjoint](http://dolfin-adjoint.org/) package)
 * [libspud](https://launchpad.net/spud)
 * [pytest](http://pytest.org) (optional, but required to run `make test`)
 * [gmsh](http://geuz.org/gmsh/) (optional, but required to run some tests)
@@ -62,7 +63,7 @@ from the Firedrake-Fluids `docs` directory. Alternatively, the latest version of
 
 To cite Firedrake-Fluids, please use:
 
-**C. T. Jacobs and M. D. Piggott (2014)**. *Firedrake-Fluids v0.1: numerical modelling of shallow water flows using a performance-portable automated solution framework*, Geosci. Model Dev. Discuss., 7, 5699-5738, [doi:10.5194/gmdd-7-5699-2014](http://dx.doi.org/10.5194/gmdd-7-5699-2014).
+**C. T. Jacobs and M. D. Piggott (2015)**. *Firedrake-Fluids v0.1: numerical modelling of shallow water flows using an automated solution framework*, Geoscientific Model Development 8(3):533-547, DOI:[10.5194/gmd-8-533-2015](http://dx.doi.org/10.5194/gmd-8-533-2015).
 
 ## Build status
 
@@ -74,5 +75,5 @@ If you have any questions about Firedrake-Fluids, please send an email to <c.jac
 
 ## License
 
-Firedrake-Fluids is released under the GNU General Public License. Please see the file called COPYING for more information.
+Firedrake-Fluids is released under the GNU General Public License. Please see the file called `COPYING` for more information.
 

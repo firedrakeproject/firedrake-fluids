@@ -3,33 +3,23 @@ import pytest
 import numpy
 from firedrake import *
 
-from firedrake_fluids.shallow_water import *
-
 cwd = os.path.dirname(os.path.abspath(__file__))
 
 def swe_steady_flow_dirichlet():
+   from firedrake_fluids.shallow_water import ShallowWater
    sw = ShallowWater(path=os.path.join(cwd, "swe_steady_flow_dirichlet.swml"))
-   sw.run()
-   u_old = sw.u_old
-   h_old = sw.h_old
-   
-   vfs = VectorFunctionSpace(sw.mesh, "CG", 2)
-   fs = FunctionSpace(sw.mesh, "CG", 1)
-   u_old = project(u_old, vfs)
-   h_old = project(h_old, fs)
+   solution = sw.run()
+   u_old = solution.split()[0]
+   h_old = solution.split()[1]
    
    return u_old.vector().array(), h_old.vector().array()
    
 def swe_steady_flow_flather():
+   from firedrake_fluids.shallow_water import ShallowWater
    sw = ShallowWater(path=os.path.join(cwd, "swe_steady_flow_flather.swml"))
-   sw.run()
-   u_old = sw.u_old
-   h_old = sw.h_old
-
-   vfs = VectorFunctionSpace(sw.mesh, "CG", 2)
-   fs = FunctionSpace(sw.mesh, "CG", 1)
-   u_old = project(u_old, vfs)
-   h_old = project(h_old, fs)
+   solution = sw.run()
+   u_old = solution.split()[0]
+   h_old = solution.split()[1]
    
    return u_old.vector().array(), h_old.vector().array()
    
@@ -37,8 +27,8 @@ def test_swe_steady_flow():
    
    # First test the version that uses a strong Dirichlet BC along the outflow boundary.
    u_values, h_values = numpy.array(swe_steady_flow_dirichlet())
-   ux_values = u_values[:,0]
-   uy_values = u_values[:,1]
+   ux_values = u_values[0::2]
+   uy_values = u_values[1::2]
    
    ux_max = max(ux_values)
    ux_min = min(ux_values)
@@ -68,8 +58,8 @@ def test_swe_steady_flow():
 
    # Now test the version that uses a Flather boundary condition.
    u_values, h_values = numpy.array(swe_steady_flow_flather())
-   ux_values = u_values[:,0]
-   uy_values = u_values[:,1]
+   ux_values = u_values[0::2]
+   uy_values = u_values[1::2]
    
    ux_max = max(ux_values)
    ux_min = min(ux_values)

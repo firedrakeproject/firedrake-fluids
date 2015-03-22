@@ -111,6 +111,7 @@
         </value>
       </scalar_field>
     </core_fields>
+    <diagnostic_fields/>
     <equations>
       <continuity_equation>
         <spatial_discretisation>

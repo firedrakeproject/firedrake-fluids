@@ -12,7 +12,8 @@ def input():
    os.system("make -C " + cwd)
 
 def diagnostics_grid_reynolds_number():
-
+   from firedrake_fluids.diagnostics import Diagnostics
+   
    mesh = UnitSquareMesh(10, 10)
    fs = FunctionSpace(mesh, "CG", 1)
    vfs = VectorFunctionSpace(mesh, "CG", 1)
@@ -23,7 +24,7 @@ def diagnostics_grid_reynolds_number():
 
    diagnostics = Diagnostics(mesh)
 
-   grid_re_number = diagnostics.grid_reynolds_number(density, velocity, mu)
+   grid_re_number = diagnostics.grid_reynolds_number(velocity, density, mu)
    grid_re_number_exact = Function(fs).interpolate(Expression("2.0*sqrt(pow(x[0], 2) + pow(x[1], 2))*0.1414213562/0.7"))
    norm = sqrt(assemble(dot(grid_re_number - grid_re_number_exact, grid_re_number - grid_re_number_exact) * dx))
    return norm

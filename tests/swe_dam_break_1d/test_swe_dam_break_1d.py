@@ -3,8 +3,6 @@ import pytest
 import numpy
 from firedrake import *
 
-from firedrake_fluids.shallow_water import *
-
 cwd = os.path.dirname(os.path.abspath(__file__))
 
 @pytest.fixture(scope='session')
@@ -12,12 +10,13 @@ def input():
    os.system("make -C " + cwd)
 
 def swe_dam_break_1d():
+   from firedrake_fluids.shallow_water import ShallowWater
    sw = ShallowWater(path=os.path.join(cwd, "swe_dam_break_1d.swml"))
-   sw.run()
-   h_old = sw.solution_old.split()[1]
-   u_old = sw.solution_old.split()[0]
+   solution = sw.run()
+   h = solution.split()[1]
+   u = solution.split()[0]
    
-   return h_old.vector().array(), u_old.vector().array()
+   return h.vector().array(), u.vector().array()
 
 def test_swe_dam_break_1d(input):
    h, u = swe_dam_break_1d()

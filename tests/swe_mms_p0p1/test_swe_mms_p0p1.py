@@ -3,8 +3,6 @@ import pytest
 import numpy
 from firedrake import *
 
-from firedrake_fluids.shallow_water import *
-
 cwd = os.path.dirname(os.path.abspath(__file__))
 
 @pytest.fixture(scope='session')
@@ -12,6 +10,8 @@ def input():
    os.system("make -C " + cwd)
 
 def swe_mms_p0p1():
+   from firedrake_fluids.shallow_water import ShallowWater
+   
    configs = ["MMS_A", "MMS_B", "MMS_C"]
    ux_norms = []
    uy_norms = []
@@ -19,10 +19,10 @@ def swe_mms_p0p1():
    
    for c in configs:
       sw = ShallowWater(path=os.path.join(cwd, c + ".swml"))
-      sw.run()
-      ux_old = sw.solution_old.split()[0][0]
-      uy_old = sw.solution_old.split()[0][1]
-      h_old = sw.solution_old.split()[1]
+      solution = sw.run()
+      ux_old = solution.split()[0][0]
+      uy_old = solution.split()[0][1]
+      h_old = solution.split()[1]
       
       fs_exact_dg = FunctionSpace(sw.mesh, "DG", 3)
       fs_exact_cg = FunctionSpace(sw.mesh, "CG", 3)

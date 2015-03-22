@@ -3,8 +3,6 @@ import pytest
 import numpy
 from firedrake import *
 
-from firedrake_fluids.diagnostics import *
-
 cwd = os.path.dirname(os.path.abspath(__file__))
 
 @pytest.fixture(scope='session')
@@ -12,7 +10,8 @@ def input():
    os.system("make -C " + cwd)
 
 def diagnostics_courant_number():
-
+   from firedrake_fluids.diagnostics import Diagnostics
+   
    mesh = UnitSquareMesh(10, 10)
    fs = FunctionSpace(mesh, "CG", 1)
    vfs = VectorFunctionSpace(mesh, "CG", 1)
