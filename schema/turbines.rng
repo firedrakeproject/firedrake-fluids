@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0">
+<grammar xmlns:a="http://relaxng.org/ns/compatibility/annotations/1.0" xmlns="http://relaxng.org/ns/structure/1.0" datatypeLibrary="">
   <define name="individual_array">
     <element name="array">
       <attribute name="name">
@@ -42,18 +42,21 @@
       <attribute name="name">
         <value>continuum</value>
       </attribute>
-      <element name="scalar_field">
-        <a:documentation>The (non-dimensional) drag coefficient which parameterises turbines.</a:documentation>
-        <attribute name="name">
-          <value>TurbineDragCoefficient</value>
-        </attribute>
-        <element name="value">
-          <ref name="input_choice_real"/>
-        </element>
+      <element name="thrust_coefficient">
+        <a:documentation>Thrust coefficient, C_T</a:documentation>
+        <ref name="real"/>
       </element>
-      <element name="bounds">
-        <a:documentation>The array coordinate bounds as a 4-tuple (or list): [x_min, y_min, x_max, y_max]</a:documentation>
-        <ref name="python_code"/>
+      <element name="turbine_area">
+        <a:documentation>Turbine cross sectional area, A_T</a:documentation>
+        <ref name="real"/>
+      </element>
+      <element name="minimum_distance">
+        <a:documentation>The minimum distance between turbines, D_min</a:documentation>
+        <ref name="real"/>
+      </element>
+      <element name="location">
+        <a:documentation>A C++ string defining the bounds of the turbine array.</a:documentation>
+        <data type="string"/>
       </element>
     </element>
   </define>

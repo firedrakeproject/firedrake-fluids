@@ -40,6 +40,11 @@
       </element>
       <element name="preconditioner">
         <attribute name="name">
+          <value>jacobi</value>
+        </attribute>
+      </element>
+      <element name="preconditioner">
+        <attribute name="name">
           <value>sor</value>
         </attribute>
       </element>

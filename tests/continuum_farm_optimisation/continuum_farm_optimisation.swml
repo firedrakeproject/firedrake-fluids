@@ -46,10 +46,10 @@
       <real_value rank="0">0</real_value>
     </current_time>
     <timestep>
-      <real_value rank="0">50</real_value>
+      <real_value rank="0">25</real_value>
     </timestep>
     <finish_time>
-      <real_value rank="0">200</real_value>
+      <real_value rank="0">2000</real_value>
     </finish_time>
     <theta>
       <real_value rank="0">1.0</real_value>
@@ -153,17 +153,16 @@
         </drag_term>
         <turbines>
           <array name="continuum">
-            <scalar_field name="TurbineDragCoefficient">
-              <value>
-                <cpp>
-                  <string_value type="code" lines="20" language="python">def val():
-  return "x[0] &gt;= 1000.0 &amp;&amp; x[0] &lt;= 2000 &amp;&amp; x[1] &gt;= 250 &amp;&amp; x[1] &lt;= 750 ? 8.5 : 0"</string_value>
-                </cpp>
-              </value>
-            </scalar_field>
-            <bounds>
-              <string_value type="code" lines="20" language="python">["x[0] &gt;= 1000.0 &amp;&amp; x[0] &lt;= 2000 &amp;&amp; x[1] &gt;= 250 &amp;&amp; x[1] &lt;= 750 ? 0 : 0", "x[0] &gt;= 1000.0 &amp;&amp; x[0] &lt;= 2000 &amp;&amp; x[1] &gt;= 250 &amp;&amp; x[1] &lt;= 750 ? 8.5 : 0"]</string_value>
-            </bounds>
+            <thrust_coefficient>
+              <real_value rank="0">0.6</real_value>
+            </thrust_coefficient>
+            <turbine_area>
+              <real_value rank="0">314.15</real_value>
+            </turbine_area>
+            <minimum_distance>
+              <real_value rank="0">40.0</real_value>
+            </minimum_distance>
+            <location>x[0] &gt;= 1000.0 &amp;&amp; x[0] &lt;= 2000 &amp;&amp; x[1] &gt;= 250 &amp;&amp; x[1] &lt;= 750</location>
           </array>
           <optimise/>
         </turbines>
@@ -171,23 +170,7 @@
     </equations>
     <solver>
       <iterative_method name="gmres"/>
-      <preconditioner name="fieldsplit">
-        <type name="schur">
-          <fact_type name="FULL"/>
-        </type>
-        <block_0_ksp_type>
-          <iterative_method name="preonly"/>
-        </block_0_ksp_type>
-        <block_0_pc_type>
-          <preconditioner name="ilu"/>
-        </block_0_pc_type>
-        <block_1_ksp_type>
-          <iterative_method name="preonly"/>
-        </block_1_ksp_type>
-        <block_1_pc_type>
-          <preconditioner name="ilu"/>
-        </block_1_pc_type>
-      </preconditioner>
+      <preconditioner name="jacobi"/>
       <relative_error>
         <real_value rank="0">1e-7</real_value>
       </relative_error>

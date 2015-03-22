@@ -51,7 +51,7 @@ from firedrake_fluids.fields_calculations import *
 from firedrake_fluids.stabilisation import Stabilisation
 from firedrake_fluids.les import LES
 from firedrake_fluids.expression import ExpressionFromOptions
-from firedrake_fluids.turbines import TurbineArray
+from firedrake_fluids.turbines import *
 from firedrake_fluids.metadata import *
 from firedrake_fluids.diagnostics import Diagnostics
 from firedrake_fluids.functionals import *
@@ -313,7 +313,16 @@ class ShallowWater:
       base_option_path = "/system/equations/momentum_equation/turbines"
       # Parameterise the turbine array.
       if(libspud.have_option(base_option_path)):
-         array = TurbineArray(base_option_path, self.mesh)
+         array_type = libspud.get_option(base_option_path + "/array/name")
+         try:
+            if(array_type == "individual"):
+               array = IndividualArray(base_option_path, self.mesh)
+            elif(array_type == "continuum"):
+               array = ContinuumArray(base_option_path, self.mesh)
+            else:
+               raise ValueError("Unknown turbine array type.")
+         except ValueError as e:
+            LOG.exception(e)            
       else:
          array = None
       return array
@@ -554,7 +563,7 @@ class ShallowWater:
          # Form the drag term
          if(array):
             LOG.debug("Momentum equation: Adding turbine drag contribution...")
-            drag_coefficient = bottom_drag + array.turbine_drag
+            drag_coefficient = bottom_drag + array.turbine_drag()
          else:
             drag_coefficient = bottom_drag
          D_momentum = -inner(w, (drag_coefficient*magnitude/H)*u_mid)*dx
@@ -846,42 +855,33 @@ if(__name__ == "__main__"):
          u, h = split(solution)
          #dtm = TimeMeasure()
          #J = Functional(pf.Jm(u, array.turbine_drag, density=1000)*dtm[FINISH_TIME])
-         J = Functional(pf.Jm(u, array.turbine_drag, density=1000))
-         Jc = assemble(pf.Jm(u, array.turbine_drag, density=1000))
-         print assemble(1000.0*array.turbine_drag*dot(u,u)**1.5*dx)
+         J = Functional(pf.Jm(u, array.turbine_drag(), density=1000))
+         Jc = assemble(pf.Jm(u, array.turbine_drag(), density=1000))
+         print assemble(1000.0*array.turbine_drag()*dot(u,u)**1.5*dx)
       
          adj_html("forward.html", "forward")
          adj_html("adjoint.html", "adjoint")
       
-         control = FunctionControl(array.turbine_drag)
+         control = FunctionControl(array.turbine_density)
          dJdc = compute_gradient(J, control, forget=False)
          parameters["adjoint"]["stop_annotating"] = True
          print "Gradient: ", dJdc.vector().array()
 
-         def Jhat(turbine_drag_old):
+         def Jhat(turbine_density_old):
             #array = sw.get_turbine_array()
-            array.turbine_drag.assign(turbine_drag_old)
+            array.turbine_density.assign(turbine_density_old)
             solution = sw.run(array, annotate=False)
             u, h = split(solution)
-            return assemble(pf.Jm(u, array.turbine_drag, density=1000))
+            return assemble(pf.Jm(u, array.turbine_drag(), density=1000))
          #minconv = taylor_test(Jhat, control, Jc, dJdc, seed=0.01)
          #print minconv
          #assert minconv > 1.9
          def eval_cb(j, m):
             print "j =", j
             print "m =", m
-            # Move old vtu files to their own directory
-            for i in range(1, 50):
-               if not os.path.exists("vtus_"+str(i-1)):
-                  os.makedirs("vtus_"+str(i-1))
-                  os.system('mv %s %s' % ("*vtu", "vtus_"+str(i-1)))
-                  os.system('mv %s %s' % ("*pvd", "vtus_"+str(i-1)))
-                  break
-            # Re-run the forward model with the result from the current optimisation iteration.
-            array.turbine_drag.assign(m, annotate=False)
-            sw.run(array, annotate=False)
+
             
-         iteration = Function(sw.function_spaces["FreeSurfaceFunctionSpace"])
+         iteration = Function(array.turbine_density.function_space())
          iterations_file = File("output/iterations.pvd")
          def derivative_cb(j, dj, m):
             iteration.assign(m)
@@ -889,7 +889,7 @@ if(__name__ == "__main__"):
          
          # Optimise the turbine array.
          rf = reduced_functional.ReducedFunctional(J, control, eval_cb=eval_cb, derivative_cb=derivative_cb)
-         opt = optimization.maximize(rf, bounds=[Function(sw.function_spaces["FreeSurfaceFunctionSpace"]).interpolate(Expression(array.bounds[0])), Function(sw.function_spaces["FreeSurfaceFunctionSpace"]).interpolate(Expression(array.bounds[1]))], method="L-BFGS-B")
+         opt = optimization.maximize(rf, bounds=[Function(array.turbine_density.function_space()).interpolate(Expression(array.bounds()[0])), Function(array.turbine_density.function_space()).interpolate(Expression(array.location + "? %f : 0.0" % array.bounds()[1]))], method="L-BFGS-B")
          File("optimised.pvd") << project(opt, sw.function_spaces["FreeSurfaceFunctionSpace"])
 
    else:

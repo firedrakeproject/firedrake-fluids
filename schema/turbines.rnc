@@ -42,20 +42,25 @@ continuum_array =
       element array
       {
          attribute name {"continuum"},
-         
-         ## The (non-dimensional) drag coefficient which parameterises turbines.
-         element scalar_field 
+         ## Thrust coefficient, C_T
+         element thrust_coefficient
          {
-            attribute name { "TurbineDragCoefficient" },
-            element value 
-            {
-               input_choice_real
-            }
+            real
          },
-         ## The array coordinate bounds as a 4-tuple (or list): [x_min, y_min, x_max, y_max]
-         element bounds
+         ## Turbine cross sectional area, A_T
+         element turbine_area
          {
-            python_code
+            real
+         },
+         ## The minimum distance between turbines, D_min
+         element minimum_distance
+         {
+            real
+         },
+         ## A C++ string defining the bounds of the turbine array.
+         element location
+         {
+            string
          }
       }
    )

@@ -38,6 +38,10 @@ preconditioners =
       }|
       element preconditioner
       {
+         attribute name { "jacobi" }
+      }|
+      element preconditioner
+      {
          attribute name { "sor" }
       }|
       element preconditioner
