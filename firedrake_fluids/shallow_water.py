@@ -42,8 +42,8 @@ LOG.debug("Firedrake successfully imported")
 # COFFEE, PyOP2 and FFC parameters
 op2.init(lazy_evaluation=False)
 parameters['form_compiler']['quadrature_degree'] = 4
-parameters["coffee"]["O2"] = False # FIXME: Remove this one this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
-parameters["assembly_cache"]["enabled"] = False
+#parameters["coffee"]["O2"] = False # FIXME: Remove this one this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
+#parameters["assembly_cache"]["enabled"] = False
 
 # Firedrake-Fluids modules
 from firedrake_fluids.utils import *
@@ -889,7 +889,7 @@ if(__name__ == "__main__"):
          
          # Optimise the turbine array.
          rf = reduced_functional.ReducedFunctional(J, control, eval_cb=eval_cb, derivative_cb=derivative_cb)
-         opt = optimization.maximize(rf, bounds=[Function(array.turbine_density.function_space()).interpolate(Expression(array.bounds()[0])), Function(array.turbine_density.function_space()).interpolate(Expression(array.location + "? %f : 0.0" % array.bounds()[1]))], method="L-BFGS-B")
+         opt = optimization.maximize(rf, bounds=[Function(array.turbine_density.function_space()).interpolate(Expression(array.bounds()[0])), Function(array.turbine_density.function_space()).interpolate(Expression(array.location + "? %f : 0.0" % array.bounds()[1]))], method="L-BFGS-B", tol = 2.2e-6, options = {'disp': True, 'gtol': 2.2e-6})
          File("optimised.pvd") << project(opt, sw.function_spaces["FreeSurfaceFunctionSpace"])
 
    else:

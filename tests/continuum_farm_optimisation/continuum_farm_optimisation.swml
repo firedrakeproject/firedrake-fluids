@@ -38,7 +38,7 @@
       <string_value>vtk</string_value>
     </dump_format>
     <dump_period>
-      <real_value rank="0">5.0</real_value>
+      <real_value rank="0">0.0</real_value>
     </dump_period>
   </io>
   <timestepping>
@@ -49,7 +49,7 @@
       <real_value rank="0">25</real_value>
     </timestep>
     <finish_time>
-      <real_value rank="0">2000</real_value>
+      <real_value rank="0">1500</real_value>
     </finish_time>
     <theta>
       <real_value rank="0">1.0</real_value>
@@ -83,7 +83,7 @@
           <type name="flather">
             <exterior_velocity>
               <constant>
-                <real_value shape="2" dim1="dim" rank="1">0.5 0</real_value>
+                <real_value shape="2" dim1="dim" rank="1">2.0 0</real_value>
               </constant>
             </exterior_velocity>
             <exterior_free_surface_perturbation>
@@ -99,7 +99,7 @@
           </surface_ids>
           <type name="dirichlet">
             <constant>
-              <real_value shape="2" dim1="dim" rank="1">0.5 0</real_value>
+              <real_value shape="2" dim1="dim" rank="1">2.0 0</real_value>
             </constant>
           </type>
         </boundary_condition>
@@ -137,7 +137,7 @@
           <scalar_field name="Viscosity">
             <value>
               <constant>
-                <real_value rank="0">1</real_value>
+                <real_value rank="0">0.5</real_value>
               </constant>
             </value>
           </scalar_field>
@@ -160,9 +160,9 @@
               <real_value rank="0">314.15</real_value>
             </turbine_area>
             <minimum_distance>
-              <real_value rank="0">40.0</real_value>
+              <real_value rank="0">20.0</real_value>
             </minimum_distance>
-            <location>x[0] &gt;= 1000.0 &amp;&amp; x[0] &lt;= 2000 &amp;&amp; x[1] &gt;= 250 &amp;&amp; x[1] &lt;= 750</location>
+            <location>x[0] &gt;= 1500.0 &amp;&amp; x[0] &lt;= 2500 &amp;&amp; x[1] &gt;= 1500 &amp;&amp; x[1] &lt;= 2500</location>
           </array>
           <optimise/>
         </turbines>
@@ -170,9 +170,25 @@
     </equations>
     <solver>
       <iterative_method name="gmres"/>
-      <preconditioner name="jacobi"/>
+      <preconditioner name="fieldsplit">
+        <type name="schur">
+          <fact_type name="FULL"/>
+        </type>
+        <block_0_ksp_type>
+          <iterative_method name="preonly"/>
+        </block_0_ksp_type>
+        <block_0_pc_type>
+          <preconditioner name="ilu"/>
+        </block_0_pc_type>
+        <block_1_ksp_type>
+          <iterative_method name="preonly"/>
+        </block_1_ksp_type>
+        <block_1_pc_type>
+          <preconditioner name="ilu"/>
+        </block_1_pc_type>
+      </preconditioner>
       <relative_error>
-        <real_value rank="0">1e-7</real_value>
+        <real_value rank="0">1e-6</real_value>
       </relative_error>
     </solver>
   </system>

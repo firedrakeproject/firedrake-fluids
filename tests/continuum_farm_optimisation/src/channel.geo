@@ -1,9 +1,9 @@
-basin_x = 3e3;
-basin_y = 1e3;
-site_x = 2e3;
-site_y = 0.5e3;
-element_size = 100;
-element_size_coarse = 100;
+basin_x = 4e3;
+basin_y = 4e3;
+site_x = 1e3;
+site_y = 1e3;
+element_size = 200;
+element_size_coarse = 200;
 
 Point(1) = {0, 0, 0, element_size_coarse};
 Point(2) = {basin_x, 0, 0, element_size_coarse};
