@@ -42,7 +42,7 @@ LOG.debug("Firedrake successfully imported")
 # COFFEE, PyOP2 and FFC parameters
 op2.init(lazy_evaluation=False)
 parameters['form_compiler']['quadrature_degree'] = 4
-parameters["coffee"]["O2"] = False # FIXME: Remove this one this issue has been fixed: https://github.com/firedrakeproject/firedrake/issues/425
+parameters["coffee"]["O2"] = False
 
 # Firedrake-Fluids modules
 from firedrake_fluids.utils import *
@@ -51,6 +51,7 @@ from firedrake_fluids.stabilisation import Stabilisation
 from firedrake_fluids.les import LES
 from firedrake_fluids.expression import ExpressionFromOptions
 from firedrake_fluids.metadata import *
+from firedrake_fluids.turbines import *
 from firedrake_fluids.diagnostics import Diagnostics
 LOG.debug("Firedrake-Fluids sub-modules successfully imported.")
 
@@ -257,6 +258,25 @@ class ShallowWater:
       
       return
 
+
+   def get_turbine_array(self):
+      """ Create and return an array of turbines, if desired by the user. """
+      base_option_path = "/system/equations/momentum_equation/turbines"
+      # Parameterise the turbine array.
+      if(libspud.have_option(base_option_path)):
+         array_type = libspud.get_option(base_option_path + "/array/name")
+         try:
+            if(array_type == "individual"):
+               array = IndividualArray(base_option_path, self.mesh)
+            elif(array_type == "continuum"):
+               array = ContinuumArray(base_option_path, self.mesh)
+            else:
+               raise ValueError("Unknown turbine array type.")
+         except ValueError as e:
+            LOG.exception(e)            
+      else:
+         array = None
+      return array
       
    def compute_diagnostics(self):
       diagnostic_field_count = libspud.option_count("/system/diagnostic_fields/diagnostic")
@@ -439,7 +459,7 @@ class ShallowWater:
          if(not dg):
             # Perform a double dot product of the stress tensor and grad(w).
             K_momentum = -viscosity*inner(grad(self.u) + grad(self.u).T, grad(self.w))*dx
-            K_momentum += viscosity*(2.0/3.0)*inner(div(self.u)*Identity(dimension), grad(self.w))*dx
+            #K_momentum += viscosity*(2.0/3.0)*inner(div(self.u)*Identity(dimension), grad(self.w))*dx
          else:
             # Interior penalty method
             cellsize = Constant(0.2) # In general, we should use CellSize(self.mesh) instead.
@@ -465,8 +485,8 @@ class ShallowWater:
          
          # Get the bottom drag/friction coefficient.
          LOG.debug("Momentum equation: Adding bottom drag contribution...")
-         drag_expression = ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=t).get_expression()
-         drag_coefficient = Function(H).interpolate(drag_expression)
+         bottom_drag = ExpressionFromOptions(path=base_option_path+"/scalar_field::BottomDragCoefficient/value", t=t).get_expression()
+         bottom_drag = Function(H).interpolate(bottom_drag)
          
          # Add on the turbine drag, if provided.
          self.array = None
@@ -475,7 +495,13 @@ class ShallowWater:
          magnitude = sqrt(dot(self.u0, self.u0))
          
          # Form the drag term
-         D_momentum = -inner(self.w, (drag_coefficient*magnitude/self.h_total)*u_nl)*dx
+         array = sw.get_turbine_array()
+         if(array):
+            LOG.debug("Momentum equation: Adding turbine drag contribution...")
+            drag_coefficient = bottom_drag + array.turbine_drag()
+         else:
+            drag_coefficient = bottom_drag
+         D_momentum = -inner(self.w, (drag_coefficient*magnitude/self.h_total)*self.u)*dx
          F -= D_momentum
 
       # Add in any source terms
@@ -602,7 +628,7 @@ class ShallowWater:
          
       # Construct the solver objects
       problem_tent = LinearVariationalProblem(lhs(F), rhs(F), u_tent, bcs=bcs_u)
-      solver_tent = LinearVariationalSolver(problem_tent, solver_parameters={'ksp_monitor': True, 
+      solver_tent = LinearVariationalSolver(problem_tent, solver_parameters={'ksp_monitor': False, 
                                                                               'ksp_view': False, 
                                                                               'pc_view': False, 
                                                                               'pc_type': 'sor',
@@ -610,7 +636,7 @@ class ShallowWater:
                                                                               'ksp_rtol': 1.0e-7})
 
       problem_h_corr = LinearVariationalProblem(lhs(F_h_corr), rhs(F_h_corr), h1, bcs=bcs_h)
-      solver_h_corr = LinearVariationalSolver(problem_h_corr, solver_parameters={'ksp_monitor': True, 
+      solver_h_corr = LinearVariationalSolver(problem_h_corr, solver_parameters={'ksp_monitor': False, 
                                                                                  'ksp_view': False, 
                                                                                  'pc_view': False, 
                                                                                  'pc_type': 'sor',
@@ -619,7 +645,7 @@ class ShallowWater:
       
      
       problem_u_corr = LinearVariationalProblem(lhs(F_u_corr), rhs(F_u_corr), u1, bcs=bcs_u2)
-      solver_u_corr = LinearVariationalSolver(problem_u_corr, solver_parameters={'ksp_monitor': True, 
+      solver_u_corr = LinearVariationalSolver(problem_u_corr, solver_parameters={'ksp_monitor': False, 
                                                                                  'ksp_view': False, 
                                                                                  'pc_view': False, 
                                                                                  'pc_type': 'sor',
@@ -697,7 +723,6 @@ class ShallowWater:
             if(steady_state(u1, u_nl, 1e-7)):
                break
             u_nl.assign(u1)
-      
 
          self.u00.assign(self.u0)
          self.u0.assign(u1)
@@ -738,7 +763,7 @@ class ShallowWater:
 
       LOG.debug("Total solver time: %.2f" % (total_solver_time))
 
-      return
+      return u1, h1
 
 if(__name__ == "__main__"):
    import signal
