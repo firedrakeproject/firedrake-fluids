@@ -139,7 +139,7 @@ class ContinuumArray(BaseArray):
       self.turbine_area = libspud.get_option(base_option_path + "/array/turbine_area")
       self.minimum_distance = libspud.get_option(base_option_path + "/array/minimum_distance")
       self.location = libspud.get_option(base_option_path + "/array/location")
-      self.turbine_density = Function(fs, name="TurbineDensity").interpolate(Expression(self.location + "? %f*((double) rand() / (RAND_MAX)) : 0" % self.bounds()[1]))
+      self.turbine_density = Function(fs, name="TurbineDensity").interpolate(Expression(self.location + "? %f : 0" % self.bounds()[1]))
       
       self.optimise = libspud.have_option(base_option_path + "/optimise")
       return
