@@ -46,10 +46,10 @@
       <real_value rank="0">0</real_value>
     </current_time>
     <timestep>
-      <real_value rank="0">25</real_value>
+      <real_value rank="0">1.0</real_value>
     </timestep>
     <finish_time>
-      <real_value rank="0">1500</real_value>
+      <real_value rank="0">1.0</real_value>
     </finish_time>
     <theta>
       <real_value rank="0">1.0</real_value>
@@ -67,41 +67,25 @@
       <vector_field name="Velocity">
         <initial_condition>
           <constant>
-            <real_value shape="2" dim1="dim" rank="1">1e-16 1e-16</real_value>
+            <real_value shape="2" dim1="dim" rank="1">2.0 0</real_value>
           </constant>
         </initial_condition>
-        <boundary_condition name="Sides">
-          <surface_ids>
-            <integer_value shape="2" rank="1">5 6</integer_value>
-          </surface_ids>
-          <type name="no_normal_flow"/>
-        </boundary_condition>
-        <boundary_condition name="Right">
-          <surface_ids>
-            <integer_value shape="1" rank="1">4</integer_value>
-          </surface_ids>
-          <type name="flather">
-            <exterior_velocity>
-              <constant>
-                <real_value shape="2" dim1="dim" rank="1">2.0 0</real_value>
-              </constant>
-            </exterior_velocity>
-            <exterior_free_surface_perturbation>
-              <constant>
-                <real_value rank="0">0</real_value>
-              </constant>
-            </exterior_free_surface_perturbation>
-          </type>
-        </boundary_condition>
         <boundary_condition name="Left">
           <surface_ids>
             <integer_value shape="1" rank="1">3</integer_value>
           </surface_ids>
           <type name="dirichlet">
+            <apply_weakly/>
             <constant>
               <real_value shape="2" dim1="dim" rank="1">2.0 0</real_value>
             </constant>
           </type>
+        </boundary_condition>
+        <boundary_condition name="Sides">
+          <surface_ids>
+            <integer_value shape="2" rank="1">5 6</integer_value>
+          </surface_ids>
+          <type name="no_normal_flow"/>
         </boundary_condition>
       </vector_field>
       <scalar_field name="FreeSurfacePerturbation">
@@ -110,6 +94,16 @@
             <real_value rank="0">0.0</real_value>
           </constant>
         </initial_condition>
+        <boundary_condition name="Right">
+          <surface_ids>
+            <integer_value shape="1" rank="1">4</integer_value>
+          </surface_ids>
+          <type name="dirichlet">
+            <constant>
+              <real_value rank="0">0</real_value>
+            </constant>
+          </type>
+        </boundary_condition>
       </scalar_field>
       <scalar_field name="FreeSurfaceMean">
         <value>
@@ -160,7 +154,7 @@
               <real_value rank="0">314.15</real_value>
             </turbine_area>
             <minimum_distance>
-              <real_value rank="0">20.0</real_value>
+              <real_value rank="0">40.0</real_value>
             </minimum_distance>
             <location>x[0] &gt;= 1500.0 &amp;&amp; x[0] &lt;= 2500 &amp;&amp; x[1] &gt;= 1500 &amp;&amp; x[1] &lt;= 2500</location>
           </array>
@@ -169,26 +163,10 @@
       </momentum_equation>
     </equations>
     <solver>
-      <iterative_method name="gmres"/>
-      <preconditioner name="fieldsplit">
-        <type name="schur">
-          <fact_type name="FULL"/>
-        </type>
-        <block_0_ksp_type>
-          <iterative_method name="preonly"/>
-        </block_0_ksp_type>
-        <block_0_pc_type>
-          <preconditioner name="ilu"/>
-        </block_0_pc_type>
-        <block_1_ksp_type>
-          <iterative_method name="preonly"/>
-        </block_1_ksp_type>
-        <block_1_pc_type>
-          <preconditioner name="ilu"/>
-        </block_1_pc_type>
-      </preconditioner>
+      <iterative_method name="preonly"/>
+      <preconditioner name="lu"/>
       <relative_error>
-        <real_value rank="0">1e-6</real_value>
+        <real_value rank="0">1e-12</real_value>
       </relative_error>
     </solver>
   </system>
