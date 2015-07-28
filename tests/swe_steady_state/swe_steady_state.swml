@@ -1,0 +1,163 @@
+<?xml version='1.0' encoding='utf-8'?>
+<shallow_water_options>
+  <simulation_name>
+    <string_value lines="1">channel_steady_state</string_value>
+  </simulation_name>
+  <geometry>
+    <dimension>
+      <integer_value rank="0">2</integer_value>
+    </dimension>
+    <mesh>
+      <from_file>
+        <relative_path>
+          <string_value lines="1">src/channel.msh</string_value>
+        </relative_path>
+      </from_file>
+    </mesh>
+  </geometry>
+  <function_spaces>
+    <function_space name="VelocityFunctionSpace">
+      <degree>
+        <integer_value rank="0">2</integer_value>
+      </degree>
+      <family>
+        <string_value>Continuous Lagrange</string_value>
+      </family>
+    </function_space>
+    <function_space name="FreeSurfaceFunctionSpace">
+      <degree>
+        <integer_value rank="0">1</integer_value>
+      </degree>
+      <family>
+        <string_value>Continuous Lagrange</string_value>
+      </family>
+    </function_space>
+  </function_spaces>
+  <io>
+    <dump_format>
+      <string_value>vtk</string_value>
+    </dump_format>
+    <dump_period>
+      <real_value rank="0">0.0</real_value>
+    </dump_period>
+  </io>
+  <timestepping>
+    <current_time>
+      <real_value rank="0">0</real_value>
+    </current_time>
+    <timestep>
+      <real_value rank="0">1.0</real_value>
+    </timestep>
+    <finish_time>
+      <real_value rank="0">1.0</real_value>
+    </finish_time>
+    <theta>
+      <real_value rank="0">1.0</real_value>
+    </theta>
+  </timestepping>
+  <physical_parameters>
+    <gravity>
+      <magnitude>
+        <real_value rank="0">9.81</real_value>
+      </magnitude>
+    </gravity>
+  </physical_parameters>
+  <system>
+    <core_fields>
+      <vector_field name="Velocity">
+        <initial_condition>
+          <constant>
+            <real_value shape="2" dim1="dim" rank="1">1e-7 0</real_value>
+          </constant>
+        </initial_condition>
+        <boundary_condition name="Left">
+          <surface_ids>
+            <integer_value shape="1" rank="1">3</integer_value>
+          </surface_ids>
+          <type name="dirichlet">
+            <apply_weakly/>
+            <constant>
+              <real_value shape="2" dim1="dim" rank="1">2.0 0</real_value>
+            </constant>
+          </type>
+        </boundary_condition>
+        <boundary_condition name="Sides">
+          <surface_ids>
+            <integer_value shape="2" rank="1">5 6</integer_value>
+          </surface_ids>
+          <type name="no_normal_flow"/>
+        </boundary_condition>
+      </vector_field>
+      <scalar_field name="FreeSurfacePerturbation">
+        <initial_condition>
+          <constant>
+            <real_value rank="0">0.0</real_value>
+          </constant>
+        </initial_condition>
+        <boundary_condition name="Right">
+          <surface_ids>
+            <integer_value shape="1" rank="1">4</integer_value>
+          </surface_ids>
+          <type name="dirichlet">
+            <constant>
+              <real_value rank="0">0</real_value>
+            </constant>
+          </type>
+        </boundary_condition>
+      </scalar_field>
+      <scalar_field name="FreeSurfaceMean">
+        <value>
+          <constant>
+            <real_value rank="0">50.0</real_value>
+          </constant>
+        </value>
+      </scalar_field>
+    </core_fields>
+    <diagnostic_fields/>
+    <equations>
+      <continuity_equation>
+        <spatial_discretisation>
+          <continuous_galerkin/>
+        </spatial_discretisation>
+        <mass_term>
+          <exclude_mass_term/>
+        </mass_term>
+        <integrate_by_parts/>
+      </continuity_equation>
+      <momentum_equation>
+        <spatial_discretisation>
+          <continuous_galerkin/>
+        </spatial_discretisation>
+        <mass_term>
+          <exclude_mass_term/>
+        </mass_term>
+        <advection_term/>
+        <stress_term>
+          <scalar_field name="Viscosity">
+            <value>
+              <constant>
+                <real_value rank="0">0.5</real_value>
+              </constant>
+            </value>
+          </scalar_field>
+        </stress_term>
+        <drag_term>
+          <scalar_field name="BottomDragCoefficient">
+            <value>
+              <constant>
+                <real_value rank="0">0.0025</real_value>
+              </constant>
+            </value>
+          </scalar_field>
+        </drag_term>
+      </momentum_equation>
+    </equations>
+    <solver>
+      <iterative_method name="preonly"/>
+      <preconditioner name="lu"/>
+      <relative_error>
+        <real_value rank="0">1e-7</real_value>
+      </relative_error>
+    </solver>
+  </system>
+</shallow_water_options>

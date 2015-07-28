@@ -397,6 +397,10 @@ class ShallowWater:
          solver_parameters["fieldsplit_1_ksp_monitor"] = True
          solver_parameters["fieldsplit_0_pc_factor_shift_type"] = 'INBLOCKS'
          solver_parameters["fieldsplit_1_pc_factor_shift_type"] = 'INBLOCKS'
+      
+      if(solver_parameters["ksp_type"] == "preonly" and solver_parameters["pc_type"] == "lu"):
+         parameters["matnest"] = False
+         
       return solver_parameters
 
    def create_output_streams(self):
