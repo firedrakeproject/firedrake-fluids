@@ -260,6 +260,15 @@ fluid at rest (always positive).</a:documentation>
         <empty/>
       </element>
     </element>
+    <element name="mass_term">
+      <a:documentation>Options for the mass term.</a:documentation>
+      <optional>
+        <element name="exclude_mass_term">
+          <a:documentation>Remove the mass term from the equation.</a:documentation>
+          <empty/>
+        </element>
+      </optional>
+    </element>
     <optional>
       <element name="integrate_by_parts">
         <a:documentation>Integrate the divergence term in the continuity equation by parts.

@@ -194,6 +194,7 @@ class ShallowWater:
       self.options["have_momentum_mass"] = (not libspud.have_option("/system/equations/momentum_equation/mass_term/exclude_mass_term"))
       self.options["have_momentum_advection"] = (not libspud.have_option("/system/equations/momentum_equation/advection_term/exclude_advection_term"))
       self.options["have_momentum_stress"] = libspud.have_option("/system/equations/momentum_equation/stress_term")
+      self.options["have_continuity_mass"] = (not libspud.have_option("/system/equations/continuity_equation/mass_term/exclude_mass_term"))
          
       # Source terms for the momentum and continuity equations
       self.options["have_momentum_source"] = libspud.have_option("/system/equations/momentum_equation/source_term")
@@ -571,9 +572,10 @@ class ShallowWater:
       
       # The mass term in the shallow water continuity equation 
       # (i.e. an advection equation for the free surface height, h)
-      LOG.debug("Continuity equation: Adding mass term...")
-      M_continuity = (1.0/dt)*(inner(v, h) - inner(v, h_old))*dx
-      F += M_continuity
+      if(self.options["have_continuity_mass"]):
+         LOG.debug("Continuity equation: Adding mass term...")
+         M_continuity = (1.0/dt)*(inner(v, h) - inner(v, h_old))*dx
+         F += M_continuity
 
       # Append any Expression objects for weak BCs here.
       weak_bc_expressions = []
@@ -625,7 +627,7 @@ class ShallowWater:
                      weak_bc_expressions.append(h_ext)
                      
                   elif(bc_type == "weak_dirichlet"):
-                     u_bdy = ExpressionFromOptions(path = (bc_path + "/type::dirichlet"), t=t).get_expression()
+                     u_bdy = ExpressionFromOptions(path = (bc_path + "/type::dirichlet"), t=0).get_expression()
                      Ct_continuity += H*(dot(Function(self.W.sub(0)).interpolate(u_bdy), n))*v*ds(int(marker))
                      
                      weak_bc_expressions.append(u_bdy)

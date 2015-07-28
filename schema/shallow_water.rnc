@@ -289,7 +289,16 @@ continuity_equation_options =
          {
             empty
          }
-      },      
+      },
+      ## Options for the mass term.
+      element mass_term 
+      {
+         ## Remove the mass term from the equation.
+         element exclude_mass_term 
+         {
+            empty
+         }?
+      },
       ## Integrate the divergence term in the continuity equation by parts.
       ## This allows the imposition of weak boundary conditions for the Velocity field.
       element integrate_by_parts {
