@@ -1,0 +1,186 @@
+<?xml version='1.0' encoding='utf-8'?>
+<shallow_water_options>
+  <simulation_name>
+    <string_value lines="1">element_comparison_turbine_p1dgp2</string_value>
+  </simulation_name>
+  <geometry>
+    <dimension>
+      <integer_value rank="0">2</integer_value>
+    </dimension>
+    <mesh>
+      <from_file>
+        <relative_path>
+          <string_value lines="1">src/channel.msh</string_value>
+        </relative_path>
+      </from_file>
+    </mesh>
+  </geometry>
+  <function_spaces>
+    <function_space name="VelocityFunctionSpace">
+      <degree>
+        <integer_value rank="0">1</integer_value>
+      </degree>
+      <family>
+        <string_value>Discontinuous Lagrange</string_value>
+      </family>
+    </function_space>
+    <function_space name="FreeSurfaceFunctionSpace">
+      <degree>
+        <integer_value rank="0">2</integer_value>
+      </degree>
+      <family>
+        <string_value>Continuous Lagrange</string_value>
+      </family>
+    </function_space>
+  </function_spaces>
+  <io>
+    <dump_format>
+      <string_value>vtk</string_value>
+    </dump_format>
+    <dump_period>
+      <real_value rank="0">0.0</real_value>
+    </dump_period>
+  </io>
+  <timestepping>
+    <current_time>
+      <real_value rank="0">0</real_value>
+    </current_time>
+    <timestep>
+      <real_value rank="0">5.0</real_value>
+    </timestep>
+    <finish_time>
+      <real_value rank="0">600.0</real_value>
+    </finish_time>
+    <theta>
+      <real_value rank="0">1.0</real_value>
+    </theta>
+  </timestepping>
+  <physical_parameters>
+    <gravity>
+      <magnitude>
+        <real_value rank="0">9.81</real_value>
+      </magnitude>
+    </gravity>
+  </physical_parameters>
+  <system>
+    <core_fields>
+      <vector_field name="Velocity">
+        <initial_condition>
+          <constant>
+            <real_value shape="2" dim1="dim" rank="1">1e-7 1e-7</real_value>
+          </constant>
+        </initial_condition>
+        <boundary_condition name="Left">
+          <surface_ids>
+            <integer_value shape="1" rank="1">3</integer_value>
+          </surface_ids>
+          <type name="dirichlet">
+            <apply_weakly/>
+            <constant>
+              <real_value shape="2" dim1="dim" rank="1">2.0 0</real_value>
+            </constant>
+          </type>
+        </boundary_condition>
+        <boundary_condition name="Sides">
+          <surface_ids>
+            <integer_value shape="2" rank="1">5 6</integer_value>
+          </surface_ids>
+          <type name="no_normal_flow"/>
+        </boundary_condition>
+        <boundary_condition name="Right">
+          <surface_ids>
+            <integer_value shape="1" rank="1">4</integer_value>
+          </surface_ids>
+          <type name="flather">
+            <exterior_velocity>
+              <constant>
+                <real_value shape="2" dim1="dim" rank="1">2.0 0</real_value>
+              </constant>
+            </exterior_velocity>
+            <exterior_free_surface_perturbation>
+              <constant>
+                <real_value rank="0">0</real_value>
+              </constant>
+            </exterior_free_surface_perturbation>
+          </type>
+        </boundary_condition>
+      </vector_field>
+      <scalar_field name="FreeSurfacePerturbation">
+        <initial_condition>
+          <constant>
+            <real_value rank="0">0.0</real_value>
+          </constant>
+        </initial_condition>
+      </scalar_field>
+      <scalar_field name="FreeSurfaceMean">
+        <value>
+          <constant>
+            <real_value rank="0">50.0</real_value>
+          </constant>
+        </value>
+      </scalar_field>
+    </core_fields>
+    <diagnostic_fields/>
+    <equations>
+      <continuity_equation>
+        <spatial_discretisation>
+          <continuous_galerkin/>
+        </spatial_discretisation>
+        <mass_term/>
+        <integrate_by_parts/>
+      </continuity_equation>
+      <momentum_equation>
+        <spatial_discretisation>
+          <discontinuous_galerkin/>
+        </spatial_discretisation>
+        <mass_term/>
+        <advection_term>
+          <integrate_by_parts/>
+        </advection_term>
+        <stress_term>
+          <scalar_field name="Viscosity">
+            <value>
+              <constant>
+                <real_value rank="0">10</real_value>
+              </constant>
+            </value>
+          </scalar_field>
+        </stress_term>
+        <drag_term>
+          <scalar_field name="BottomDragCoefficient">
+            <value>
+              <constant>
+                <real_value rank="0">0.0025</real_value>
+              </constant>
+            </value>
+          </scalar_field>
+        </drag_term>
+        <turbines>
+          <array name="individual">
+            <scalar_field name="TurbineDragCoefficient">
+              <value>
+                <constant>
+                  <real_value rank="0">0.6</real_value>
+                </constant>
+              </value>
+            </scalar_field>
+            <turbine_radius>
+              <string_value lines="20" type="code" language="python">(50.0, 50.0)</string_value>
+            </turbine_radius>
+            <turbine_type name="bump"/>
+            <turbine_coordinates>
+              <string_value lines="20" type="code" language="python">[(1500, 500)]</string_value>
+            </turbine_coordinates>
+          </array>
+        </turbines>
+      </momentum_equation>
+    </equations>
+    <solver>
+      <iterative_method name="preonly"/>
+      <preconditioner name="lu"/>
+      <relative_error>
+        <real_value rank="0">1e-7</real_value>
+      </relative_error>
+    </solver>
+  </system>
+</shallow_water_options>
