@@ -5,8 +5,8 @@ preprocess:
 
 run:
 	python ../../firedrake_fluids/shallow_water.py element_comparison_turbine_p2p1.swml
-        python ../../firedrake_fluids/shallow_water.py element_comparison_turbine_p0p1.swml
-        python ../../firedrake_fluids/shallow_water.py element_comparison_turbine_p1dgp2.swml
+	python ../../firedrake_fluids/shallow_water.py element_comparison_turbine_p0p1.swml
+	python ../../firedrake_fluids/shallow_water.py element_comparison_turbine_p1dgp2.swml
 
 clean:
 	rm -f *.pvd *.pvtu *.vtu *.stat *_A* *_B* *_C* *.log matrix* *~ *.pyc nohup.out *.node *.ele *.edge *.html
