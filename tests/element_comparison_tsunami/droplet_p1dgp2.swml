@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <shallow_water_options>
   <simulation_name>
-    <string_value lines="1">droplet_p0p1</string_value>
+    <string_value lines="1">droplet_p1dgp2</string_value>
   </simulation_name>
   <geometry>
     <dimension>
@@ -18,7 +18,7 @@
   <function_spaces>
     <function_space name="VelocityFunctionSpace">
       <degree>
-        <integer_value rank="0">0</integer_value>
+        <integer_value rank="0">1</integer_value>
       </degree>
       <family>
         <string_value>Discontinuous Lagrange</string_value>
@@ -26,7 +26,7 @@
     </function_space>
     <function_space name="FreeSurfaceFunctionSpace">
       <degree>
-        <integer_value rank="0">1</integer_value>
+        <integer_value rank="0">2</integer_value>
       </degree>
       <family>
         <string_value>Continuous Lagrange</string_value>
@@ -115,7 +115,9 @@
           <discontinuous_galerkin/>
         </spatial_discretisation>
         <mass_term/>
-        <advection_term/>
+        <advection_term>
+          <integrate_by_parts/>
+        </advection_term>
         <stress_term>
           <scalar_field name="Viscosity">
             <value>
