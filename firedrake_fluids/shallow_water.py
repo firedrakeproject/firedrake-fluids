@@ -417,7 +417,7 @@ class ShallowWater:
       
       return
       
-   def run(self, array=None, annotate=False):
+   def run(self, array=None, annotate=False, checkpoint=None):
       """ Perform the simulation! """
       
       # The solution field defined on the mixed function space
@@ -426,7 +426,7 @@ class ShallowWater:
       solution_old = Function(self.W, name="SolutionOld", annotate=annotate)
       
       # Assign the initial condition
-      initial_condition = self.get_initial_condition()
+      initial_condition = self.get_initial_condition(checkpoint=checkpoint)
       solution_old.assign(initial_condition, annotate=annotate)
 
       # Get the test functions
@@ -848,7 +848,7 @@ if(__name__ == "__main__"):
 
       # Solve the shallow water equations!
       simulation_start_time = mpi4py.MPI.Wtime()
-      solution = sw.run(array=array, annotate=annotate)
+      solution = sw.run(array=array, annotate=annotate, checkpoint=args.checkpoint)
       simulation_end_time = mpi4py.MPI.Wtime()
       LOG.info("Total forward simulation run-time = %.2f s" % (simulation_end_time - simulation_start_time))
          

@@ -10,14 +10,16 @@ cwd = os.path.dirname(os.path.abspath(__file__))
 def checkpoint():
    from firedrake_fluids.shallow_water import ShallowWater
    # Initialise the simulation from scratch.
-   sw = ShallowWater(path=os.path.join(cwd, "checkpoint.swml"), checkpoint=None)
-   ux_initial = sw.solution_old.split()[0]
-   h_initial = sw.solution_old.split()[1]
+   sw = ShallowWater(path=os.path.join(cwd, "checkpoint.swml"))
+   solution = sw.run(checkpoint=None)
+   ux_initial = solution.split()[0]
+   h_initial = solution.split()[1]
 
    # Initialise the simulation using the data in checkpoint.npy for the initial conditions.
-   sw = ShallowWater(path=os.path.join(cwd, "checkpoint.swml"), checkpoint=os.path.join(cwd, "checkpoint.npy"))
-   ux_initial_from_checkpoint = sw.solution_old.split()[0]
-   h_initial_from_checkpoint = sw.solution_old.split()[1]
+   sw = ShallowWater(path=os.path.join(cwd, "checkpoint.swml"))
+   solution = sw.run(checkpoint=os.path.join(cwd, "checkpoint.npy"))
+   ux_initial_from_checkpoint = solution.split()[0]
+   h_initial_from_checkpoint = solution.split()[1]
    
    return ux_initial.vector().array(), h_initial.vector().array(), ux_initial_from_checkpoint.vector().array(), h_initial_from_checkpoint.vector().array()
    
