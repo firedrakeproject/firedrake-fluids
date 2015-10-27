@@ -5,6 +5,10 @@ from firedrake import *
 
 cwd = os.path.dirname(os.path.abspath(__file__))
 
+@pytest.fixture(scope='session')
+def input():
+   os.system("make -C " + cwd)
+
 def swe_steady_state():
    from firedrake_fluids.shallow_water import ShallowWater
    sw = ShallowWater(path=os.path.join(cwd, "swe_steady_state.swml"))
@@ -14,7 +18,7 @@ def swe_steady_state():
    
    return u_old.vector().array(), h_old.vector().array()
    
-def test_swe_steady_state():
+def test_swe_steady_state(input):
    
    u_values, h_values = numpy.array(swe_steady_state())
    ux_values = u_values[0::2]
