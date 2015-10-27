@@ -121,6 +121,7 @@
         <spatial_discretisation>
           <continuous_galerkin/>
         </spatial_discretisation>
+        <mass_term/>
       </continuity_equation>
       <momentum_equation>
         <spatial_discretisation>

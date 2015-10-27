@@ -100,6 +100,7 @@
         <spatial_discretisation>
           <continuous_galerkin/>
         </spatial_discretisation>
+        <mass_term/>
         <integrate_by_parts/>
       </continuity_equation>
       <momentum_equation>

@@ -119,6 +119,7 @@
         <spatial_discretisation>
           <continuous_galerkin/>
         </spatial_discretisation>
+        <mass_term/>
         <source_term>
           <scalar_field name="Source">
             <value>

@@ -124,6 +124,7 @@
         <spatial_discretisation>
           <continuous_galerkin/>
         </spatial_discretisation>
+        <mass_term/>
         <integrate_by_parts/>
       </continuity_equation>
       <momentum_equation>
@@ -169,11 +170,11 @@
               </value>
             </scalar_field>
             <turbine_radius>
-              <string_value type="code" lines="20" language="python">[2.5, 10.0]</string_value>
+              <string_value lines="20" type="code" language="python">[2.5, 10.0]</string_value>
             </turbine_radius>
             <turbine_type name="tophat"/>
             <turbine_coordinates>
-              <string_value type="code" lines="20" language="python">[(1060, 330),
+              <string_value lines="20" type="code" language="python">[(1060, 330),
 (1060, 500),
 (1060, 670),
 (1280, 330),
