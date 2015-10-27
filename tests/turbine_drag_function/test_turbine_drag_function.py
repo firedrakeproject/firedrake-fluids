@@ -14,11 +14,11 @@ def turbine_drag_function():
    
    sw = ShallowWater(path=os.path.join(cwd, "bump.swml"))
    array = sw.get_turbine_array()
-   bump = assemble(array.turbine_drag*dx)
+   bump = assemble(array.turbine_drag()*dx)
 
    sw = ShallowWater(path=os.path.join(cwd, "tophat.swml"))
    array = sw.get_turbine_array()
-   tophat = assemble(array.turbine_drag*dx)
+   tophat = assemble(array.turbine_drag()*dx)
    
    return bump, tophat
 
@@ -32,9 +32,9 @@ def test_turbine_drag_function(input):
    print "Computed bump integral: %.2f" % bump
 
    assert abs(bump - expected_bump_integral) <= 0.5
-   assert abs(tophat - expected_tophat_integral) <= 55.0
-   assert abs(bump - expected_tophat_integral) <= 55.0
-   assert abs(tophat - bump) < 20.0
+   assert abs(tophat - expected_tophat_integral) <= 200.0 # This value (and the value below) can be set to 55.0 if we use P2 basis functions for the turbine drag field.
+   assert abs(bump - expected_tophat_integral) <= 200.0
+   assert abs(tophat - bump) < 120.0 # This can be set to 20.0 if using P2 basis functions for the turbine drag field.
    
 if __name__ == '__main__':
    pytest.main(os.path.abspath(__file__))
