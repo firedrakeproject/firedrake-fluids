@@ -67,7 +67,7 @@ To cite Firedrake-Fluids, please use:
 
 ## Build status
 
-[Buildbot](http://buildbot.net/) is used to perform automated testing of Firedrake-Fluids each time a change is made to the codebase. The current status of the `master` branch can be found [here](http://buildbot-ocean.ese.ic.ac.uk:8080/builders/firedrake-fluids).
+[Buildbot](http://buildbot.net/) is used to perform automated testing of Firedrake-Fluids each time a change is made to the codebase. The current status of the `master` branch can be found [here](http://buildbot.ese.ic.ac.uk:8080/builders/trusty-firedrake-fluids/).
 
 ## Contact
 
